@@ -26,8 +26,11 @@ use Simtabi\Laranail\Licence\Kit\Enums\OverLimitPolicy;
 use Simtabi\Laranail\Licence\Kit\Enums\TokenFormat;
 use Simtabi\Laranail\Licence\Kit\Enums\TransferStatus;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseActivated;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseCancelled;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseExpired;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseGracePeriodStarted;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseRenewed;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseSuspended;
 
 /**
  * @property string $id
@@ -215,12 +218,16 @@ class License extends Model
     {
         $this->update(['status' => LicenseStatus::Suspended]);
 
+        event(new LicenseSuspended($this));
+
         return $this;
     }
 
     public function cancel(): self
     {
         $this->update(['status' => LicenseStatus::Cancelled]);
+
+        event(new LicenseCancelled($this));
 
         return $this;
     }
@@ -229,6 +236,8 @@ class License extends Model
     {
         if ($this->status === LicenseStatus::Active && $this->isExpired()) {
             $this->update(['status' => LicenseStatus::Grace]);
+
+            event(new LicenseGracePeriodStarted($this));
         }
 
         return $this;
