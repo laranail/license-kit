@@ -1,0 +1,186 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Simtabi\Laranail\Licence\Kit\Services;
+
+use Illuminate\Database\Eloquent\Model;
+use Simtabi\Laranail\Licence\Kit\Contracts\CanReceiveLicenseTransfers;
+use Simtabi\Laranail\Licence\Kit\Enums\TransferType;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TransferValidationException;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseTransfer;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseTransferApproval;
+
+class TransferValidationService
+{
+    public function validateTransferEligibility(
+        License $license,
+        Model $targetEntity,
+        TransferType $transferType
+    ): void {
+        if (! $license->isTransferable()) {
+            throw new TransferValidationException('License is not transferable in its current state');
+        }
+
+        $this->validateCoolingPeriod($license);
+        $this->validateTransferType($license, $targetEntity, $transferType);
+
+        if ($targetEntity instanceof CanReceiveLicenseTransfers) {
+            $this->validateTargetEntity($targetEntity);
+        }
+
+        $this->detectSuspiciousPatterns($license, $targetEntity);
+    }
+
+    protected function validateCoolingPeriod(License $license): void
+    {
+        $coolingDays = (int) config('licensing.transfer.cooling_period_days', 30);
+
+        if ($coolingDays <= 0) {
+            return;
+        }
+
+        /** @var LicenseTransfer|null $lastTransfer */
+        $lastTransfer = $license->transfers()
+            ->where('status', 'completed')
+            ->latest('completed_at')
+            ->first();
+
+        if (! $lastTransfer) {
+            return;
+        }
+
+        $daysSinceLastTransfer = $lastTransfer->completed_at?->diffInDays(now());
+
+        if ($daysSinceLastTransfer < $coolingDays) {
+            throw new TransferValidationException(
+                "Transfer cooling period not met. Please wait {$coolingDays} days between transfers."
+            );
+        }
+    }
+
+    protected function validateTransferType(
+        License $license,
+        Model $targetEntity,
+        TransferType $transferType
+    ): void {
+        $sourceType = class_basename($license->licensable_type);
+        $targetType = class_basename($targetEntity::class);
+
+        $expectedType = match ([$sourceType, $targetType]) {
+            ['User', 'User'] => TransferType::UserToUser,
+            ['User', 'Organization'] => TransferType::UserToOrg,
+            ['Organization', 'User'] => TransferType::OrgToUser,
+            ['Organization', 'Organization'] => TransferType::OrgToOrg,
+            default => null,
+        };
+
+        if ($expectedType && $transferType !== $expectedType &&
+            ! in_array($transferType, [TransferType::Recovery, TransferType::Migration])) {
+            throw new TransferValidationException(
+                "Invalid transfer type. Expected {$expectedType->value}, got {$transferType->value}"
+            );
+        }
+    }
+
+    protected function validateTargetEntity(CanReceiveLicenseTransfers $targetEntity): void
+    {
+        if (! $targetEntity->canReceiveLicenseTransfers()) {
+            throw new TransferValidationException(
+                'Target entity cannot receive license transfers at this time'
+            );
+        }
+
+        if ($targetEntity->hasReachedLicenseLimit()) {
+            throw new TransferValidationException(
+                'Target entity has reached its license limit'
+            );
+        }
+    }
+
+    protected function detectSuspiciousPatterns(License $license, Model $targetEntity): void
+    {
+        $patterns = [];
+
+        if ($this->detectFrequentTransfers($license)) {
+            $patterns[] = 'frequent_transfers';
+        }
+
+        if ($this->detectPingPongPattern($license, $targetEntity)) {
+            $patterns[] = 'ping_pong_transfer';
+        }
+
+        if ($this->detectUnusualValueTransfer($license)) {
+            $patterns[] = 'high_value_transfer';
+        }
+
+        if ($patterns !== []) {
+            $requiresReview = (bool) config('licensing.transfer.suspicious_pattern_requires_review', true);
+
+            if ($requiresReview) {
+                throw new TransferValidationException(
+                    'Transfer blocked due to suspicious patterns'
+                );
+            }
+        }
+    }
+
+    protected function detectFrequentTransfers(License $license): bool
+    {
+        $windowDays = (int) config('licensing.transfer.frequent_transfer_window_days', 90);
+        $threshold = (int) config('licensing.transfer.frequent_transfer_threshold', 3);
+
+        if ($windowDays <= 0 || $threshold <= 0) {
+            return false;
+        }
+
+        $recentTransfers = $license->transfers()
+            ->where('created_at', '>', now()->subDays($windowDays))
+            ->count();
+
+        return $recentTransfers > $threshold;
+    }
+
+    protected function detectPingPongPattern(License $license, Model $targetEntity): bool
+    {
+        /** @var LicenseTransfer|null $lastTransfer */
+        $lastTransfer = $license->transfers()
+            ->where('status', 'completed')
+            ->latest('completed_at')
+            ->first();
+
+        if (! $lastTransfer) {
+            return false;
+        }
+
+        return $lastTransfer->from_licensable_type === $targetEntity::class &&
+               $lastTransfer->from_licensable_id === $targetEntity->getKey();
+    }
+
+    protected function detectUnusualValueTransfer(License $license): bool
+    {
+        if (! $license->template) {
+            return false;
+        }
+
+        $value = $license->template->meta['estimated_value'] ?? null;
+
+        if (! $value) {
+            return false;
+        }
+
+        $highValueThreshold = (int) config('licensing.transfer.high_value_threshold', 10000);
+
+        return $value > $highValueThreshold;
+    }
+
+    public function validateApprovalToken(string $token, LicenseTransferApproval $approval): bool
+    {
+        if ($approval->isExpired()) {
+            return false;
+        }
+
+        return $approval->validateToken($token);
+    }
+}

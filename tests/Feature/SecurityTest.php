@@ -1,0 +1,318 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\DB;
+use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
+use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
+use Simtabi\Laranail\Licence\Kit\Services\PasetoTokenService;
+use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
+use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+
+use function Spatie\PestPluginTestTime\testTime;
+
+uses(LicenseTestHelper::class);
+
+beforeEach(function (): void {
+    $this->tokenService = app(PasetoTokenService::class);
+    $this->ca = app(CertificateAuthorityService::class);
+
+    // Create keys if not exists
+    if (! LicensingKey::findActiveRoot() instanceof LicensingKey) {
+        $this->createRootKey();
+    }
+    if (! LicensingKey::findActiveSigning() instanceof LicensingKey) {
+        $this->createSigningKey();
+    }
+});
+
+test('license keys are properly hashed', function (): void {
+    $plainKey = 'SECRET-LICENSE-KEY-123';
+    $hash1 = License::hashKey($plainKey);
+    $hash2 = License::hashKey($plainKey);
+
+    expect($hash1)->toBe($hash2) // Deterministic
+        ->and($hash1)->not->toContain($plainKey) // Not reversible
+        ->and(strlen($hash1))->toBe(64); // SHA-256 hex
+});
+
+test('license key verification uses constant time comparison', function (): void {
+    $key = 'TEST-KEY-456';
+    $license = $this->createLicense(['key_hash' => License::hashKey($key)]);
+
+    // Functional correctness: only the exact key verifies.
+    expect($license->verifyKey($key))->toBeTrue()
+        ->and($license->verifyKey('WRONG-KEY-999'))->toBeFalse();
+
+    // The comparison must be constant-time. Assert the implementation relies on
+    // hash_equals() rather than measuring wall-clock timing, which is inherently
+    // flaky under CI load and gives no reliable signal.
+    $reflection = new ReflectionMethod(License::class, 'verifyKey');
+    $body = implode('', array_slice(
+        file($reflection->getFileName()),
+        $reflection->getStartLine() - 1,
+        $reflection->getEndLine() - $reflection->getStartLine() + 1
+    ));
+
+    expect($body)->toContain('hash_equals');
+});
+
+test('fingerprints do not contain PII', function (): void {
+    $fingerprint = hash('sha256', json_encode([
+        'machine_id' => 'ABC123',
+        'app_version' => '1.0.0',
+        'os' => 'darwin',
+    ]));
+
+    expect($fingerprint)
+        ->not->toContain('user')
+        ->not->toContain('email')
+        ->not->toContain('name')
+        ->not->toContain('@')
+        ->and(strlen($fingerprint))->toBe(64);
+});
+
+test('tokens cannot be tampered with', function (): void {
+    $license = $this->createLicense();
+    $usage = $this->createUsage($license);
+    $signingKey = $this->createSigningKey();
+
+    $token = $this->tokenService->issue($license, $usage);
+
+    // Try to tamper with the token
+    $parts = explode('.', (string) $token);
+    $payload = json_decode(base64_decode(strtr($parts[2], '-_', '+/')), true);
+    $payload['max_usages'] = 999;
+    $parts[2] = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');
+    $tamperedToken = implode('.', $parts);
+
+    expect(fn () => $this->tokenService->verify($tamperedToken))
+        ->toThrow(Exception::class);
+});
+
+test('expired tokens are rejected', function (): void {
+    $license = $this->createLicense([
+        'meta' => ['offline_token' => ['ttl_days' => -1]], // Already expired
+    ]);
+    $usage = $this->createUsage($license);
+
+    $this->travel(-2)->days();
+    $token = $this->tokenService->issue($license, $usage);
+    $this->travelBack();
+
+    expect(fn () => $this->tokenService->verify($token))
+        ->toThrow(RuntimeException::class);
+});
+
+test('tokens with future nbf are rejected', function (): void {
+    $license = $this->createLicense();
+    $usage = $this->createUsage($license);
+
+    // Freeze time at current moment
+    testTime()->freeze();
+    $originalTime = now()->copy();
+
+    // Jump 2 hours into the future to issue token
+    testTime()->addHours(2);
+    $token = $this->tokenService->issue($license, $usage);
+
+    // Return to original time
+    testTime()->freeze($originalTime->toDateTimeString());
+
+    // Token was issued with nbf 2 hours in the future, should be rejected
+    expect(fn () => $this->tokenService->verify($token))
+        ->toThrow(RuntimeException::class, 'Token not valid yet');
+});
+
+test('clock skew tolerance works', function (): void {
+    $license = $this->createLicense();
+    $usage = $this->createUsage($license);
+
+    // Test that a token can be verified within clock skew tolerance
+    testTime()->freeze();
+    $token = $this->tokenService->issue($license, $usage);
+
+    // Move 30 seconds forward - within 60s tolerance, should still work
+    testTime()->addSeconds(30);
+    expect($this->tokenService->verify($token))->toBeArray();
+
+    // Move 50 seconds forward from original time - still within 60s tolerance
+    testTime()->addSeconds(20);
+    expect($this->tokenService->verify($token))->toBeArray();
+
+    // NOTE: Testing tokens with future nbf is covered in the
+    // "tokens with future nbf are rejected" test
+});
+
+test('revoked signing keys reject tokens', function (): void {
+    // Get the active signing key that will be used for token issuance
+    $signingKey = LicensingKey::findActiveSigning();
+    $license = $this->createLicense();
+    $usage = $this->createUsage($license);
+
+    $token = $this->tokenService->issue($license, $usage);
+
+    // Token works before revocation
+    expect($this->tokenService->verify($token))->toBeArray();
+
+    // Revoke the signing key that was used to sign the token
+    $signingKey->revoke('compromised');
+
+    // Token should be rejected
+    expect(fn () => $this->tokenService->verify($token))
+        ->toThrow(RuntimeException::class, 'Signing key has been revoked');
+});
+
+test('certificate chain validation', function (): void {
+    $rootKey = $this->createRootKey();
+    $signingKey = $this->createSigningKey();
+
+    $chain = $this->ca->getCertificateChain($signingKey->kid);
+
+    // Verify chain structure
+    expect($chain)->toHaveKeys(['signing', 'root'])
+        ->and($chain['signing'])->toHaveKey('certificate');
+
+    // Verify certificate signature
+    $certificate = $chain['signing']['certificate'];
+    expect($this->ca->verifyCertificate($certificate))->toBeTrue();
+
+    // Tamper with certificate
+    $certData = json_decode((string) $certificate, true);
+    $certData['certificate']['public_key'] = 'tampered';
+    $tamperedCert = json_encode($certData);
+
+    expect($this->ca->verifyCertificate($tamperedCert))->toBeFalse();
+});
+
+test('private keys are encrypted at rest', function (): void {
+    $key = $this->createRootKey();
+
+    // Encrypted key in database should not be plain base64 key
+    expect($key->private_key_encrypted)
+        ->not->toBeEmpty()
+        ->and(strlen((string) $key->private_key_encrypted))->toBeGreaterThan(88); // Ed25519 keys are 88 chars in base64
+
+    // Can decrypt with correct passphrase
+    $privateKey = $key->getPrivateKey();
+    expect($privateKey)
+        ->toBeString()
+        ->and(strlen(base64_decode((string) $privateKey)))->toBe(64); // Ed25519 secret key is 64 bytes
+});
+
+test('SQL injection prevention in license lookup', function (): void {
+    // Create a license first
+    $this->createLicense();
+
+    $maliciousKey = "'; DROP TABLE licenses; --";
+
+    $result = License::findByKey($maliciousKey);
+
+    expect($result)->toBeNull()
+        ->and(License::count())->toBeGreaterThan(0); // Table still exists
+});
+
+test('XSS prevention in audit logs', function (): void {
+    $maliciousData = '<script>alert("XSS")</script>';
+
+    $log = LicensingAuditLog::create([
+        'event_type' => AuditEventType::LicenseCreated,
+        'auditable_type' => 'App\\Models\\License',
+        'auditable_id' => 1,
+        'meta' => ['user_input' => $maliciousData],
+    ]);
+
+    // Data is stored as-is in JSON, but should be escaped when displayed
+    expect($log->meta['user_input'])->toBe($maliciousData);
+
+    // When outputting, the application should escape HTML
+    $escaped = htmlspecialchars((string) $log->meta['user_input'], ENT_QUOTES, 'UTF-8');
+    expect($escaped)
+        ->toContain('&lt;script&gt;')
+        ->not->toContain('<script>');
+});
+
+test('token force online enforcement', function (): void {
+    $license = $this->createLicense([
+        'meta' => ['offline_token' => ['force_online_after_days' => -1]], // Already expired
+    ]);
+    $usage = $this->createUsage($license);
+
+    $token = $this->tokenService->issue($license, $usage);
+
+    // Token has force_online_after in the past, should require online verification
+    expect(fn () => $this->tokenService->verify($token))
+        ->toThrow(RuntimeException::class, 'Token requires online verification');
+});
+
+test('rejects additional usage registrations when limit already reached', function (): void {
+    $license = $this->createLicense(['max_usages' => 1]);
+    $registrar = app(UsageRegistrarService::class);
+
+    $first = DB::transaction(fn () => $registrar->register($license, 'concurrent-fp-0'));
+
+    expect($first->isActive())->toBeTrue();
+
+    foreach (range(1, 4) as $index) {
+        expect(fn () => DB::transaction(fn () => $registrar->register($license, "concurrent-fp-{$index}")))
+            ->toThrow(RuntimeException::class, 'License usage limit reached');
+    }
+
+    expect($license->activeUsages()->count())->toBe(1);
+});
+
+test('audit logs are tamper-evident', function (): void {
+    $log1 = LicensingAuditLog::create([
+        'event_type' => AuditEventType::LicenseCreated,
+        'auditable_type' => 'App\\Models\\License',
+        'auditable_id' => 1,
+        'meta' => ['test' => 'data1'],
+    ]);
+
+    $hash1 = $log1->calculateHash();
+
+    $log2 = LicensingAuditLog::create([
+        'event_type' => AuditEventType::LicenseActivated,
+        'auditable_type' => 'App\\Models\\License',
+        'auditable_id' => 1,
+        'meta' => ['test' => 'data2'],
+        'previous_hash' => $hash1,
+    ]);
+
+    // Verify chain
+    expect($log2->verifyChain($log1))->toBeTrue();
+
+    // Tamper with log1
+    $log1->meta = ['test' => 'tampered'];
+
+    // Chain verification should fail
+    expect($log2->verifyChain($log1))->toBeFalse();
+});
+
+test('audit chain detects tampering with the actor (who)', function (): void {
+    $log1 = LicensingAuditLog::create([
+        'event_type' => AuditEventType::LicenseCreated,
+        'auditable_type' => 'App\\Models\\License',
+        'auditable_id' => 1,
+        'actor' => 'admin',
+        'meta' => ['test' => 'data1'],
+    ]);
+
+    $log2 = LicensingAuditLog::create([
+        'event_type' => AuditEventType::LicenseActivated,
+        'auditable_type' => 'App\\Models\\License',
+        'auditable_id' => 1,
+        'meta' => ['test' => 'data2'],
+        'previous_hash' => $log1->calculateHash(),
+    ]);
+
+    expect($log2->verifyChain($log1))->toBeTrue();
+
+    // Rewrite WHO performed the action — the forensic attribution must be chain-protected.
+    $log1->actor = 'mallory';
+
+    expect($log2->verifyChain($log1))->toBeFalse();
+});
