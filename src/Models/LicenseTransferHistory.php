@@ -1,0 +1,264 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Simtabi\Laranail\Licence\Kit\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
+use Override;
+use RuntimeException;
+
+/**
+ * @property int $id
+ * @property int $license_id
+ * @property int $transfer_id
+ * @property string|null $previous_licensable_type
+ * @property string|null $previous_licensable_id
+ * @property string|null $new_licensable_type
+ * @property string|null $new_licensable_id
+ * @property array|null $previous_snapshot
+ * @property array|null $new_snapshot
+ * @property string|null $transfer_type
+ * @property string|null $executed_by_type
+ * @property string|null $executed_by_id
+ * @property bool $usages_preserved
+ * @property bool $expiration_preserved
+ * @property bool $activation_reset
+ * @property int|null $usages_transferred_count
+ * @property int|null $usages_revoked_count
+ * @property string|null $integrity_hash
+ * @property Carbon|null $executed_at
+ */
+class LicenseTransferHistory extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'license_id',
+        'transfer_id',
+        'previous_licensable_type',
+        'previous_licensable_id',
+        'new_licensable_type',
+        'new_licensable_id',
+        'previous_snapshot',
+        'new_snapshot',
+        'transfer_type',
+        'executed_by_type',
+        'executed_by_id',
+        'usages_preserved',
+        'expiration_preserved',
+        'activation_reset',
+        'usages_transferred_count',
+        'usages_revoked_count',
+        'integrity_hash',
+        'executed_at',
+    ];
+
+    protected $casts = [
+        'previous_snapshot' => 'array',
+        'new_snapshot' => 'array',
+        'usages_preserved' => 'boolean',
+        'expiration_preserved' => 'boolean',
+        'activation_reset' => 'boolean',
+        'executed_at' => 'datetime',
+    ];
+
+    #[Override]
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function (self $history): void {
+            if (! $history->executed_at) {
+                $history->executed_at = now();
+            }
+
+            $history->executed_at = $history->executed_at->copy()->setMicro(0);
+
+            $history->integrity_hash = $history->calculateIntegrityHash();
+        });
+
+        static::updating(function (): void {
+            throw new RuntimeException('Transfer history records are immutable');
+        });
+
+        static::deleting(function (): void {
+            throw new RuntimeException('Transfer history records cannot be deleted');
+        });
+    }
+
+    public function license(): BelongsTo
+    {
+        return $this->belongsTo(License::class);
+    }
+
+    public function transfer(): BelongsTo
+    {
+        return $this->belongsTo(LicenseTransfer::class, 'transfer_id');
+    }
+
+    public function previousLicensable(): MorphTo
+    {
+        return $this->morphTo('previous_licensable');
+    }
+
+    public function newLicensable(): MorphTo
+    {
+        return $this->morphTo('new_licensable');
+    }
+
+    public function executedBy(): MorphTo
+    {
+        return $this->morphTo('executed_by');
+    }
+
+    public function scopeForLicense($query, $licenseId)
+    {
+        return $query->where('license_id', $licenseId);
+    }
+
+    public function scopeInvolvedUser($query, $userId)
+    {
+        return $query->where(function ($q) use ($userId): void {
+            $q->where(function ($sub) use ($userId): void {
+                $sub->where('previous_licensable_type', 'App\Models\User')
+                    ->where('previous_licensable_id', $userId);
+            })->orWhere(function ($sub) use ($userId): void {
+                $sub->where('new_licensable_type', 'App\Models\User')
+                    ->where('new_licensable_id', $userId);
+            });
+        });
+    }
+
+    public function scopeInvolvedOrganization($query, $organizationId)
+    {
+        return $query->where(function ($q) use ($organizationId): void {
+            $q->where(function ($sub) use ($organizationId): void {
+                $sub->where('previous_licensable_type', 'App\Models\Organization')
+                    ->where('previous_licensable_id', $organizationId);
+            })->orWhere(function ($sub) use ($organizationId): void {
+                $sub->where('new_licensable_type', 'App\Models\Organization')
+                    ->where('new_licensable_id', $organizationId);
+            });
+        });
+    }
+
+    public function verifyIntegrity(): bool
+    {
+        if (! $this->integrity_hash) {
+            return false;
+        }
+
+        return hash_equals($this->integrity_hash, $this->calculateIntegrityHash());
+    }
+
+    protected function calculateIntegrityHash(): string
+    {
+        $executedAt = $this->executed_at;
+
+        if ($rawExecutedAt = $this->getRawOriginal('executed_at')) {
+            $executedAt = Carbon::parse($rawExecutedAt);
+        }
+
+        // Don't include the ID in the hash calculation since it doesn't exist during creation
+        $data = [
+            'license_id' => $this->license_id,
+            'transfer_id' => $this->transfer_id,
+            'previous_licensable' => $this->previous_licensable_type.':'.$this->previous_licensable_id,
+            'new_licensable' => $this->new_licensable_type.':'.$this->new_licensable_id,
+            'previous_snapshot' => static::canonicalJson($this->previous_snapshot),
+            'new_snapshot' => static::canonicalJson($this->new_snapshot),
+            'transfer_type' => $this->transfer_type,
+            'executed_by' => $this->executed_by_type.':'.$this->executed_by_id,
+            'usages_preserved' => (bool) $this->usages_preserved,
+            'expiration_preserved' => (bool) $this->expiration_preserved,
+            'activation_reset' => (bool) $this->activation_reset,
+            'usages_transferred_count' => (int) $this->usages_transferred_count,
+            'usages_revoked_count' => (int) $this->usages_revoked_count,
+            'executed_at' => $executedAt?->toISOString(),
+        ];
+
+        return hash('sha256', json_encode($data));
+    }
+
+    /**
+     * Serialize a snapshot into a canonical JSON form that survives round-trips
+     * through databases that normalise JSON columns (MySQL re-orders keys and
+     * strips whitespace on write). Both creation and verification use this so
+     * the integrity hash stays stable regardless of driver.
+     */
+    protected static function canonicalJson(mixed $value): string
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $value = $decoded;
+            }
+        }
+
+        if (is_array($value)) {
+            $value = static::recursiveKsort($value);
+        }
+
+        return json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * @param  array<mixed>  $array
+     * @return array<mixed>
+     */
+    protected static function recursiveKsort(array $array): array
+    {
+        foreach ($array as &$value) {
+            if (is_array($value)) {
+                $value = static::recursiveKsort($value);
+            }
+        }
+        unset($value);
+
+        if (array_is_list($array)) {
+            return $array;
+        }
+
+        ksort($array);
+
+        return $array;
+    }
+
+    public function getDiffSummary(): array
+    {
+        $changes = [];
+
+        if ($this->previous_licensable_type !== $this->new_licensable_type ||
+            $this->previous_licensable_id !== $this->new_licensable_id) {
+            $changes['owner'] = [
+                'from' => $this->previous_licensable_type.':'.$this->previous_licensable_id,
+                'to' => $this->new_licensable_type.':'.$this->new_licensable_id,
+            ];
+        }
+
+        if (! $this->usages_preserved) {
+            $changes['usages'] = [
+                'revoked' => $this->usages_revoked_count,
+                'transferred' => $this->usages_transferred_count,
+            ];
+        }
+
+        if ($this->activation_reset) {
+            $changes['activation'] = 'reset';
+        }
+
+        if (! $this->expiration_preserved) {
+            $changes['expiration'] = [
+                'from' => $this->previous_snapshot['expires_at'] ?? null,
+                'to' => $this->new_snapshot['expires_at'] ?? null,
+            ];
+        }
+
+        return $changes;
+    }
+}

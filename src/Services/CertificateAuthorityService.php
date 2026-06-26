@@ -1,0 +1,138 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Simtabi\Laranail\Licence\Kit\Services;
+
+use DateTimeInterface;
+use Exception;
+use RuntimeException;
+use Simtabi\Laranail\Licence\Kit\Contracts\CertificateAuthority;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
+
+class CertificateAuthorityService implements CertificateAuthority
+{
+    public function issueSigningCertificate(
+        string $signingPublicKey,
+        string $kid,
+        DateTimeInterface $validFrom,
+        DateTimeInterface $validUntil,
+        ?LicenseScope $scope = null
+    ): string {
+        $rootKey = LicensingKey::findActiveRoot();
+
+        if (! $rootKey instanceof LicensingKey) {
+            throw new RuntimeException('No active root key found');
+        }
+
+        $certificate = [
+            'kid' => $kid,
+            'public_key' => $signingPublicKey,
+            'valid_from' => $validFrom->format('c'),
+            'valid_until' => $validUntil->format('c'),
+            'issued_at' => now()->format('c'),
+            'issuer_kid' => $rootKey->kid,
+        ];
+
+        if ($scope instanceof LicenseScope) {
+            $certificate['scope'] = $scope->slug;
+            $certificate['scope_identifier'] = $scope->identifier;
+        }
+
+        $certificateJson = json_encode($certificate);
+        $privateKeyBase64 = $rootKey->getPrivateKey();
+
+        if (! $privateKeyBase64) {
+            throw new RuntimeException('Root private key not available');
+        }
+
+        // Sign with Ed25519
+        $privateKey = base64_decode($privateKeyBase64);
+
+        // Ensure the private key is the correct length for Ed25519
+        if (strlen($privateKey) !== SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
+            throw new RuntimeException(sprintf(
+                'Invalid private key length. Expected %d bytes, got %d bytes',
+                SODIUM_CRYPTO_SIGN_SECRETKEYBYTES,
+                strlen($privateKey)
+            ));
+        }
+
+        $signature = sodium_crypto_sign_detached($certificateJson, $privateKey);
+
+        $signedCertificate = [
+            'certificate' => $certificate,
+            'signature' => base64_encode($signature),
+        ];
+
+        return json_encode($signedCertificate);
+    }
+
+    public function verifyCertificate(string $certificate): bool
+    {
+        try {
+            $data = json_decode($certificate, true);
+
+            if (! isset($data['certificate'], $data['signature'])) {
+                return false;
+            }
+
+            $rootKey = LicensingKey::findByKid($data['certificate']['issuer_kid'] ?? '');
+
+            if (! $rootKey || ! $rootKey->isActive()) {
+                return false;
+            }
+
+            $certificateJson = json_encode($data['certificate']);
+            $signature = base64_decode((string) $data['signature']);
+            $publicKey = base64_decode($rootKey->getPublicKey());
+
+            return sodium_crypto_sign_verify_detached($signature, $certificateJson, $publicKey);
+        } catch (Exception) {
+            return false;
+        }
+    }
+
+    public function getCertificateChain(string $kid): array
+    {
+        $signingKey = LicensingKey::findByKid($kid);
+
+        if (! $signingKey instanceof LicensingKey) {
+            throw new RuntimeException("Signing key not found: {$kid}");
+        }
+
+        $rootKey = LicensingKey::findActiveRoot();
+
+        if (! $rootKey instanceof LicensingKey) {
+            throw new RuntimeException('No active root key found');
+        }
+
+        return [
+            'signing' => [
+                'kid' => $signingKey->kid,
+                'public_key' => $signingKey->getPublicKey(),
+                'certificate' => $signingKey->getCertificate(),
+                'valid_from' => $signingKey->valid_from->format('c'),
+                'valid_until' => $signingKey->valid_until?->format('c'),
+            ],
+            'root' => [
+                'kid' => $rootKey->kid,
+                'public_key' => $rootKey->getPublicKey(),
+                'valid_from' => $rootKey->valid_from->format('c'),
+                'valid_until' => $rootKey->valid_until?->format('c'),
+            ],
+        ];
+    }
+
+    public function getRootPublicKey(): string
+    {
+        $rootKey = LicensingKey::findActiveRoot();
+
+        if (! $rootKey instanceof LicensingKey) {
+            throw new RuntimeException('No active root key found');
+        }
+
+        return $rootKey->getPublicKey();
+    }
+}

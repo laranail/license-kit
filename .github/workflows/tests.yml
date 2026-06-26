@@ -1,0 +1,130 @@
+name: Tests
+
+on:
+  push:
+    paths:
+      - '**.php'
+      - '.github/workflows/run-tests.yml'
+      - 'phpunit.xml.dist'
+      - 'composer.json'
+      - 'composer.lock'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        php: [8.5, 8.4, 8.3]
+        laravel: [13.*, 12.*]
+        stability: [prefer-lowest, prefer-stable]
+        include:
+          - laravel: 13.*
+            testbench: ^11.0
+          - laravel: 12.*
+            testbench: ^10.5
+
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo, sodium, gmp
+          coverage: none
+
+      - name: Setup problem matchers
+        run: |
+          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+
+      - name: List Installed Dependencies
+        run: composer show -D
+
+      - name: Execute tests
+        run: vendor/bin/pest --ci
+
+  test-mysql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        db:
+          - image: 'mysql:8.0'
+            driver: 'mysql'
+            health_cmd: 'mysqladmin ping -h 127.0.0.1 --silent'
+          - image: 'mariadb:11'
+            driver: 'mariadb'
+            # MariaDB 11 removed the mysqladmin symlink; use its own helper.
+            health_cmd: 'healthcheck.sh --connect --innodb_initialized'
+
+    name: MySQL - ${{ matrix.db.image }}
+
+    services:
+      db:
+        image: ${{ matrix.db.image }}
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: licensing_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="${{ matrix.db.health_cmd }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_mysql, mysql, bcmath, intl, sodium
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:12.*" "orchestra/testbench:^10.5" --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction
+
+      - name: Wait for database
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -P 3306 -uroot --silent; then
+              echo "Database is ready"
+              exit 0
+            fi
+            echo "Waiting for database..."
+            sleep 2
+          done
+          echo "Database did not become ready in time"
+          exit 1
+
+      - name: Execute tests
+        env:
+          DB_CONNECTION: ${{ matrix.db.driver }}
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: licensing_test
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+        run: vendor/bin/pest --ci

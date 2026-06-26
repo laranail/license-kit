@@ -1,0 +1,256 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Simtabi\Laranail\Licence\Kit\Models;
+
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use RuntimeException;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
+use Simtabi\Laranail\Licence\Kit\Events\TrialConverted;
+use Simtabi\Laranail\Licence\Kit\Events\TrialExpired;
+use Simtabi\Laranail\Licence\Kit\Events\TrialExtended;
+use Simtabi\Laranail\Licence\Kit\Events\TrialStarted;
+
+/**
+ * @property int $id
+ * @property int $license_id
+ * @property string $trial_fingerprint
+ * @property TrialStatus $status
+ * @property Carbon|null $started_at
+ * @property Carbon|null $expires_at
+ * @property Carbon|null $converted_at
+ * @property int $duration_days
+ * @property bool $is_extended
+ * @property int $extension_days
+ * @property string|null $extension_reason
+ * @property ArrayObject|null $limitations
+ * @property array|null $feature_restrictions
+ * @property string|null $conversion_trigger
+ * @property string|null $conversion_value
+ * @property ArrayObject|null $meta
+ */
+class LicenseTrial extends Model
+{
+    protected $fillable = [
+        'license_id',
+        'trial_fingerprint',
+        'status',
+        'started_at',
+        'expires_at',
+        'converted_at',
+        'duration_days',
+        'is_extended',
+        'extension_days',
+        'extension_reason',
+        'limitations',
+        'feature_restrictions',
+        'conversion_trigger',
+        'conversion_value',
+        'meta',
+    ];
+
+    protected $casts = [
+        'status' => TrialStatus::class,
+        'started_at' => 'datetime',
+        'expires_at' => 'datetime',
+        'converted_at' => 'datetime',
+        'duration_days' => 'integer',
+        'is_extended' => 'boolean',
+        'extension_days' => 'integer',
+        'limitations' => AsArrayObject::class,
+        'feature_restrictions' => 'array',
+        'conversion_value' => 'decimal:2',
+        'meta' => AsArrayObject::class,
+    ];
+
+    protected $attributes = [
+        'status' => TrialStatus::Active,
+        'is_extended' => false,
+        'extension_days' => 0,
+    ];
+
+    /** @return BelongsTo<License, self> */
+    public function license(): BelongsTo
+    {
+        return $this->belongsTo(config('licensing.models.license', License::class)); // @phpstan-ignore return.type
+    }
+
+    public function canConvert(): bool
+    {
+        return $this->status === TrialStatus::Active;
+    }
+
+    public function canExtend(): bool
+    {
+        return $this->status === TrialStatus::Active && ! $this->is_extended;
+    }
+
+    public function canCancel(): bool
+    {
+        return $this->status === TrialStatus::Active;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === TrialStatus::Active && ! $this->isExpired();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at && $this->expires_at->startOfDay()->lt(now()->startOfDay());
+    }
+
+    public function daysRemaining(): int
+    {
+        if (! $this->expires_at || ! $this->isActive()) {
+            return 0;
+        }
+
+        return (int) max(0, now()->startOfDay()->diffInDays($this->expires_at->startOfDay(), false));
+    }
+
+    public function start(): self
+    {
+        if ($this->started_at) {
+            throw new RuntimeException('Trial has already been started');
+        }
+
+        $this->update([
+            'started_at' => now(),
+            'expires_at' => now()->addDays($this->duration_days),
+            'status' => TrialStatus::Active,
+        ]);
+
+        event(new TrialStarted($this));
+
+        return $this;
+    }
+
+    public function extend(int $days, ?string $reason = null): self
+    {
+        if (! $this->canExtend()) {
+            throw new RuntimeException('Trial cannot be extended');
+        }
+
+        $this->update([
+            'expires_at' => $this->expires_at->addDays($days),
+            'is_extended' => true,
+            'extension_days' => $days,
+            'extension_reason' => $reason,
+        ]);
+
+        event(new TrialExtended($this, $days, $reason));
+
+        return $this;
+    }
+
+    public function convert(?string $trigger = null, ?float $value = null): License
+    {
+        if (! $this->canConvert()) {
+            throw new RuntimeException('Trial cannot be converted in current status: '.$this->status->value);
+        }
+
+        $this->update([
+            'status' => TrialStatus::Converted,
+            'converted_at' => now(),
+            'conversion_trigger' => $trigger,
+            'conversion_value' => $value,
+        ]);
+
+        /** @var License $license */
+        $license = $this->license;
+
+        if ($license->status !== LicenseStatus::Active) {
+            $license->activate();
+        }
+
+        event(new TrialConverted($this, $license));
+
+        return $license;
+    }
+
+    public function cancel(): self
+    {
+        if (! $this->canCancel()) {
+            throw new RuntimeException('Trial cannot be cancelled in current status: '.$this->status->value);
+        }
+
+        $this->update([
+            'status' => TrialStatus::Cancelled,
+        ]);
+
+        return $this;
+    }
+
+    public function expire(): self
+    {
+        if ($this->status !== TrialStatus::Active) {
+            return $this;
+        }
+
+        $this->update([
+            'status' => TrialStatus::Expired,
+        ]);
+
+        event(new TrialExpired($this));
+
+        return $this;
+    }
+
+    public function hasLimitation(string $key): bool
+    {
+        return isset($this->limitations[$key]);
+    }
+
+    public function getLimitation(string $key, mixed $default = null): mixed
+    {
+        return $this->limitations[$key] ?? $default;
+    }
+
+    public function isFeatureRestricted(string $feature): bool
+    {
+        return in_array($feature, $this->feature_restrictions ?? [], true);
+    }
+
+    public static function hashFingerprint(string $fingerprint): string
+    {
+        return hash_hmac('sha256', $fingerprint, (string) config('app.key'));
+    }
+
+    public static function legacyHashFingerprint(string $fingerprint): string
+    {
+        return hash('sha256', $fingerprint);
+    }
+
+    public function checkFingerprint(string $fingerprint): bool
+    {
+        if (hash_equals($this->trial_fingerprint, static::hashFingerprint($fingerprint))) {
+            return true;
+        }
+
+        return hash_equals($this->trial_fingerprint, static::legacyHashFingerprint($fingerprint));
+    }
+
+    public static function findByFingerprint(string $fingerprint): ?self
+    {
+        return static::where('trial_fingerprint', static::hashFingerprint($fingerprint))
+            ->orWhere('trial_fingerprint', static::legacyHashFingerprint($fingerprint))
+            ->first();
+    }
+
+    public static function hasActiveTrialForFingerprint(string $fingerprint): bool
+    {
+        return static::where('status', TrialStatus::Active)
+            ->where(function ($query) use ($fingerprint): void {
+                $query->where('trial_fingerprint', static::hashFingerprint($fingerprint))
+                    ->orWhere('trial_fingerprint', static::legacyHashFingerprint($fingerprint));
+            })
+            ->exists();
+    }
+}
