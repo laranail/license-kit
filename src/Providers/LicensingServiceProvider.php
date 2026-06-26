@@ -57,6 +57,7 @@ class LicensingServiceProvider extends PackageServiceProvider
         $package
             ->name('license-kit')
             ->hasConfigFile('licensing')
+            ->hasTranslations()
             ->hasMigrations([
                 // Order matters: parents before children, FK targets before FK holders.
                 'create_license_scopes_table',

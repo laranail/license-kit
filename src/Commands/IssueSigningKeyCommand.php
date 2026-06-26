@@ -34,7 +34,7 @@ class IssueSigningKeyCommand extends Command
         $rootKey = LicensingKey::findActiveRoot();
 
         if (! $rootKey instanceof LicensingKey) {
-            $this->line('No active root key found. Run licensing:keys:make-root first.');
+            $this->line(__('license-kit::license-kit.issue_signing.no_root'));
 
             return self::FAILURE;
         }
@@ -46,10 +46,10 @@ class IssueSigningKeyCommand extends Command
             $licenseScope = LicenseScope::findBySlugOrIdentifier($scopeOption);
 
             if (! $licenseScope instanceof LicenseScope) {
-                $this->line("Scope not found: {$scopeOption}");
-                $this->line('Available scopes:');
+                $this->line(__('license-kit::license-kit.issue_signing.scope_not_found', ['scope' => $scopeOption]));
+                $this->line(__('license-kit::license-kit.issue_signing.available_scopes'));
                 LicenseScope::active()->each(function ($scope): void {
-                    $this->line("  - {$scope->slug} ({$scope->name})");
+                    $this->line(__('license-kit::license-kit.issue_signing.scope_line', ['slug' => $scope->slug, 'name' => $scope->name]));
                 });
 
                 return 2;
@@ -67,7 +67,7 @@ class IssueSigningKeyCommand extends Command
             $daysOption = $this->option('days');
 
             if (! is_numeric($daysOption) || (int) $daysOption <= 0) {
-                $this->line('The --days option must be a positive integer.');
+                $this->line(__('license-kit::license-kit.issue_signing.days_positive'));
 
                 return self::FAILURE;
             }
@@ -81,9 +81,9 @@ class IssueSigningKeyCommand extends Command
             $validUntil = $validFrom->modify('+30 days');
         }
 
-        $this->line('Generating signing key pair...');
+        $this->line(__('license-kit::license-kit.issue_signing.generating'));
         if ($this->output->isVerbose()) {
-            $this->line('Generating RSA key pair');
+            $this->line(__('license-kit::license-kit.issue_signing.generating_rsa'));
         }
 
         try {
@@ -103,8 +103,8 @@ class IssueSigningKeyCommand extends Command
             $signingKey->save();
 
             if ($this->output->isVerbose()) {
-                $this->line('Creating certificate');
-                $this->line('Signing certificate with root key');
+                $this->line(__('license-kit::license-kit.issue_signing.creating_cert'));
+                $this->line(__('license-kit::license-kit.issue_signing.signing_cert'));
             }
 
             $certificate = $ca->issueSigningCertificate(
@@ -116,7 +116,7 @@ class IssueSigningKeyCommand extends Command
             );
 
             if ($this->output->isVerbose()) {
-                $this->line('Storing key in keystore');
+                $this->line(__('license-kit::license-kit.issue_signing.storing'));
             }
 
             $signingKey->update(['certificate' => $certificate]);
@@ -133,18 +133,18 @@ class IssueSigningKeyCommand extends Command
                 'console'
             );
 
-            $this->line('Signing key issued successfully');
-            $this->line('Key ID: '.$kid);
+            $this->line(__('license-kit::license-kit.issue_signing.issued'));
+            $this->line(__('license-kit::license-kit.issue_signing.key_id', ['kid' => $kid]));
             if ($licenseScope instanceof LicenseScope) {
-                $this->line('Scope: '.$licenseScope->name.' ('.$licenseScope->slug.')');
+                $this->line(__('license-kit::license-kit.issue_signing.scope', ['name' => $licenseScope->name, 'slug' => $licenseScope->slug]));
             } else {
-                $this->line('Scope: Global');
+                $this->line(__('license-kit::license-kit.issue_signing.scope_global'));
             }
-            $this->line('Valid for: '.$validForDays.' days');
+            $this->line(__('license-kit::license-kit.issue_signing.valid_for', ['days' => $validForDays]));
 
             return self::SUCCESS;
         } catch (Exception $e) {
-            $this->line('Failed to issue signing key: '.$e->getMessage());
+            $this->line(__('license-kit::license-kit.issue_signing.failed', ['error' => $e->getMessage()]));
 
             return 3;
         }

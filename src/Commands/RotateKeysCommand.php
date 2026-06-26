@@ -25,23 +25,23 @@ class RotateKeysCommand extends Command
         $immediate = $this->option('immediate');
 
         if (! in_array($reason, ['routine', 'compromised'])) {
-            $this->line('Invalid reason. Must be "routine" or "compromised".');
+            $this->line(__('license-kit::license-kit.rotate.invalid_reason'));
 
             return 1;
         }
 
         if ($reason === 'compromised' && $immediate) {
-            $this->line('SECURITY: Rotating compromised key immediately...');
+            $this->line(__('license-kit::license-kit.rotate.security_immediate'));
         }
 
         $rootKey = LicensingKey::findActiveRoot();
         if (! $rootKey instanceof LicensingKey) {
-            $this->line('No active root key found.');
+            $this->line(__('license-kit::license-kit.rotate.no_root'));
 
             return 2;
         }
 
-        $this->line('Rotating signing key...');
+        $this->line(__('license-kit::license-kit.rotate.rotating'));
 
         $newKid = 'signing-'.bin2hex(random_bytes(16));
 
@@ -70,16 +70,16 @@ class RotateKeysCommand extends Command
         });
 
         if ($revokedExisting) {
-            $this->line('Current signing key revoked');
+            $this->line(__('license-kit::license-kit.rotate.revoked'));
         }
 
-        $this->line('New signing key issued');
-        $this->line('Key ID: '.$newKid);
+        $this->line(__('license-kit::license-kit.rotate.issued'));
+        $this->line(__('license-kit::license-kit.rotate.key_id', ['kid' => $newKid]));
 
         if ($reason === 'compromised') {
-            $this->line('All tokens signed with the compromised key are now invalid');
-            $this->line('Clients must refresh their tokens immediately');
-            $this->line('IMPORTANT: Update all clients immediately with the new public key bundle.');
+            $this->line(__('license-kit::license-kit.rotate.compromised_invalid'));
+            $this->line(__('license-kit::license-kit.rotate.refresh_clients'));
+            $this->line(__('license-kit::license-kit.rotate.update_clients'));
         }
 
         return 0;

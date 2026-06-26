@@ -31,7 +31,7 @@ class IssueOfflineTokenCommand extends Command
         $ttl = $this->option('ttl');
 
         if (! $licenseRef || ! $fingerprint) {
-            $this->line('Both --license and --fingerprint are required.');
+            $this->line(__('license-kit::license-kit.offline_token.args_required'));
 
             return 1;
         }
@@ -42,7 +42,7 @@ class IssueOfflineTokenCommand extends Command
             : License::findByKey($licenseRef);
 
         if (! $license) {
-            $this->line("License not found: {$licenseRef}");
+            $this->line(__('license-kit::license-kit.offline_token.license_not_found', ['license' => $licenseRef]));
 
             return 2;
         }
@@ -54,7 +54,7 @@ class IssueOfflineTokenCommand extends Command
             ->first();
 
         if (! $usage) {
-            $this->line("No active usage found for fingerprint: {$fingerprint}");
+            $this->line(__('license-kit::license-kit.offline_token.no_usage', ['fingerprint' => $fingerprint]));
 
             return 2;
         }
@@ -62,13 +62,13 @@ class IssueOfflineTokenCommand extends Command
         // Check if signing key is available and not revoked
         $signingKey = LicensingKey::findActiveSigning();
         if (! $signingKey instanceof LicensingKey) {
-            $this->line('No active signing key available');
+            $this->line(__('license-kit::license-kit.offline_token.no_signing'));
 
             return 3;
         }
 
         if ($signingKey->isRevoked()) {
-            $this->line('Signing key is revoked');
+            $this->line(__('license-kit::license-kit.offline_token.signing_revoked'));
 
             return 3;
         }
@@ -81,19 +81,19 @@ class IssueOfflineTokenCommand extends Command
                 'ttl_days' => $ttlDays,
             ]);
 
-            $this->line('Offline token issued successfully');
-            $this->line('Token:');
+            $this->line(__('license-kit::license-kit.offline_token.issued'));
+            $this->line(__('license-kit::license-kit.offline_token.token_label'));
             $this->line($token);
 
             return 0;
         } catch (RuntimeException $e) {
             // Crypto/key errors return code 3
-            $this->line('Failed to issue token: '.$e->getMessage());
+            $this->line(__('license-kit::license-kit.offline_token.failed', ['error' => $e->getMessage()]));
 
             return 3;
         } catch (Exception $e) {
             // Other errors
-            $this->line('Failed to issue token: '.$e->getMessage());
+            $this->line(__('license-kit::license-kit.offline_token.failed', ['error' => $e->getMessage()]));
 
             return 4;
         }

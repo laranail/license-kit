@@ -25,19 +25,19 @@ class RevokeKeyCommand extends Command
         $key = LicensingKey::where('kid', $kid)->first();
 
         if (! $key) {
-            $this->line("Key with KID '{$kid}' not found.");
+            $this->line(__('license-kit::license-kit.revoke.not_found', ['kid' => $kid]));
 
             return 2; // Not found
         }
 
         if ($key->isRevoked()) {
-            $this->line("Key '{$kid}' is already revoked.");
+            $this->line(__('license-kit::license-kit.revoke.already_revoked', ['kid' => $kid]));
 
             return 0;
         }
 
         if (! $this->confirm("Are you sure you want to revoke key {$kid}?")) {
-            $this->line('Revocation cancelled.');
+            $this->line(__('license-kit::license-kit.revoke.cancelled'));
 
             return 0;
         }
@@ -45,9 +45,9 @@ class RevokeKeyCommand extends Command
         $revokedAt = $at ? new DateTimeImmutable($at) : now();
         $key->revoke($reason, $revokedAt);
 
-        $this->line('Key revoked successfully');
-        $this->line('Key ID: '.$kid);
-        $this->line('Reason: '.$reason);
+        $this->line(__('license-kit::license-kit.revoke.revoked'));
+        $this->line(__('license-kit::license-kit.revoke.key_id', ['kid' => $kid]));
+        $this->line(__('license-kit::license-kit.revoke.reason', ['reason' => $reason]));
 
         return 0;
     }

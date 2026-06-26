@@ -20,7 +20,7 @@ class ListKeysCommand extends Command
         $keys = LicensingKey::orderBy('type')->orderBy('created_at', 'desc')->get();
 
         if ($keys->isEmpty()) {
-            $this->line('No keys found.');
+            $this->line(__('license-kit::license-kit.list.no_keys'));
 
             return 0;
         }

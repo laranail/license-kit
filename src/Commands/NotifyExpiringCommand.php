@@ -24,7 +24,7 @@ class NotifyExpiringCommand extends Command
     public function handle(): int
     {
         if (! (bool) config('licensing.notifications.expiring.enabled', false)) {
-            $this->info('Expiring-license notifications are disabled.');
+            $this->info(__('license-kit::license-kit.notify.disabled'));
 
             return 0;
         }
@@ -42,7 +42,7 @@ class NotifyExpiringCommand extends Command
             ->get();
 
         if ((bool) $this->option('dry-run')) {
-            $this->line("[dry-run] would notify for {$expiring->count()} expiring license(s).");
+            $this->line(__('license-kit::license-kit.notify.dry', ['count' => $expiring->count()]));
 
             return 0;
         }
@@ -69,7 +69,7 @@ class NotifyExpiringCommand extends Command
             event(new LicenseExpiringSoon($license, $days));
         });
 
-        $this->info("Expiring-license notifications sent for: {$expiring->count()}");
+        $this->info(__('license-kit::license-kit.notify.sent', ['count' => $expiring->count()]));
 
         return 0;
     }
