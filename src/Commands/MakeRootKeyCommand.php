@@ -21,7 +21,7 @@ class MakeRootKeyCommand extends Command
 
         if ($existingRoot instanceof LicensingKey) {
             if (! $this->option('force')) {
-                $this->line('Active root key already exists. Use --force to replace.');
+                $this->line(__('license-kit::license-kit.make_root.exists'));
 
                 return 1;
             }
@@ -30,7 +30,7 @@ class MakeRootKeyCommand extends Command
                 return 0;
             }
 
-            $this->line('Revoking existing root key...');
+            $this->line(__('license-kit::license-kit.make_root.revoking'));
             $existingRoot->revoke('replaced');
         }
 
@@ -38,14 +38,14 @@ class MakeRootKeyCommand extends Command
             return 3;
         }
 
-        $this->line('Generating root key pair...');
+        $this->line(__('license-kit::license-kit.make_root.generating'));
 
         $rootKey = LicensingKey::generateRootKey();
 
-        $this->line('Root key generated successfully');
-        $this->line('Key ID: '.$rootKey->kid);
-        $this->line('Public key bundle exported to: '.$this->getPublicBundlePath());
-        $this->line('IMPORTANT: Back up your private key and passphrase securely!');
+        $this->line(__('license-kit::license-kit.make_root.generated'));
+        $this->line(__('license-kit::license-kit.make_root.key_id', ['kid' => $rootKey->kid]));
+        $this->line(__('license-kit::license-kit.make_root.bundle_exported', ['path' => $this->getPublicBundlePath()]));
+        $this->line(__('license-kit::license-kit.make_root.backup_warning'));
 
         return 0;
     }
@@ -75,14 +75,14 @@ class MakeRootKeyCommand extends Command
             return false;
         }
 
-        $this->line('Passphrase environment variable LICENSING_KEY_PASSPHRASE not set.');
-        $this->line('A passphrase is required to encrypt generated keys.');
+        $this->line(__('license-kit::license-kit.make_root.passphrase_unset'));
+        $this->line(__('license-kit::license-kit.make_root.passphrase_required'));
 
         for ($attempt = 0; $attempt < 3; $attempt++) {
             $passphrase = (string) $this->secret('Create a new passphrase');
 
             if ($passphrase === '') {
-                $this->line('Passphrase cannot be empty.');
+                $this->line(__('license-kit::license-kit.make_root.passphrase_empty'));
 
                 continue;
             }
@@ -90,7 +90,7 @@ class MakeRootKeyCommand extends Command
             $confirmation = (string) $this->secret('Confirm passphrase');
 
             if ($passphrase !== $confirmation) {
-                $this->line('Passphrases do not match.');
+                $this->line(__('license-kit::license-kit.make_root.passphrase_mismatch'));
 
                 continue;
             }
@@ -98,12 +98,12 @@ class MakeRootKeyCommand extends Command
             config()->set('licensing.crypto.keystore.passphrase', $passphrase);
             LicensingKey::cachePassphrase($passphrase);
 
-            $this->line('Passphrase set for this run.');
+            $this->line(__('license-kit::license-kit.make_root.passphrase_set'));
 
             return true;
         }
 
-        $this->line('Failed to capture passphrase.');
+        $this->line(__('license-kit::license-kit.make_root.passphrase_failed'));
 
         return false;
     }

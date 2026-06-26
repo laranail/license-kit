@@ -35,7 +35,7 @@ class LicenseCommand extends Command
         $license = $this->resolveLicense($value);
 
         if (! $license instanceof License) {
-            $this->error("No license found for: {$value}");
+            $this->error(__('license-kit::license-kit.license.not_found', ['value' => $value]));
 
             return self::FAILURE;
         }
@@ -78,7 +78,7 @@ class LicenseCommand extends Command
         }
 
         $license->{$method}();
-        $this->info("License {$license->uid} → {$license->status->value}.");
+        $this->info(__('license-kit::license-kit.license.transitioned', ['uid' => $license->uid, 'status' => $license->status->value]));
 
         return self::SUCCESS;
     }
@@ -90,7 +90,7 @@ class LicenseCommand extends Command
         }
 
         $license->update(['status' => LicenseStatus::Active]);
-        $this->info("License {$license->uid} reinstated (active).");
+        $this->info(__('license-kit::license-kit.license.reinstated', ['uid' => $license->uid]));
 
         return self::SUCCESS;
     }
@@ -101,14 +101,14 @@ class LicenseCommand extends Command
             return true;
         }
 
-        $this->info('Aborted.');
+        $this->info(__('license-kit::license-kit.license.aborted'));
 
         return false;
     }
 
     private function invalid(string $action): int
     {
-        $this->error("Unknown action: {$action}. Use show|suspend|cancel|revoke|reinstate.");
+        $this->error(__('license-kit::license-kit.license.unknown_action', ['action' => $action]));
 
         return self::FAILURE;
     }

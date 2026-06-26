@@ -26,13 +26,13 @@ class ExportKeysCommand extends Command
         $signingKeys = LicensingKey::activeSigning()->get();
 
         if (! $rootKey instanceof LicensingKey) {
-            $this->line('No active root key found.');
+            $this->line(__('license-kit::license-kit.export.no_root'));
 
             return 2;
         }
 
         if ($signingKeys->isEmpty()) {
-            $this->line('No active signing keys found.');
+            $this->line(__('license-kit::license-kit.export.no_signing'));
         }
 
         $export = match ($format) {
@@ -128,7 +128,7 @@ class ExportKeysCommand extends Command
     private function exportAsPem(LicensingKey $rootKey, $signingKeys, $includeChain): string
     {
         // Ed25519 keys are not in PEM format
-        $this->line('PEM format is not applicable for Ed25519 keys. Using JSON format.');
+        $this->line(__('license-kit::license-kit.export.pem_not_applicable'));
 
         return $this->exportAsJson($rootKey, $signingKeys, $includeChain);
     }

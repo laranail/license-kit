@@ -38,12 +38,12 @@ class CheckInstallationCommand extends Command
         $this->table(['Check', 'Status', 'Details'], $checks);
 
         if ($hasFailure) {
-            $this->error('Installation check failed. Resolve the items marked FAIL above.');
+            $this->error(__('license-kit::license-kit.check.failed'));
 
             return 1;
         }
 
-        $this->info('Installation OK.');
+        $this->info(__('license-kit::license-kit.check.ok'));
 
         return 0;
     }

@@ -49,11 +49,11 @@ class CheckExpirationsCommand extends Command
             : collect();
 
         if ($dryRun) {
-            $this->line("[dry-run] would transition {$toGrace->count()} active licenses to grace.");
-            $this->line("[dry-run] would transition {$toExpired->count()} grace licenses to expired.");
+            $this->line(__('license-kit::license-kit.check_expirations.dry_grace', ['count' => $toGrace->count()]));
+            $this->line(__('license-kit::license-kit.check_expirations.dry_expired', ['count' => $toExpired->count()]));
 
             if ($notify) {
-                $this->line("[dry-run] would notify {$expiringSoon->count()} licenses expiring within {$expiringWithin} days.");
+                $this->line(__('license-kit::license-kit.check_expirations.dry_notify', ['count' => $expiringSoon->count(), 'days' => $expiringWithin]));
             }
 
             return 0;
@@ -68,11 +68,11 @@ class CheckExpirationsCommand extends Command
             });
         }
 
-        $this->info("Transitioned to grace: {$toGrace->count()}");
-        $this->info("Transitioned to expired: {$toExpired->count()}");
+        $this->info(__('license-kit::license-kit.check_expirations.transitioned_grace', ['count' => $toGrace->count()]));
+        $this->info(__('license-kit::license-kit.check_expirations.transitioned_expired', ['count' => $toExpired->count()]));
 
         if ($notify) {
-            $this->info("Expiring-soon notifications dispatched: {$expiringSoon->count()}");
+            $this->info(__('license-kit::license-kit.check_expirations.notifications_dispatched', ['count' => $expiringSoon->count()]));
         }
 
         return 0;
