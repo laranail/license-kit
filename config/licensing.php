@@ -134,4 +134,17 @@ return [
             'days_before' => [30, 14, 7, 3, 1],
         ],
     ],
+
+    /*
+    | Outgoing notifications. Opt-in: the notify-expiring scheduled task only sends
+    | when this is enabled. `to` is a list of admin emails (notified on-demand);
+    | the license owner is also notified when it is a Notifiable model.
+    */
+    'notifications' => [
+        'expiring' => [
+            'enabled' => env('LICENSING_NOTIFY_EXPIRING', false),
+            'channels' => ['mail', 'database'],
+            'to' => [],
+        ],
+    ],
 ];

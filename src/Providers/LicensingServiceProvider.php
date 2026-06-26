@@ -7,6 +7,7 @@ namespace Simtabi\Laranail\Licence\Kit\Providers;
 use function class_exists;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\WorkerStopping;
@@ -19,6 +20,7 @@ use Simtabi\Laranail\Licence\Kit\Commands\IssueOfflineTokenCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\IssueSigningKeyCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\MakeRootKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\NotifyExpiringCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\RevokeKeyCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\RotateKeysCommand;
 use Simtabi\Laranail\Licence\Kit\Contracts\AuditLogger;
@@ -80,6 +82,7 @@ class LicensingServiceProvider extends PackageServiceProvider
                 CheckInstallationCommand::class,
                 CheckExpirationsCommand::class,
                 CleanupUsagesCommand::class,
+                NotifyExpiringCommand::class,
             ]);
 
         if (config('licensing.api.enabled')) {
@@ -100,6 +103,40 @@ class LicensingServiceProvider extends PackageServiceProvider
     public function packageBooted(): void
     {
         $this->registerRateLimiters();
+        $this->registerSchedule();
+    }
+
+    /**
+     * Register the scheduled maintenance tasks declared in the `scheduler` config
+     * (previously the config was inert — nothing scheduled the commands).
+     */
+    protected function registerSchedule(): void
+    {
+        $this->app->booted(function (): void {
+            $schedule = $this->app->make(Schedule::class);
+            $config = (array) config('licensing.scheduler', []);
+
+            if (($config['check_expirations']['enabled'] ?? false)) {
+                $schedule->command(CheckExpirationsCommand::class)
+                    ->dailyAt((string) ($config['check_expirations']['time'] ?? '02:00'))
+                    ->name('license-kit:check-expirations')
+                    ->withoutOverlapping();
+            }
+
+            if (($config['cleanup_inactive_usages']['enabled'] ?? false)) {
+                $schedule->command(CleanupUsagesCommand::class)
+                    ->dailyAt((string) ($config['cleanup_inactive_usages']['time'] ?? '03:00'))
+                    ->name('license-kit:cleanup-usages')
+                    ->withoutOverlapping();
+            }
+
+            if (($config['notify_expiring']['enabled'] ?? false)) {
+                $schedule->command(NotifyExpiringCommand::class)
+                    ->dailyAt((string) ($config['notify_expiring']['time'] ?? '09:00'))
+                    ->name('license-kit:notify-expiring')
+                    ->withoutOverlapping();
+            }
+        });
     }
 
     protected function registerServices(): void
