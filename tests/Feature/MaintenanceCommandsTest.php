@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
@@ -23,6 +24,28 @@ test('licensing:check passes after root and signing keys exist', function (): vo
     $this->artisan('licensing:check')
         ->expectsOutputToContain('Installation OK.')
         ->assertExitCode(0);
+});
+
+test('licensing:check --json reports the enhanced crypto checks', function (): void {
+    $this->createSigningKey();
+
+    Artisan::call('licensing:check', ['--json' => true]);
+    $output = Artisan::output();
+
+    expect($output)
+        ->toContain('Key salt')
+        ->toContain('Crypto extension')
+        ->toContain('Key storage');
+    expect(Artisan::call('licensing:check', ['--json' => true]))->toBe(0);
+});
+
+test('licensing:check fails when the key salt is not configured', function (): void {
+    $this->createSigningKey();
+    config()->set('licensing.key_salt', '');
+
+    $this->artisan('licensing:check')
+        ->expectsOutputToContain('Key salt')
+        ->assertExitCode(1);
 });
 
 test('licensing:check-expirations transitions active expired licenses to grace', function (): void {
