@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Exceptions;
 
-use Exception;
+use Throwable;
 
-class TransferNotAllowedException extends Exception
+class TransferNotAllowedException extends LicenseKitException
 {
     protected string $reason;
 
-    public function __construct(string $message = '', string $reason = '', int $code = 0, ?Exception $previous = null)
+    public function __construct(string $message = '', string $reason = '', int $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
         $this->reason = $reason ?: $message;

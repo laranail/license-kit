@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Exceptions;
 
-use Exception;
+use Throwable;
 
-class TransferValidationException extends Exception
+class TransferValidationException extends LicenseKitException
 {
-    public function __construct(string $message = '', protected array $errors = [], int $code = 0, ?Exception $previous = null)
+    public function __construct(string $message = '', protected array $errors = [], int $code = 0, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
