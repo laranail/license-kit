@@ -5,8 +5,11 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Event;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseActivated;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseCancelled;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseExpired;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseGracePeriodStarted;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseRenewed;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseSuspended;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
@@ -122,6 +125,19 @@ test('can suspend and cancel license', function (): void {
 
     $license->cancel();
     expect($license->status)->toBe(LicenseStatus::Cancelled);
+});
+
+test('dispatches events on suspend / cancel / grace transitions', function (): void {
+    Event::fake();
+
+    $this->createLicense(['status' => LicenseStatus::Active])->suspend();
+    Event::assertDispatched(LicenseSuspended::class);
+
+    $this->createLicense(['status' => LicenseStatus::Active])->cancel();
+    Event::assertDispatched(LicenseCancelled::class);
+
+    $this->createLicense(['status' => LicenseStatus::Active, 'expires_at' => now()->subDay()])->transitionToGrace();
+    Event::assertDispatched(LicenseGracePeriodStarted::class);
 });
 
 test('can check if license is usable', function (): void {
