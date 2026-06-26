@@ -18,6 +18,7 @@ use Simtabi\Laranail\Licence\Kit\Commands\CleanupUsagesCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\ExportKeysCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\IssueOfflineTokenCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\IssueSigningKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\LicenseCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\MakeRootKeyCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\NotifyExpiringCommand;
@@ -83,6 +84,7 @@ class LicensingServiceProvider extends PackageServiceProvider
                 CheckExpirationsCommand::class,
                 CleanupUsagesCommand::class,
                 NotifyExpiringCommand::class,
+                LicenseCommand::class,
             ]);
 
         if (config('licensing.api.enabled')) {
