@@ -1376,7 +1376,7 @@ Default prefix: `api/licensing/v1` (configurable via `config('licensing.api.pref
 
 ## Support & Resources
 
-- **Documentation**: `/docs/README.md`
+- **Documentation**: `/docs/` (index in the root `README.md` Documentation section)
 - **API Reference**: `/docs/api/`
 - **Security Guide**: `/docs/advanced/security.md`
 - **Examples**: `/docs/examples/`

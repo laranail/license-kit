@@ -3,7 +3,7 @@
 ## Requirements
 
 - **PHP** 8.4.1 or higher
-- **Laravel** 12 or 13
+- **Laravel** 13
 - **Database** MySQL 8.0+ / PostgreSQL 12+ / SQLite 3.8.8+
 - **Extensions**:
   - OpenSSL (for cryptographic operations)
