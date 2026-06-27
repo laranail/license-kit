@@ -47,7 +47,7 @@ Yes. The package includes:
 
 ### What are the system requirements?
 
-- **PHP**: 8.3 or higher
+- **PHP**: 8.4.1 or higher
 - **Laravel**: 12/13
 - **Database**: MySQL 8.0+, PostgreSQL 12+, or SQLite
 - **Extensions**: OpenSSL, Sodium (for PASETO)

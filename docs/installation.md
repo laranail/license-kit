@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- **PHP** 8.3 or higher
+- **PHP** 8.4.1 or higher
 - **Laravel** 12 or 13
 - **Database** MySQL 8.0+ / PostgreSQL 12+ / SQLite 3.8.8+
 - **Extensions**:
@@ -399,7 +399,7 @@ Error: Call to undefined function sodium_crypto_sign_keypair()
 **Solution**: Install the Sodium PHP extension:
 ```bash
 # Ubuntu/Debian
-sudo apt-get install php8.3-sodium
+sudo apt-get install php8.4-sodium
 
 # macOS with Homebrew
 brew install libsodium

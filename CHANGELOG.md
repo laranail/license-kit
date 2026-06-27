@@ -2,6 +2,26 @@
 
 All notable changes to `laranail/license-kit` will be documented in this file.
 
+## [Unreleased]
+
+### Changed (BREAKING)
+
+- **Migrated off `spatie/laravel-package-tools` onto `laranail/package-tools` + `laranail/console`.**
+  The PHP floor rises `^8.3` → `^8.4.1 || ^8.5` (via `laranail/console`'s `symfony/tui` dependency).
+  The service provider now extends laranail's `PackageServiceProvider` and the command base extends
+  laranail/console's `Command` (with the `SupportsNamespacedNames` trait). `config('licensing.*')` and
+  the `license-kit::` translations are preserved via `->withoutConfigNamespacing()` and
+  `->hasTranslations('license-kit')`.
+- **Config/asset publish tags changed** to the laranail-derived scheme — e.g.
+  `--tag=laranail::license-kit-config` (was `licensing-config`); likewise `…-migrations`,
+  `…-translations`, `…-views`.
+
+### Added
+
+- The kit now participates in the unified `laranail::package-tools.doctor` — its installation
+  checks are registered via `->hasDoctorChecks()`, and `licensing:check` renders through the shared
+  doctor reporter. The HTTP `/health` endpoint is unchanged.
+
 ## 2.2.0 - 2026-06-24
 
 ### Security

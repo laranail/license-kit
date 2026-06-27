@@ -9,8 +9,8 @@ use Simtabi\Laranail\Licence\Kit\Models\License;
 
 /**
  * Administer a single license from the CLI: inspect it or change its lifecycle
- * state. Uses plain Illuminate prompts/tables (the kit stays on PHP ^8.3 and does
- * not depend on laranail/console).
+ * state. Uses plain Illuminate prompts/tables (it needs none of laranail/console's
+ * richer services, though the kit now extends that command base).
  *
  * Note: the kit has no distinct "revoked" status — `revoke` is a synonym for
  * `cancel` (terminal Cancelled state).
