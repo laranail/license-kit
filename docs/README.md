@@ -129,7 +129,7 @@ $apiCallsLimit = $license->getEntitlement('api_calls_per_month');
 
 ## Requirements
 
-- PHP 8.3+
+- PHP 8.4.1+
 - Laravel 12 or 13
 - `ext-openssl` and `ext-sodium`
 

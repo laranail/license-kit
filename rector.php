@@ -13,7 +13,8 @@ return RectorConfig::configure()
         __DIR__.'/tests',
     ])
     ->withSkipPath(__DIR__.'/vendor')
-    // Kit floor is PHP ^8.3 — pin Rector to php83 so no newer-only syntax slips below the floor.
+    // Kit floor is PHP ^8.4.1 (via laranail/console), but Rector is deliberately pinned to
+    // php83 — conservative syntax matching package-tools' own pin; avoids needless 8.4-idiom churn.
     ->withPhpSets(php83: true)
     ->withSets([
         SetList::CODE_QUALITY,
