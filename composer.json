@@ -30,18 +30,22 @@
         "source": "https://github.com/laranail/license-kit",
         "docs": "https://opensource.simtabi.com/license-kit/docs/"
     },
+    "repositories": [
+        { "type": "path", "url": "../../package/tools" },
+        { "type": "path", "url": "../../tools/console" }
+    ],
     "require": {
-        "php": "^8.3",
+        "php": "^8.4.1 || ^8.5",
         "ext-openssl": "*",
         "ext-sodium": "*",
-        "illuminate/console": "^12.0 || ^13.0",
-        "illuminate/contracts": "^12.0 || ^13.0",
-        "illuminate/database": "^12.0 || ^13.0",
-        "illuminate/http": "^12.0 || ^13.0",
-        "illuminate/support": "^12.0 || ^13.0",
+        "illuminate/console": "^13.0",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/http": "^13.0",
+        "illuminate/support": "^13.0",
+        "laranail/package-tools": "^1.0",
         "paragonie/paseto": "^3.5",
         "spatie/crypto": "^2.0",
-        "spatie/laravel-package-tools": "^1.16",
         "spatie/laravel-sluggable": "^4.0.0",
         "symfony/uid": "^7.0 || ^8.0"
     },
