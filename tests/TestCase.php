@@ -20,7 +20,7 @@ use Simtabi\Laranail\Licence\Kit\Observers\LicenseUsageObserver;
 use Simtabi\Laranail\Licence\Kit\Observers\LicensingAuditLogObserver;
 use Simtabi\Laranail\Licence\Kit\Observers\LicensingKeyObserver;
 use Simtabi\Laranail\Licence\Kit\Providers\LicensingServiceProvider;
-use Spatie\LaravelPackageTools\Package;
+use Simtabi\Laranail\Package\Tools\Package;
 use Spatie\Sluggable\SluggableServiceProvider;
 
 class TestCase extends Orchestra
@@ -161,8 +161,8 @@ class TestCase extends Orchestra
     protected function packageMigrationFileNames(): array
     {
         $package = new Package;
-        $package->setBasePath(__DIR__.'/..');
-        $package->name('laravel-licensing');
+        $package->setPathFrom(__DIR__.'/..');
+        $package->name('laranail/license-kit');
 
         (new LicensingServiceProvider($this->app))->configurePackage($package);
 

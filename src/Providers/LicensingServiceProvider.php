@@ -12,6 +12,7 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Support\Facades\RateLimiter;
+use Override;
 use Simtabi\Laranail\Licence\Kit\Commands\CheckExpirationsCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\CheckInstallationCommand;
 use Simtabi\Laranail\Licence\Kit\Commands\CleanupUsagesCommand;
@@ -47,17 +48,18 @@ use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
 use Simtabi\Laranail\Licence\Kit\Services\FingerprintResolverService;
 use Simtabi\Laranail\Licence\Kit\Services\TemplateService;
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
 
 class LicensingServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
         $package
-            ->name('license-kit')
+            ->name('laranail/license-kit')
             ->hasConfigFile('licensing')
-            ->hasTranslations()
+            ->withoutConfigNamespacing()
+            ->hasTranslations('license-kit')
             ->hasMigrations([
                 // Order matters: parents before children, FK targets before FK holders.
                 'create_license_scopes_table',
@@ -93,6 +95,7 @@ class LicensingServiceProvider extends PackageServiceProvider
         }
     }
 
+    #[Override]
     public function packageRegistered(): void
     {
         $this->registerServices();
@@ -103,6 +106,7 @@ class LicensingServiceProvider extends PackageServiceProvider
         $this->registerPassphraseCleanup();
     }
 
+    #[Override]
     public function packageBooted(): void
     {
         $this->registerRateLimiters();
