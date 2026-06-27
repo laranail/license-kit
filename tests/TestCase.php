@@ -21,6 +21,7 @@ use Simtabi\Laranail\Licence\Kit\Observers\LicensingAuditLogObserver;
 use Simtabi\Laranail\Licence\Kit\Observers\LicensingKeyObserver;
 use Simtabi\Laranail\Licence\Kit\Providers\LicensingServiceProvider;
 use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Package\Tools\Providers\PackageToolsServiceProvider;
 use Spatie\Sluggable\SluggableServiceProvider;
 
 class TestCase extends Orchestra
@@ -80,6 +81,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
+            PackageToolsServiceProvider::class,
             LicensingServiceProvider::class,
             SluggableServiceProvider::class,
         ];
