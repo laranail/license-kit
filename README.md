@@ -20,7 +20,7 @@ A licensing package for Laravel with offline verification, seat management, cryp
 ## Requirements
 
 - PHP 8.4.1+
-- Laravel 12 or 13
+- Laravel 13
 - `ext-openssl` and `ext-sodium`
 
 ## Installation
@@ -204,7 +204,40 @@ To verify the integration end-to-end against a throwaway Laravel app, run `scrip
 
 ## Documentation
 
-Full documentation is available in the [docs](docs/README.md) folder.
+Full documentation lives in [`docs/`](docs/):
+
+**Getting Started**
+- [Quick Start](docs/getting-started.md) — up and running in 5 minutes
+- [Installation](docs/installation.md) — detailed setup instructions
+- [Configuration](docs/configuration.md) — configure the package for your needs
+- [Basic Usage](docs/basic-usage.md) — common use cases and examples
+
+**Core Concepts**
+- [Licenses](docs/core/licenses.md) — license management and lifecycle
+- [Usage & Seats](docs/core/usage-seats.md) — usage registration and seat management
+- [Templates & Tiers](docs/core/templates-tiers.md) — template-based licensing
+- [Renewals](docs/core/renewals.md) — license renewal system
+
+**Features**
+- [Offline Verification](docs/features/offline-verification.md) — offline token system with PASETO
+- [Trial Management](docs/features/trials.md) — trial licenses and conversion
+- [License Transfers](docs/features/transfers.md) — transfer licenses between entities
+- [Audit Logging](docs/features/audit-logging.md) — append-only audit trail
+- [Scope Templates](docs/features/scope-templates.md) — scope-aware template management
+
+**API Reference**
+- [Models](docs/api/models.md) · [Services](docs/api/services.md) · [Events](docs/api/events.md) · [Commands](docs/api/commands.md) · [Contracts](docs/api/contracts.md) · [Enums](docs/api/enums.md)
+
+**Advanced**
+- [Security](docs/advanced/security.md) — security architecture and best practices
+- [Key Management](docs/advanced/key-management.md) — cryptographic key lifecycle
+- [Multi-Software Keys](docs/advanced/multi-software-keys.md) — scoped signing keys for multiple products
+- [Performance](docs/advanced/performance.md) — optimization and scaling
+
+**Guides, Client Libraries & Reference**
+- [Practical Examples](docs/examples/practical-examples.md)
+- [Client Library Architecture](docs/client-libraries/architecture.md) · [Client Implementation Guide](docs/CLIENT_IMPLEMENTATION_GUIDE.md)
+- [FAQ](docs/reference/faq.md) · [Troubleshooting](docs/reference/troubleshooting.md)
 
 ## Contributing
 
