@@ -20,13 +20,8 @@ function routeByName(string $name): Route
 }
 
 test('license API routes expose expected URIs and middleware', function (): void {
-    if (! RouteFacade::has('licensing.validate')) {
-        $routeFile = realpath(__DIR__.'/../../../routes/api.php');
-        expect($routeFile)->not->toBeFalse('Package API routes file not found');
-        require $routeFile;
-        RouteFacade::getRoutes()->refreshNameLookups();
-    }
-
+    // Routes are registered by the provider at boot (see the regression test below) — no
+    // manual require needed.
     $prefix = config('licensing.api.prefix');
 
     $activateRoute = routeByName('licensing.activate');
@@ -54,6 +49,18 @@ test('license API routes expose expected URIs and middleware', function (): void
 
     $tokenRoute = routeByName('licensing.token.issue');
     expect($tokenRoute->uri())->toBe($prefix.'/token');
+});
+
+// Regression: the provider must register the API routes ITSELF, from the merged config
+// default (`licensing.api.enabled => true`), with no manual require/publish. Before the
+// boot-time fix the gate ran in configurePackage() — before the package config was merged —
+// so config('licensing.api.enabled') was null and the routes were silently never registered.
+test('the provider registers API routes from the merged config default', function (): void {
+    expect(config('licensing.api.enabled'))->toBeTrue();
+
+    expect(RouteFacade::has('licensing.activate'))->toBeTrue('Provider should register API routes at boot');
+    expect(RouteFacade::has('licensing.validate'))->toBeTrue();
+    expect(RouteFacade::has('licensing.health'))->toBeTrue();
 });
 
 // Regression test for issue #4: controller classes were missing in v1.0.3,
