@@ -91,10 +91,6 @@ class LicensingServiceProvider extends PackageServiceProvider
                 LicenseCommand::class,
             ])
             ->hasDoctorChecks(Checks::all());
-
-        if (config('licensing.api.enabled')) {
-            $package->hasRoute('api');
-        }
     }
 
     #[Override]
@@ -113,6 +109,20 @@ class LicensingServiceProvider extends PackageServiceProvider
     {
         $this->registerRateLimiters();
         $this->registerSchedule();
+        $this->registerApiRoutes();
+    }
+
+    /**
+     * Load the API routes when enabled — at boot, where the merged config (including
+     * the package default) is authoritative. Gating at configurePackage() time reads
+     * config before the package config is merged, so an app that has not published the
+     * config would silently never register the API routes (the default is `true`).
+     */
+    private function registerApiRoutes(): void
+    {
+        if (config('licensing.api.enabled')) {
+            $this->loadRoutesFrom($this->package->basePath('/routes/api.php'));
+        }
     }
 
     /**
