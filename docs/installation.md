@@ -31,16 +31,16 @@ Or publish specific resources:
 
 ```bash
 # Configuration only
-php artisan vendor:publish --tag=licensing-config
+php artisan vendor:publish --tag=laranail::license-kit-config
 
 # Migrations only
-php artisan vendor:publish --tag=licensing-migrations
+php artisan vendor:publish --tag=laranail::license-kit-migrations
 
 # Language files
-php artisan vendor:publish --tag=licensing-lang
+php artisan vendor:publish --tag=laranail::license-kit-translations
 
 # Views (if using built-in UI)
-php artisan vendor:publish --tag=licensing-views
+php artisan vendor:publish --tag=laranail::license-kit-views
 ```
 
 ### 3. Configure Database
@@ -356,12 +356,12 @@ aws s3 sync $BACKUP_DIR s3://backups/licensing/
    ```
 3. Publish and run new migrations:
    ```bash
-   php artisan vendor:publish --tag=licensing-migrations --force
+   php artisan vendor:publish --tag=laranail::license-kit-migrations --force
    php artisan migrate
    ```
 4. Update configuration:
    ```bash
-   php artisan vendor:publish --tag=licensing-config --force
+   php artisan vendor:publish --tag=laranail::license-kit-config --force
    ```
 5. Review breaking changes in [CHANGELOG](reference/changelog.md)
 

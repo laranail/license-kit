@@ -668,7 +668,7 @@ php artisan migrate:status
 php artisan migrate
 
 # Update configuration
-php artisan vendor:publish --tag=licensing-config --force
+php artisan vendor:publish --tag=laranail::license-kit-config --force
 
 # Clear all caches
 php artisan optimize:clear

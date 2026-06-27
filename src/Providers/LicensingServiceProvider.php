@@ -34,6 +34,7 @@ use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
 use Simtabi\Laranail\Licence\Kit\Contracts\TokenIssuer;
 use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
 use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
+use Simtabi\Laranail\Licence\Kit\Doctor\Checks;
 use Simtabi\Laranail\Licence\Kit\LicenceKit;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
@@ -88,7 +89,8 @@ class LicensingServiceProvider extends PackageServiceProvider
                 CleanupUsagesCommand::class,
                 NotifyExpiringCommand::class,
                 LicenseCommand::class,
-            ]);
+            ])
+            ->hasDoctorChecks(Checks::all());
 
         if (config('licensing.api.enabled')) {
             $package->hasRoute('api');
