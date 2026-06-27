@@ -40,7 +40,7 @@ resources/boost/guidelines/laravel-licensing/
 
 - Requirements: PHP 8.3–8.5, Laravel 12/13.
 - Install: `composer require laranail/license-kit`.
-- Publish: `php artisan vendor:publish --tag=licensing-config|licensing-migrations`.
+- Publish: `php artisan vendor:publish --tag=laranail::license-kit-config|laranail::license-kit-migrations`.
 - Entities: `License`, `LicenseUsage`, `LicenseRenewal`, `LicenseScope`, `LicenseTemplate`, `LicenseTrial`.
 - Polymorphic `licensable` morphTo — bind license to any model.
 - Morph map: register aliases via `config('licensing.morph_map')` to hide app class names.
