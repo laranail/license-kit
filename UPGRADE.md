@@ -1,5 +1,31 @@
 # Upgrade Guide
 
+## Upgrading to the unreleased laranail-toolchain version
+
+The kit was migrated off `spatie/laravel-package-tools` onto `laranail/package-tools` +
+`laranail/console`. This is a breaking change.
+
+**Impact:**
+
+- **PHP floor rises `^8.3` → `^8.4.1 || ^8.5`** (pulled in transitively by `laranail/console`'s
+  `symfony/tui` dependency). Hosts on PHP 8.3 must upgrade.
+- **Config/asset publish tags changed** to the laranail-derived scheme. Re-run publishing with the
+  new tags:
+  - `--tag=licensing-config` → `--tag=laranail::license-kit-config`
+  - `--tag=licensing-migrations` → `--tag=laranail::license-kit-migrations`
+  - `--tag=licensing-lang` → `--tag=laranail::license-kit-translations`
+  - `--tag=licensing-views` → `--tag=laranail::license-kit-views`
+
+**No change required:**
+
+- `config('licensing.*')` keys are unchanged (the provider opts out of vendor config namespacing).
+- `license-kit::…` translation keys are unchanged (registered under the short alias).
+- All Artisan command names/aliases (`laranail::license-kit.*` / `licensing:*`) are unchanged.
+- The HTTP `/health` endpoint contract is unchanged.
+
+**Action required:** bump your project's PHP to ≥ 8.4.1 and, if you publish package assets, switch to
+the new `--tag` values above.
+
 ## Upgrading within 2.1.x
 
 ### Audit chain hash formula changed
