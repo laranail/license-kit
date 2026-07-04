@@ -1,8 +1,9 @@
-# License Kit
+# laranail/license-kit
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/laranail/license-kit.svg?style=flat-square)](https://packagist.org/packages/laranail/license-kit)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/laranail/license-kit/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/laranail/license-kit/actions?query=workflow%3ATests+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/laranail/license-kit.svg?style=flat-square)](https://packagist.org/packages/laranail/license-kit)
+[![Latest version on Packagist](https://img.shields.io/packagist/v/laranail/license-kit.svg)](https://packagist.org/packages/laranail/license-kit)
+[![Tests](https://github.com/laranail/license-kit/actions/workflows/tests.yml/badge.svg)](https://github.com/laranail/license-kit/actions/workflows/tests.yml)
+[![Static analysis](https://github.com/laranail/license-kit/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/laranail/license-kit/actions/workflows/static-analysis.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A licensing package for Laravel with offline verification, seat management, cryptographic key rotation, and multi-product support.
 
@@ -202,42 +203,50 @@ The guidelines cover: core concepts, licenses, usages/seats, scopes & templates,
 
 To verify the integration end-to-end against a throwaway Laravel app, run `scripts/test-boost-e2e.sh` from the package root.
 
-## Documentation
+## <a name="documentation"></a>Documentation
 
-Full documentation lives in [`docs/`](docs/):
+Hosted at [`opensource.simtabi.com/license-kit/docs/`](https://opensource.simtabi.com/license-kit/docs/).
+The same pages live under [`docs/`](docs/):
 
-**Getting Started**
-- [Quick Start](docs/getting-started.md) — up and running in 5 minutes
-- [Installation](docs/installation.md) — detailed setup instructions
-- [Configuration](docs/configuration.md) — configure the package for your needs
-- [Basic Usage](docs/basic-usage.md) — common use cases and examples
+### Guides
 
-**Core Concepts**
-- [Licenses](docs/core/licenses.md) — license management and lifecycle
-- [Usage & Seats](docs/core/usage-seats.md) — usage registration and seat management
-- [Templates & Tiers](docs/core/templates-tiers.md) — template-based licensing
-- [Renewals](docs/core/renewals.md) — license renewal system
+- [Getting started](docs/getting-started.md) — up and running in 5 minutes.
+- [Installation](docs/installation.md) — detailed setup instructions.
+- [Configuration](docs/configuration.md) — configure the package for your needs.
+- [Basic usage](docs/basic-usage.md) — common use cases and examples.
+- [Practical examples](docs/examples/practical-examples.md) — end-to-end recipes.
 
-**Features**
-- [Offline Verification](docs/features/offline-verification.md) — offline token system with PASETO
-- [Trial Management](docs/features/trials.md) — trial licenses and conversion
-- [License Transfers](docs/features/transfers.md) — transfer licenses between entities
-- [Audit Logging](docs/features/audit-logging.md) — append-only audit trail
-- [Scope Templates](docs/features/scope-templates.md) — scope-aware template management
+### Concepts
 
-**API Reference**
-- [Models](docs/api/models.md) · [Services](docs/api/services.md) · [Events](docs/api/events.md) · [Commands](docs/api/commands.md) · [Contracts](docs/api/contracts.md) · [Enums](docs/api/enums.md)
+- [Licenses](docs/core/licenses.md) — license management and lifecycle.
+- [Usage & seats](docs/core/usage-seats.md) — usage registration and seat management.
+- [Templates & tiers](docs/core/templates-tiers.md) — template-based licensing.
+- [Renewals](docs/core/renewals.md) — the license renewal system.
 
-**Advanced**
-- [Security](docs/advanced/security.md) — security architecture and best practices
-- [Key Management](docs/advanced/key-management.md) — cryptographic key lifecycle
-- [Multi-Software Keys](docs/advanced/multi-software-keys.md) — scoped signing keys for multiple products
-- [Performance](docs/advanced/performance.md) — optimization and scaling
+### Features
 
-**Guides, Client Libraries & Reference**
-- [Practical Examples](docs/examples/practical-examples.md)
-- [Client Library Architecture](docs/client-libraries/architecture.md) · [Client Implementation Guide](docs/CLIENT_IMPLEMENTATION_GUIDE.md)
-- [FAQ](docs/reference/faq.md) · [Troubleshooting](docs/reference/troubleshooting.md)
+- [Offline verification](docs/features/offline-verification.md) — offline token system with PASETO.
+- [Trial management](docs/features/trials.md) — trial licenses and conversion.
+- [License transfers](docs/features/transfers.md) — transfer licenses between entities.
+- [Audit logging](docs/features/audit-logging.md) — append-only audit trail.
+- [Scope templates](docs/features/scope-templates.md) — scope-aware template management.
+
+### Reference
+
+- API: [Models](docs/api/models.md) · [Services](docs/api/services.md) · [Events](docs/api/events.md) · [Commands](docs/api/commands.md) · [Contracts](docs/api/contracts.md) · [Enums](docs/api/enums.md).
+- [FAQ](docs/reference/faq.md) · [Troubleshooting](docs/reference/troubleshooting.md).
+- Client: [Library architecture](docs/client-libraries/architecture.md) · [Implementation guide](docs/CLIENT_IMPLEMENTATION_GUIDE.md).
+
+### Advanced
+
+- [Security](docs/advanced/security.md) — security architecture and best practices.
+- [Key management](docs/advanced/key-management.md) — cryptographic key lifecycle.
+- [Multi-software keys](docs/advanced/multi-software-keys.md) — scoped signing keys for multiple products.
+- [Performance](docs/advanced/performance.md) — optimization and scaling.
+
+### Project
+
+- [Changelog](CHANGELOG.md) — release history.
 
 ## Contributing
 
