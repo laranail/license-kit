@@ -10,7 +10,7 @@
         "offline-verification",
         "laranail"
     ],
-    "homepage": "https://opensource.simtabi.com/license-kit/",
+    "homepage": "https://opensource.simtabi.com/documentation/laranail/license-kit/",
     "license": "MIT",
     "authors": [
         {
@@ -28,7 +28,7 @@
     "support": {
         "issues": "https://github.com/laranail/license-kit/issues",
         "source": "https://github.com/laranail/license-kit",
-        "docs": "https://opensource.simtabi.com/license-kit/docs/"
+        "docs": "https://opensource.simtabi.com/documentation/laranail/license-kit/"
     },
     "repositories": [
         { "type": "path", "url": "../../package/tools" },
