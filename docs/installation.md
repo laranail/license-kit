@@ -363,7 +363,7 @@ aws s3 sync $BACKUP_DIR s3://backups/licensing/
    ```bash
    php artisan vendor:publish --tag=laranail::license-kit-config --force
    ```
-5. Review breaking changes in [CHANGELOG](reference/changelog.md)
+5. Review breaking changes in [CHANGELOG](../CHANGELOG.md)
 
 ## Uninstallation
 
