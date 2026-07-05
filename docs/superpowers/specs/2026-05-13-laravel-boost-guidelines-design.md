@@ -143,3 +143,7 @@ No `composer.json` changes required — Boost scans by convention. README gets a
 - README updated with Boost section.
 - Compile-smoke test green.
 - CHANGELOG entry under Unreleased.
+
+---
+
+[← Docs index](../../../README.md#documentation)

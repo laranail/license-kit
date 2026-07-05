@@ -642,3 +642,7 @@ Fix in place, re-run, re-commit with a focused message. Do NOT amend prior commi
 - **No placeholders:** every Blade snippet is complete. Test code is complete.
 - **Type consistency:** model FQNs (`Simtabi\Laranail\Licence\Kit\Models\*`) consistent across files; config keys (`licensing.policies.over_limit`, `licensing.offline_token.ttl_days`, etc.) match `CLAUDE.md` spec.
 - **No source code changes:** plan is pure docs + tests, matches spec "out of scope" exclusions.
+
+---
+
+[← Docs index](../../../README.md#documentation)

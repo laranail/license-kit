@@ -825,3 +825,7 @@ Event::assertDispatched(LicenseActivated::class);
 ```
 
 This comprehensive event system allows you to build reactive applications that respond to licensing changes with custom business logic, notifications, and integrations.
+
+---
+
+[← Docs index](../../README.md#documentation)

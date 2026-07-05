@@ -626,3 +626,7 @@ class LicenseTest extends TestCase
 ```
 
 Enums provide type safety, better IDE support, and encapsulate business logic related to state management in the Laravel Licensing package. They make the codebase more maintainable and reduce errors from invalid state values.
+
+---
+
+[← Docs index](../../README.md#documentation)

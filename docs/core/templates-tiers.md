@@ -902,3 +902,7 @@ class TemplateMigration
 ```
 
 The Templates & Tiers system provides powerful configuration management for licensing, enabling you to create flexible, maintainable license structures that can evolve with your business needs.
+
+---
+
+[← Docs index](../../README.md#documentation)

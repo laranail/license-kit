@@ -138,3 +138,7 @@ class LicensingLoadTest
 ```
 
 Performance optimization focuses on database efficiency, strategic caching, and proper indexing to handle high-volume licensing operations.
+
+---
+
+[← Docs index](../../README.md#documentation)

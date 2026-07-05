@@ -746,3 +746,7 @@ app()->bind(UsageRegistrar::class, CustomUsageRegistrar::class);
 ```
 
 This comprehensive service API reference provides the foundation for all licensing operations. Services encapsulate complex business logic while maintaining clean, testable interfaces.
+
+---
+
+[← Docs index](../../README.md#documentation)

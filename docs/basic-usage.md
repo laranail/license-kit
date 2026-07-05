@@ -918,3 +918,7 @@ class LicenseValidationService
 - [Templates & Tiers](core/templates-tiers.md) - Template-based licensing
 - [Offline Verification](features/offline-verification.md) - Offline token system
 - [API Reference](api/models.md) - Complete API documentation
+
+---
+
+[← Docs index](../README.md#documentation)

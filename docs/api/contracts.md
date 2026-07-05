@@ -640,3 +640,7 @@ class StripeTokenIssuer implements TokenIssuer
 ```
 
 This comprehensive contract reference provides the foundation for customizing and extending the Laravel Licensing package to meet your specific requirements.
+
+---
+
+[← Docs index](../../README.md#documentation)

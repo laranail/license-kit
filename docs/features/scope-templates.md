@@ -68,3 +68,7 @@ Per impedire che lo stesso piano venga riutilizzato in scope differenti, `assign
 - Non esiste più una tabella pivot dedicata: niente metadati duplicati, meno query, più semplicità.
 - Il campo `group` è stato rimosso in favore di `license_scope_id`. Se ti serviva raggruppare i piani puoi usare tag/chiavi custom nel campo `meta` del template.
 - I piani globali restano supportati: lascia `license_scope_id` vuoto per riutilizzarli ovunque o clonali per specializzarli su singoli prodotti.
+
+---
+
+[← Docs index](../../README.md#documentation)

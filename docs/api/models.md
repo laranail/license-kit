@@ -789,3 +789,7 @@ $license = License::factory()
 ```
 
 This API reference covers all models in the Laravel Licensing package. Each model provides a specific aspect of license management functionality with clear interfaces and relationships.
+
+---
+
+[← Docs index](../../README.md#documentation)

@@ -863,3 +863,7 @@ class UsageReportGenerator
 - [Renewals](renewals.md) - License renewal system
 - [Offline Verification](../features/offline-verification.md) - Token-based verification
 - [API Reference](../api/models.md) - Complete API documentation
+
+---
+
+[← Docs index](../../README.md#documentation)

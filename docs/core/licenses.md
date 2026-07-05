@@ -705,3 +705,7 @@ class CachedLicense
 - [Templates & Tiers](templates-tiers.md) - Template-based licensing
 - [Renewals](renewals.md) - License renewal system
 - [API Reference](../api/models.md) - Complete model documentation
+
+---
+
+[← Docs index](../../README.md#documentation)

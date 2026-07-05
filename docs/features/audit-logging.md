@@ -131,3 +131,7 @@ $suspiciousActivity = LicensingAuditLog::where('ip', $suspiciousIp)
 ```
 
 The audit logging system provides comprehensive compliance and security monitoring with cryptographic integrity protection for all licensing operations.
+
+---
+
+[← Docs index](../../README.md#documentation)

@@ -1332,3 +1332,7 @@ class TrialMonitoringController extends Controller
 - Check [Security Guide](../advanced/security.md) for best practices
 - See [Client Library Architecture](../client-libraries/architecture.md) for building custom clients
 - Explore [Integration Examples](integrations.md) for third-party services
+
+---
+
+[← Docs index](../../README.md#documentation)

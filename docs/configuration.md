@@ -890,3 +890,7 @@ return [
 - [API Reference](api/models.md) - Detailed API documentation
 - [Security Guide](advanced/security.md) - Security best practices
 - [Performance Guide](advanced/performance.md) - Optimization tips
+
+---
+
+[← Docs index](../README.md#documentation)

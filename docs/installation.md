@@ -448,3 +448,7 @@ redis-cli FLUSHDB  # If using Redis
 - [Basic Usage](basic-usage.md) - Start using licenses
 - [Getting Started](getting-started.md) - Quick examples
 - [API Reference](api/models.md) - Detailed documentation
+
+---
+
+[← Docs index](../README.md#documentation)
