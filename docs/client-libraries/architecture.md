@@ -476,9 +476,9 @@ Essential documentation:
 
 ## Next Steps
 
-- Review [Implementation Guide](implementation-guide.md) for language-specific details
-- Check [API Integration](api-integration.md) for server communication
-- Read [Offline Verification](offline-verification.md) for token handling
+- Review [Implementation Guide](../CLIENT_IMPLEMENTATION_GUIDE.md) for language-specific details
+- Check API integration (server communication) for server communication
+- Read [Offline Verification](../features/offline-verification.md) for token handling
 - See [Practical Examples](../examples/practical-examples.md) for real implementations
 
 ---
