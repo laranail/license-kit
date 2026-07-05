@@ -718,3 +718,7 @@ class RenewalHealthMonitor
 ```
 
 The Renewal system provides comprehensive tracking of license extensions, enabling effective license lifecycle management and revenue optimization through detailed analytics and automated processes.
+
+---
+
+[← Docs index](../../README.md#documentation)

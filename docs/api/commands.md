@@ -450,3 +450,7 @@ php artisan licensing:check
 ```
 
 This comprehensive command reference provides all the tools needed for managing a Laravel Licensing installation through the command line, including automation and monitoring capabilities.
+
+---
+
+[← Docs index](../../README.md#documentation)

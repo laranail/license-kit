@@ -108,3 +108,7 @@ All thresholds are driven by `config('licensing.transfer')`, making it easy to a
 - Track configuration changes alongside release notes—altering cooling periods or thresholds can impact downstream workflows
 - Surface flagged transfers to operations teams when `suspicious_pattern_requires_review` is enabled
 - Combine audit logs with transfer history to provide a full trail whenever ownership changes hands
+
+---
+
+[← Docs index](../../README.md#documentation)

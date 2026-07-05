@@ -751,3 +751,7 @@ class TrialHealthMonitor
 ```
 
 The trial system provides powerful tools for customer acquisition and conversion, with flexible configuration options and comprehensive tracking capabilities.
+
+---
+
+[← Docs index](../../README.md#documentation)

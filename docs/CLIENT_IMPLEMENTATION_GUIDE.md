@@ -571,3 +571,7 @@ Clients MUST handle:
 - 12 months support for old protocol
 - Clear migration guides
 - Backward compatibility when possible
+
+---
+
+[← Docs index](../README.md#documentation)

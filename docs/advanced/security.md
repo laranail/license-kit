@@ -770,3 +770,7 @@ class GDPRCompliance
 - [Performance](performance.md) - Security with performance
 - [Troubleshooting](../reference/troubleshooting.md) - Security issues
 - [API Reference](../api/services.md) - Security services
+
+---
+
+[← Docs index](../../README.md#documentation)

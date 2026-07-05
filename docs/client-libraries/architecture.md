@@ -480,3 +480,7 @@ Essential documentation:
 - Check [API Integration](api-integration.md) for server communication
 - Read [Offline Verification](offline-verification.md) for token handling
 - See [Practical Examples](../examples/practical-examples.md) for real implementations
+
+---
+
+[← Docs index](../../README.md#documentation)

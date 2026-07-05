@@ -807,3 +807,7 @@ php artisan db:show licenses
 - [Performance Tuning](../advanced/performance.md) - Optimization guide
 - [FAQ](faq.md) - Frequently asked questions
 - [Examples](../examples/practical-examples.md) - Real-world implementations
+
+---
+
+[← Docs index](../../README.md#documentation)

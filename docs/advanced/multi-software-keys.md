@@ -493,3 +493,7 @@ $license->update(['signing_scope' => 'new-scope']);
 // Existing tokens remain valid until expiration
 // New tokens will use the new scope's key
 ```
+
+---
+
+[← Docs index](../../README.md#documentation)

@@ -227,3 +227,7 @@ if ($trial->canConvert()) {
 - [Configuration](configuration.md) — customize the package
 - [Basic Usage](basic-usage.md) — common scenarios and patterns
 - [API Reference](api/models.md) — complete API documentation
+
+---
+
+[← Docs index](../README.md#documentation)

@@ -530,3 +530,7 @@ Contact options:
 - [Configuration](../configuration.md) - Customize settings
 - [Basic Usage](../basic-usage.md) - Common operations
 - [Troubleshooting](troubleshooting.md) - Solve problems
+
+---
+
+[← Docs index](../../README.md#documentation)
