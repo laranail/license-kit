@@ -89,6 +89,12 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app): void
     {
+        // deterministic key salt: the config falls back to APP_KEY, which
+        // exists incidentally on some environments (local testbench
+        // skeletons) and not others (fresh ci vendors) — tests must not
+        // depend on that accident
+        config()->set('licensing.key_salt', 'testing-key-salt-0123456789abcdef');
+
         config()->set('database.default', 'testing');
 
         $driver = env('DB_CONNECTION', 'sqlite');
