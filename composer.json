@@ -30,10 +30,6 @@
         "source": "https://github.com/laranail/license-kit",
         "docs": "https://opensource.simtabi.com/documentation/laranail/license-kit/"
     },
-    "repositories": [
-        { "type": "path", "url": "../../package/tools" },
-        { "type": "path", "url": "../../tools/console" }
-    ],
     "require": {
         "php": "^8.4.1 || ^8.5",
         "ext-openssl": "*",
@@ -81,7 +77,11 @@
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
         "test-coverage": "vendor/bin/pest --coverage",
-        "lint": ["@pint", "@analyse", "@rector"],
+        "lint": [
+            "@pint",
+            "@analyse",
+            "@rector"
+        ],
         "pint": "vendor/bin/pint --test",
         "format": "vendor/bin/pint",
         "rector": "vendor/bin/rector process --dry-run",
