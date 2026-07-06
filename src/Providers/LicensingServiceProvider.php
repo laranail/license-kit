@@ -126,8 +126,7 @@ class LicensingServiceProvider extends PackageServiceProvider
     }
 
     /**
-     * Register the scheduled maintenance tasks declared in the `scheduler` config
-     * (previously the config was inert — nothing scheduled the commands).
+     * Register the scheduled maintenance tasks declared in the `scheduler` config.
      */
     protected function registerSchedule(): void
     {

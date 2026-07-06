@@ -347,23 +347,20 @@ aws s3 sync $BACKUP_DIR s3://backups/licensing/
 
 ## Upgrading
 
-### From v1.x to v2.x
+When a new release ships:
 
 1. **Backup everything** before upgrading
-2. Update composer dependency:
+2. Update the composer dependency:
    ```bash
-   composer require laranail/license-kit:^2.0
+   composer update laranail/license-kit
    ```
-3. Publish and run new migrations:
+3. Publish and run any new migrations:
    ```bash
    php artisan vendor:publish --tag=laranail::license-kit-migrations --force
    php artisan migrate
    ```
-4. Update configuration:
-   ```bash
-   php artisan vendor:publish --tag=laranail::license-kit-config --force
-   ```
-5. Review breaking changes in [CHANGELOG](../CHANGELOG.md)
+4. Review breaking changes in the [CHANGELOG](../CHANGELOG.md) and
+   [UPGRADE.md](../UPGRADE.md)
 
 ## Uninstallation
 

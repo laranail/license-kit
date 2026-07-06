@@ -2,414 +2,65 @@
 
 All notable changes to `laranail/license-kit` will be documented in this file.
 
-## [Unreleased]
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Changed (BREAKING)
+## [0.1.0] - 2026-07-06
 
-- **Migrated off `spatie/laravel-package-tools` onto `laranail/package-tools` + `laranail/console`.**
-  The PHP floor rises `^8.3` → `^8.4.1 || ^8.5` (via `laranail/console`'s `symfony/tui` dependency).
-  The service provider now extends laranail's `PackageServiceProvider` and the command base extends
-  laranail/console's `Command` (with the `SupportsNamespacedNames` trait). `config('licensing.*')` and
-  the `license-kit::` translations are preserved via `->withoutConfigNamespacing()` and
-  `->hasTranslations('license-kit')`.
-- **Config/asset publish tags changed** to the laranail-derived scheme — e.g.
-  `--tag=laranail::license-kit-config` (was `licensing-config`); likewise `…-migrations`,
-  `…-translations`, `…-views`.
+Initial release.
 
 ### Added
 
-- The kit now participates in the unified `laranail::package-tools.doctor` — its installation
-  checks are registered via `->hasDoctorChecks()`, and `licensing:check` renders through the shared
-  doctor reporter. The HTTP `/health` endpoint is unchanged.
-
-## 2.2.0 - 2026-06-24
-
-### Security
-
-- **Offline token forgery via certificate/key substitution.** `verifyOffline()`
-  verified the signing certificate was root-signed, then verified the token using
-  the signing public key embedded in the footer — without cross-checking that the
-  certificate actually bound that key. An attacker could pair a legitimate
-  (root-signed) certificate with their own signing key and have a forged token
-  accepted. The verifier now constant-time compares the certificate's bound public
-  key against the key used for verification and rejects on mismatch.
-- **Audit chain now protects forensic attribution.** `calculateHash()` omitted the
-  `actor`, `actor_type`, `actor_id`, `ip`, `user_agent` and `occurred_at` columns,
-  so a raw `UPDATE` could rewrite *who* performed an action and *when* while
-  `verifyChain()` still reported the chain intact. These columns are now included
-  in the hash. **This changes the hash formula — see UPGRADE.md.**
-
-### Fixed
-
-- **Re-activating a deactivated device failed with `FINGERPRINT_CONFLICT` (409).**
-  Because the unique index is `(license_id, usage_fingerprint)` with no status
-  column, a revoked usage row persisted and a subsequent registration of the same
-  fingerprint tried to insert a duplicate. `register()` now re-activates the
-  existing revoked row in place instead of inserting a colliding one.
-- **Legacy v1 keys whose nonce started with the v2 marker byte failed to decrypt.**
-  `decryptPrivateKey()` selected the v1/v2 path from the first byte only, but a v1
-  payload has no version marker, so ~1/256 of legacy keys were misread as v2. The
-  decryptor now falls back to v1 when the v2 attempt fails.
-
-### Internal
-
-- Stabilized two non-deterministic tests that intermittently failed CI: the
-  constant-time key-comparison test now asserts the `hash_equals()` invariant by
-  reflection instead of wall-clock timing, and the legacy-key decryption test gained
-  a deterministic case for the v2-marker nonce collision.
-
-### Credits
-
-- Thanks to [Codexlabstudio](https://github.com/Codexlabstudio) for reporting and
-  prototyping the offline-token, usage re-activation and audit-chain fixes.
-
-## 2.1.1 - 2026-05-13
-
-### Added
-
-- **Laravel Boost integration.** The package now ships a consolidated AI
-  guideline at `resources/boost/guidelines/laravel-licensing/core.blade.php`,
-  auto-discovered by [Laravel Boost](https://github.com/laravel/boost) on
-  `boost:install` / `boost:update --discover`. The guideline covers core
-  concepts, license lifecycle, usages/seats, scopes & templates, trials,
-  offline tokens (PASETO + key rotation), CLI surface, and API/security rules.
-  Snippets reference the real package API (`License::createWithKey`,
-  `License::createFromTemplate`, `UsageRegistrar::register`,
-  `TrialService::startTrial`, `LicenseTrial::convert`,
-  `LicenseTrial::hasActiveTrialForFingerprint`).
-- `scripts/test-boost-e2e.sh` — end-to-end smoke test that scaffolds a
-  throwaway Laravel app under `.sandbox/boost-test`, installs the package via
-  a path repository plus `laravel/boost`, and verifies that every expected
-  section ends up in the generated `CLAUDE.md`.
-
-### Internal
-
-- `tests/Unit/BoostGuidelinesTest.php` — Blade compile-smoke plus
-  consolidated-file check (Boost's `GuidelineComposer` keeps only one
-  guideline per third-party package).
-- `tests/Unit/BoostGuidelinesApiContractTest.php` — reflection-based contract
-  test that pins the public method signatures referenced by the Boost
-  guideline; any drift fails CI so the snippets get updated in lockstep.
-
-### Documentation
-
-- README gains a **Laravel Boost integration** section with usage instructions
-  and a caveat for non-interactive (CI) flows, where `boost:update --discover`
-  silently skips the package and consumers must append it to `boost.json`
-  manually.
-
-## 2.1.0 - 2026-04-28
-
-### Changed
-
-- Bumped `spatie/laravel-sluggable` requirement to `^4.0` (#12). Public API is
-  unchanged. v4 requires PHP 8.3+ and Laravel 12+, both already floors for this
-  package, and the closure-typed slug options in `LicenseTemplate` are already
-  v4-compatible.
-
-### Internal
-
-- `tests/TestCase.php` registers `SluggableServiceProvider` explicitly so
-  Testbench merges the new `config/sluggable.php` action map introduced in v4.
-
-## 2.0.2 - 2026-04-26
-
-### Bug Fixes
-
-- **Missing `licensing:check` command** (#11): the documented installation
-  verification command was never implemented. Running `php artisan licensing:check`
-  on a fresh install failed with "Command not defined".
-- **Orphan command duplicates**: removed unused duplicate command classes under
-  `src/Console/Commands/` that were never registered with the service provider.
-
-### New Commands
-
-- `licensing:check` — verifies configuration, schema, root key, and active
-  signing key, returning a non-zero exit code on failure.
-- `licensing:check-expirations` — transitions licenses across `active → grace →
-  expired` based on `expires_at`. Supports `--dry-run`, `--notify`, and
-  `--expiring-within=N`.
-- `licensing:cleanup-usages` — revokes usages whose `last_seen_at` exceeds
-  `licensing.policies.usage_inactivity_auto_revoke_days`. Supports `--dry-run`
-  and exits as a no-op when the policy is disabled.
-
-### Documentation
-
-- Realigned the docs with the actual CLI surface: removed references to
-  non-existent commands (`licensing:health-check`, `licensing:offline:verify`,
-  `licensing:keys:verify-root`, `licensing:keys:verify-chain`,
-  `licensing:check-schema`, `licensing:cleanup-inactive-usages`,
-  `licensing:debug:token`, `licensing:validate-config`) and corrected option
-  lists for the real commands.
-- Replaced fictional `/api/licensing/v1/mobile/*` endpoints in the iOS example
-  with the real `/activate` and `/validate` routes.
-- Removed environment variables that were documented but never read by the
-  package (`LICENSING_DEBUG`, `LICENSING_LOG_LEVEL`, `LICENSING_DB_*`,
-  `LICENSING_WEBHOOK_*`, `LICENSING_ROOT_PASSPHRASE`,
-  `LICENSING_KEYSTORE_PASSPHRASE`).
-
-## 2.0.1 - 2026-04-14
-
-### Bug Fixes
-
-- **Paseto signing reliability**: regenerate signing keys whose raw Ed25519 bytes contain the `\r\n` sequence. Paseto v4's `AsymmetricSecretKey::raw()` pipes the key through `str_replace("\r\n", "\n", …)`, silently dropping a byte on ~0.1% of randomly generated keys and making `sodium_crypto_sign_detached()` fail with "Signing failed". `HasKeyStore::generate()` now rejects such keys before they reach storage.
-- **Paseto pinning**: pinned `paragonie/paseto` to `^3.5` and fed the signer a seed-derived secret key so the v4 misuse-resistance check succeeds regardless of how the key was originally stored.
-- **Transfer history integrity hash**: stabilised the hash computation on MySQL so the value no longer depends on column ordering or collation.
-- **MySQL migrations**: fixed failures caused by long index names and foreign key ordering.
-- **`extension_reason` column**: stored as `TEXT` to accommodate longer justifications.
-
-### Improvements
-
-- **Test schema lifecycle**: let Laravel manage the test schema through the `afterDatabaseRefreshed` hook, with migration order derived from the service provider to keep CI runs deterministic.
-- **Docs**: aligned `AI_GUIDELINES.md` and `CLAUDE.md` with the current codebase.
-
-## 2.0.0 - 2026-04-08
-
-### What's Changed
-
-See [UPGRADE.md](UPGRADE.md) for migration instructions.
-
-#### Breaking Changes
-
-- **License detail endpoint** changed from `GET /licenses/{licenseKey}` to `POST /licenses/show` requiring `license_key` and `fingerprint` in the request body
-- **Heartbeat metadata** now stored under `client_data` key in usage meta instead of merging at root level
-- **Health endpoint** no longer exposes `kid`, `valid_until`, or database error messages
-
-#### Security Improvements
-
-- **License key entropy**: Increased from ~95-bit to 128-bit using `random_bytes()` instead of `Str::random()`
-- **KID generation**: Replaced predictable `uniqid()` with `bin2hex(random_bytes(16))` for signing key identifiers
-- **API error sanitization**: Internal exception messages no longer leaked to clients; errors are logged server-side via `report()`
-- **Rate limiting**: Applied `throttle` middleware to all API endpoints using configurable limits from `config/licensing.php`
-- **Fingerprint validation**: Added `max:255` length constraint to all API fingerprint inputs
-- **Trial fingerprint hashing**: Upgraded from plain SHA256 to HMAC-SHA256 with automatic legacy fallback for existing trials
-- **Heartbeat meta injection**: Client data namespaced under `client_data` key to prevent overwriting internal metadata
-
-#### Bug Fixes
-
-- Fixed Ed25519 key generation on PHP 8.5 (sodium_memzero buffer corruption)
-- Fixed `LicenseTemplate::licenses()` relationship missing explicit foreign key
-- Fixed PHPStan configuration for cross-version compatibility
-
-#### Improvements
-
-- Made `LicenseScope` default settings (`default_max_usages`, `default_grace_days`) nullable so scopes inherit from config
-- Added `default_max_usages` field to `LicenseTemplate`
-
-#### Framework Support
-
-- Added Laravel 13 support while maintaining Laravel 12 compatibility
-- Added PHP 8.5 support
-- Updated `orchestra/testbench` to support `^10.5 || ^11.0`
-- Updated `symfony/uid` to support `^7.0 || ^8.0`
-- Updated `spatie/laravel-sluggable` to support `^3.7 || ^3.8`
-- GitHub Actions CI matrix now tests against both Laravel 12 and 13
-
-#### Documentation
-
-- Updated all key format examples to reflect new 128-bit hex format
-- Added rate limiting section with endpoint/limiter mapping to configuration docs
-- Updated security docs with new validation patterns
-- Added UPGRADE.md with migration guide for breaking changes
-
-## 1.1.0 - 2026-03-12
-
-### What's Changed
-
-#### Security Improvements
-
-- **Stronger KDF**: Replaced single-round SHA-256 key derivation with `sodium_crypto_pwhash` (Argon2id, INTERACTIVE cost) for private key encryption, providing strong brute-force resistance
-- **Versioned encryption format**: New v2 payload format (`0x02 + salt + nonce + ciphertext`) with full backward compatibility for existing v1-encrypted keys — no migration required
-- **Memory cleanup**: Derived encryption keys are now wiped from memory via `sodium_memzero` immediately after use
-
-#### Improvements
-
-- **Octane & Queue compatibility**: Cached passphrase is automatically cleared after each request/job via event listeners on `RequestTerminated`, `TaskTerminated` (Octane) and `JobProcessed`, `JobFailed`, `WorkerStopping` (Queue)
-
-#### Documentation
-
-- Updated security architecture docs with v2 encryption format details
-- Added Octane/Queue compatibility notes to key management docs
-
-### Full Changelog
-
-https://github.com/laranail/license-kit/compare/1.0.4...1.1.0
-
-## 1.0.4 - 2026-03-10
-
-### What's Changed
-
-#### Bug Fixes
-
-- **Passphrase resolution**: Fixed passphrase resolution failing after `artisan config:cache`
-- **Ed25519 key handling**: Fixed Ed25519 key handling for Windows CI compatibility
-
-#### Improvements
-
-- **Code style**: Applied uniform code styling across models, services, events, and tests
-- **PHPStan**: Fixed all 402 PHPStan errors (from 402 to 0) for full static analysis compliance
-- **Test coverage**: Added regression tests ensuring all API route controller classes exist and `route:list` runs without errors
-
-#### Dependencies
-
-- Bumped `actions/checkout` from 5 to 6
-- Bumped `dependabot/fetch-metadata` from 2.4.0 to 2.5.0
-- Bumped `stefanzweifel/git-auto-commit-action` from 6 to 7
-
-### Full Changelog
-
-https://github.com/laranail/license-kit/compare/1.0.3...1.0.4
-
-## 1.0.3 - 2025-09-18
-
-### What's Changed
-
-#### New Features
-
-- **License Templates**: Added support for license templates with trial periods and custom durations
-  - New `LicenseTemplate` model for managing reusable license configurations
-  - Support for trial days and duration months in templates
-  - Database migrations for template management
-
-#### Improvements
-
-- **CLI Commands**: Enhanced command-line interface with better user experience
-  - Improved passphrase handling with interactive prompts when missing
-  - Better error messages and output formatting
-  - Enhanced test coverage for all CLI commands
-  - More robust key management commands
-
-#### Documentation
-
-- Added references to companion packages in README:
-  - `laranail/license-verifier`: client package for Laravel applications
-  - `laranail/license-verifier-ui`: UI presets (Blade/Filament/Livewire/Vue)
-- Expanded documentation for license templates and trial features
-
-#### Bug Fixes
-
-- Fixed CLI command output messages for better test compatibility
-- Corrected issues with key passphrase prompting
-- Improved error handling in key rotation commands
-
-#### Testing
-
-- Significantly improved test coverage for CLI commands
-- Added comprehensive tests for license templates
-- Enhanced test helpers for better test reliability
-
-#### Dependencies
-
-- Updated internal dependencies for better compatibility
-
-### Full Changelog
-
-https://github.com/laranail/license-kit/compare/1.0.2...1.0.3
-
-## 1.0.2 - 2025-09-17
-
-1.0.2
-
-## 1.0.1 - 2025-09-15
-
-### What's New in 1.0.1
-
-#### License Scopes for Multi-Product Support
-
-This release introduces **License Scopes**, enabling management of multiple products or software applications with isolated signing keys.
-
-#### New Features
-
-- **License Scopes Model**: New `LicenseScope` entity for product/software segregation
-- **Scoped Signing Keys**: Each product can have its own signing keys with independent rotation schedules
-- **CLI Support**: Issue scoped signing keys with `--scope` option
-- **Automatic Key Selection**: Tokens are automatically signed with the correct scope-specific key
-- **Fallback Support**: Graceful fallback to global keys when scoped keys are not available
-
-#### Improvements
-
-- Enhanced README with License Scope examples and documentation
-- Added 6 new tests covering all scope functionality
-- Updated services to support scope-based key selection
-
-#### Technical Details
-
-- Added `license_scope_id` to licenses table
-- Added `license_scope_id` to licensing_keys table
-- New `license_scopes` table with rotation configuration
-- Updated `PasetoTokenService` for scope-aware key selection
-- Enhanced `CertificateAuthorityService` to include scope in certificates
-
-#### Usage Example
-
-```php
-// Create a scope for your product
-$scope = LicenseScope::create([
-    'name' => 'My Product',
-    'slug' => 'my-product',
-    'identifier' => 'com.company.product',
-    'key_rotation_days' => 90,
-]);
-
-// Issue a scoped signing key
-// php artisan licensing:keys:issue-signing --scope my-product
-
-// Create a scoped license
-$license = License::create([
-    'key_hash' => License::hashKey($key),
-    'license_scope_id' => $scope->id,
-    // ... other fields
-]);
-```
-
-#### Backward Compatibility
-
-This release is fully backward compatible. License Scopes are optional — existing licenses without scopes will continue to work with global signing keys.
-
-**Full Changelog**: https://github.com/laranail/license-kit/compare/1.0...1.0.1
-
-## 1.0.0 - 2025-09-15
-
-### Features
-
-#### Core Licensing System
-
-- **Polymorphic licensing** — attach licenses to any Laravel model
-- **Seat-based licensing** — control device/usage limits with fingerprinting
-- **License templates** — hierarchical templates with feature inheritance
-- **Trial management** — complete trial lifecycle with conversion tracking
-- **License transfers** — multi-party approval workflow for transfers
-- **Renewals** — period-based renewal system with history tracking
-
-#### Security & Cryptography
-
-- **Offline verification** — PASETO v4 tokens for client-side validation
-- **Two-level key hierarchy** — Root CA → Signing Keys architecture
-- **Ed25519 signatures** — modern, fast cryptographic signatures
-- **Key rotation** — built-in rotation with revocation support
-- **Tamper-evident audit trail** — hash-chained logging system
-
-#### Developer Experience
-
-- **CLI** — 7 commands for key and license management
-- **Contract-based design** — easy to extend and customize
-- **Event-driven architecture** — 20+ events for hooking into operations
-- **Full test coverage** — 180+ tests with security scenarios
-
-### Requirements
-
-- PHP 8.3+
-- Laravel 12+
-- OpenSSL and Sodium extensions
-
-### Installation
-
-```bash
-composer require laranail/license-kit
-php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\LicensingServiceProvider"
-php artisan migrate
-php artisan licensing:keys:make-root
-php artisan licensing:keys:issue-signing
-```
-
-MIT License — see LICENSE.md for details.
+- **Core licensing** — polymorphic license assignment to any Eloquent model,
+  128-bit activation keys (verified via `key_hash`), full lifecycle
+  (activation, renewal, grace, expiration, suspension), period-based renewals
+  with history, and multi-party approval workflows for license transfers.
+- **Seat-based usage control** — device/usage registration with fingerprints
+  (max 255 chars, validated on all API inputs), heartbeats with client
+  metadata namespaced under `client_data`, over-limit policies (including
+  `auto_replace_oldest`), and in-place re-activation of revoked seats.
+- **License scopes** — multi-product/software isolation with per-scope signing
+  keys, independent rotation schedules, automatic scope-aware key selection,
+  and fallback to global keys.
+- **License templates** — reusable, tierable license configurations with trial
+  days, durations, and scope linkage.
+- **Trials** — full trial lifecycle with HMAC-SHA256 fingerprint hashing and
+  conversion tracking.
+- **Offline verification** — PASETO v4 (Ed25519) tokens with a two-level key
+  hierarchy (root CA → signing keys), certificate/key binding checks
+  (constant-time compared), cryptographically secure KIDs, key rotation and
+  revocation, and Argon2id-encrypted private key storage with
+  `sodium_memzero` cleanup and Octane/queue-safe passphrase caching.
+- **Tamper-evident audit trail** — hash-chained audit log whose hash covers
+  the event identity and the forensic attribution columns (`actor`,
+  `actor_type`, `actor_id`, `ip`, `user_agent`, `occurred_at`), with
+  `verifyChain()` integrity verification and configurable retention.
+- **HTTP API** — activate/deactivate, validate, refresh, heartbeat, usage
+  listing/revocation, license-detail, and offline-token endpoints plus a
+  `/health` check, with rate limiting, fingerprint validation, and sanitized
+  error responses (stable error codes, internals logged server-side).
+- **CLI** — `laranail::license-kit.*` Artisan commands (with `licensing:*`
+  aliases) for key management (make-root, issue-signing, rotate, list,
+  revoke, export), offline token issuance, license management, installation
+  verification (`licensing:check`), expiration transitions
+  (`licensing:check-expirations`), inactive-usage cleanup
+  (`licensing:cleanup-usages`), and expiry notifications
+  (`licensing:notify-expiring`).
+- **Scheduler integration** — config-driven daily scheduling of the
+  maintenance commands (`scheduler.*` in `config/licensing.php`).
+- **Events** — domain events covering license, usage, trial, transfer, key,
+  and audit operations, for hooking into every lifecycle step.
+- **laranail toolchain integration** — built on `laranail/package-tools` +
+  `laranail/console`; installation checks register with the unified
+  `laranail::package-tools.doctor`, and assets publish under
+  `--tag=laranail::license-kit-*` tags.
+- **Laravel Boost integration** — a consolidated AI guideline
+  (`resources/boost/guidelines/laravel-licensing/core.blade.php`)
+  auto-discovered on `boost:install` / `boost:update --discover`, covering
+  core concepts, lifecycle, seats, scopes, trials, offline tokens, CLI, and
+  API/security rules.
+- **Documentation** — full docs tree (getting started, configuration, core
+  concepts, key management, offline verification, audit logging, API
+  reference, client implementation guide, FAQ, troubleshooting).
+
+[0.1.0]: https://github.com/laranail/license-kit/releases/tag/v0.1.0

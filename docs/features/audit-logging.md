@@ -94,9 +94,10 @@ class AuditLogVerifier
 included so a raw `UPDATE` cannot rewrite *who* performed an action and *when* while
 `verifyChain()` still reports the chain intact.
 
-> **Upgrade note:** including the attribution columns changes the hash formula. A
-> chain written before this change will not verify against entries written after it
-> — treat the upgrade as a chain boundary. See [UPGRADE.md](../../UPGRADE.md).
+> **Warning:** the hash formula is part of the chain's integrity contract. Any
+> change to the set of digested columns invalidates verification across the
+> change point — entries written under one formula will not verify against
+> entries written under another.
 
 ## Configuration
 
