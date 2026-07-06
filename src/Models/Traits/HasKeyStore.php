@@ -84,7 +84,7 @@ trait HasKeyStore
             return false;
         }
 
-        return ! ($this->valid_until && $this->valid_until->isPast());
+        return ! $this->valid_until || ! $this->valid_until->isPast();
     }
 
     public function revoke(string $reason, ?DateTimeInterface $revokedAt = null): self

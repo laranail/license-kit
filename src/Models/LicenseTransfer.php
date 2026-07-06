@@ -254,7 +254,7 @@ class LicenseTransfer extends Model
             return false;
         }
 
-        return ! ($this->requires_admin_approval && ! $this->admin_approved_at);
+        return ! $this->requires_admin_approval || $this->admin_approved_at;
     }
 
     public function requiresApprovalFrom(string $type): bool
