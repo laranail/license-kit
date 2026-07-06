@@ -20,7 +20,10 @@ test('licensing:check reports failure without keys', function (): void {
 test('licensing:check passes after root and signing keys exist', function (): void {
     $this->createSigningKey();
 
-    expect(Artisan::call('licensing:check'))->toBe(0);
+    $exit = Artisan::call('licensing:check');
+
+    // surface the report on failure so ci tells us which check failed
+    expect($exit)->toBe(0, 'licensing:check failed: '.Artisan::output());
 });
 
 test('licensing:check --json reports the enhanced crypto checks', function (): void {
@@ -33,7 +36,10 @@ test('licensing:check --json reports the enhanced crypto checks', function (): v
         ->toContain('license-kit:key-salt')
         ->toContain('license-kit:crypto')
         ->toContain('license-kit:key-storage');
-    expect(Artisan::call('licensing:check', ['--json' => true]))->toBe(0);
+
+    $exit = Artisan::call('licensing:check', ['--json' => true]);
+
+    expect($exit)->toBe(0, 'licensing:check --json failed: '.Artisan::output());
 });
 
 test('licensing:check fails when the key salt is not configured', function (): void {
