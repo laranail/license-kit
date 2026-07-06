@@ -43,7 +43,7 @@
         "illuminate/database": "^13.0",
         "illuminate/http": "^13.0",
         "illuminate/support": "^13.0",
-        "laranail/package-tools": "^1.0",
+        "laranail/package-tools": "^2.0",
         "paragonie/paseto": "^3.5",
         "spatie/crypto": "^2.0",
         "spatie/laravel-sluggable": "^4.0.0",
