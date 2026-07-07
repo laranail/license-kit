@@ -1,23 +1,10 @@
-# Troubleshooting Guide
+# Troubleshooting
 
 Comprehensive troubleshooting guide for common issues and their solutions.
 
-## Table of Contents
+## Installation issues
 
-- [Installation Issues](#installation-issues)
-- [License Activation Problems](#license-activation-problems)
-- [Usage Registration Errors](#usage-registration-errors)
-- [Offline Verification Issues](#offline-verification-issues)
-- [Key Management Problems](#key-management-problems)
-- [Performance Issues](#performance-issues)
-- [Database Problems](#database-problems)
-- [API Errors](#api-errors)
-- [Migration Issues](#migration-issues)
-- [Debugging Tools](#debugging-tools)
-
-## Installation Issues
-
-### Composer Installation Fails
+### Composer installation fails
 
 **Problem**: Package installation fails with dependency errors.
 
@@ -33,7 +20,7 @@ composer update --with-dependencies
 composer require laranail/license-kit -vvv
 ```
 
-### Migration Fails
+### Migration fails
 
 **Problem**: Database migration errors during installation.
 
@@ -50,7 +37,7 @@ use Illuminate\Support\Facades\Schema;
 Schema::defaultStringLength(191);
 ```
 
-### Configuration Not Publishing
+### Configuration not publishing
 
 **Problem**: Config file not appearing after publishing.
 
@@ -67,9 +54,9 @@ php artisan cache:clear
 ls -la config/licensing.php
 ```
 
-## License Activation Problems
+## License activation problems
 
-### Invalid Activation Key
+### Invalid activation key
 
 **Problem**: "Invalid activation key format" error.
 
@@ -106,7 +93,7 @@ try {
 }
 ```
 
-### License Already Activated
+### License already activated
 
 **Problem**: Cannot activate an already active license.
 
@@ -125,7 +112,7 @@ $license->save();
 $license->activate();
 ```
 
-### Max Usages Exceeded
+### Max usages exceeded
 
 **Problem**: "Maximum usage limit reached" error.
 
@@ -157,9 +144,9 @@ $oldestUsage->revoke();
 config(['licensing.policies.over_limit' => 'auto_replace_oldest']);
 ```
 
-## Usage Registration Errors
+## Usage registration errors
 
-### Duplicate Fingerprint
+### Duplicate fingerprint
 
 **Problem**: "Usage fingerprint already exists" error.
 
@@ -194,7 +181,7 @@ $newUsage = $license->registerUsage($fingerprint, [
 ]);
 ```
 
-### Fingerprint Generation Issues
+### Fingerprint generation issues
 
 **Problem**: Inconsistent fingerprints across app restarts.
 
@@ -237,7 +224,7 @@ class StableFingerprint implements FingerprintGenerator
 }
 ```
 
-### Concurrent Registration Race Condition
+### Concurrent registration race condition
 
 **Problem**: Multiple registrations succeed despite limit.
 
@@ -268,9 +255,9 @@ DB::transaction(function () use ($license, $fingerprint) {
 }, 5); // Retry up to 5 times
 ```
 
-## Offline Verification Issues
+## Offline verification issues
 
-### Token Verification Fails
+### Token verification fails
 
 **Problem**: "Invalid token signature" error.
 
@@ -280,7 +267,7 @@ DB::transaction(function () use ($license, $fingerprint) {
 echo "v4.public.eyJ..." | cut -d'.' -f2 | base64 -d | jq
 
 # Check key ID
-php artisan licensing:keys:list --format=json | jq '.[] | select(.kid=="signing-key-id")'
+php artisan laranail::license-kit.keys.list --format=json | jq '.[] | select(.kid=="signing-key-id")'
 ```
 
 **Solution**:
@@ -300,7 +287,7 @@ if (!$claims && isset($bundle['previous'])) {
 }
 ```
 
-### Clock Skew Errors
+### Clock skew errors
 
 **Problem**: "Token not yet valid" or "Token expired" on valid tokens.
 
@@ -343,7 +330,7 @@ class TolerantVerifier extends TokenVerifier
 }
 ```
 
-### Token Size Too Large
+### Token size too large
 
 **Problem**: Token exceeds storage or transmission limits.
 
@@ -365,33 +352,33 @@ $compressed = base64_decode($encoded);
 $token = gzuncompress($compressed);
 ```
 
-## Key Management Problems
+## Key management problems
 
-### Root Key Missing
+### Root key missing
 
 **Problem**: "Root key not found" error.
 
 **Solution**:
 ```bash
 # Generate new root key
-php artisan licensing:keys:make-root --force
+php artisan laranail::license-kit.keys.make-root --force
 
 # Restore from backup
 cp /backup/root-key.pem storage/app/licensing/keys/root-private.pem
 chmod 600 storage/app/licensing/keys/root-private.pem
 ```
 
-### Key Rotation Fails
+### Key rotation fails
 
 **Problem**: Cannot rotate signing keys.
 
 **Diagnosis**:
 ```bash
 # Check current keys (active + revoked)
-php artisan licensing:keys:list
+php artisan laranail::license-kit.keys.list
 
 # Verify installation (root key, signing key, schema)
-php artisan licensing:check
+php artisan laranail::license-kit.check
 ```
 
 **Solution**:
@@ -413,7 +400,7 @@ $newKey = $ca->issueSigningKey([
 $ca->activateKey($newKey->kid);
 ```
 
-### Certificate Chain Invalid
+### Certificate chain invalid
 
 **Problem**: "Certificate chain verification failed".
 
@@ -443,9 +430,9 @@ file_put_contents(
 );
 ```
 
-## Performance Issues
+## Performance issues
 
-### Slow License Queries
+### Slow license queries
 
 **Problem**: License lookups taking too long.
 
@@ -475,7 +462,7 @@ $licenses = Cache::remember('active-licenses', 300, function () {
 });
 ```
 
-### High Memory Usage
+### High memory usage
 
 **Problem**: Out of memory errors during batch operations.
 
@@ -504,7 +491,7 @@ License::expired()
     });
 ```
 
-### Token Generation Bottleneck
+### Token generation bottleneck
 
 **Problem**: Token generation is slow under load.
 
@@ -534,9 +521,9 @@ $token = array_pop($tokenPool) ?? $this->generateToken();
 Cache::put('token-pool', $tokenPool);
 ```
 
-## Database Problems
+## Database problems
 
-### Connection Pool Exhausted
+### Connection pool exhausted
 
 **Problem**: "Too many connections" database error.
 
@@ -559,7 +546,7 @@ $licenses = License::on('mysql-read')
     ->get();
 ```
 
-### Deadlocks During Registration
+### Deadlocks during registration
 
 **Problem**: "Deadlock found when trying to get lock".
 
@@ -589,7 +576,7 @@ while ($attempts < $maxAttempts) {
 }
 ```
 
-### Migration Rollback Issues
+### Migration rollback issues
 
 **Problem**: Cannot rollback migrations.
 
@@ -612,9 +599,9 @@ public function down()
 }
 ```
 
-## API Errors
+## API errors
 
-### Rate Limiting Issues
+### Rate limiting issues
 
 **Problem**: "Too many requests" errors.
 
@@ -638,7 +625,7 @@ $response = Http::withHeaders([
 })->post('/api/validate');
 ```
 
-### CORS Errors
+### CORS errors
 
 **Problem**: Cross-origin requests blocked.
 
@@ -653,9 +640,9 @@ $response = Http::withHeaders([
 'max_age' => 86400,
 ```
 
-## Migration Issues
+## Migration issues
 
-### Upgrading Package Version
+### Upgrading package version
 
 **Problem**: Breaking changes after update.
 
@@ -674,7 +661,7 @@ php artisan vendor:publish --tag=laranail::license-kit-config --force
 php artisan optimize:clear
 ```
 
-### Data Migration from Legacy System
+### Data migration from legacy system
 
 **Problem**: Importing existing licenses.
 
@@ -703,25 +690,25 @@ foreach ($legacyLicenses as $old) {
 }
 ```
 
-## Debugging Tools
+## Debugging tools
 
-### Enable Debug Mode
+### Enable debug mode
 
 The package does not ship a dedicated debug flag. Use Laravel's built-in
 `APP_DEBUG=true` and `LOG_LEVEL=debug` (or define a `licensing` log channel in
 `config/logging.php`) to surface package events through the standard logger.
 
-### Debug Commands
+### Debug commands
 
 ```bash
 # Verify installation (config, tables, root/signing keys)
-php artisan licensing:check
+php artisan laranail::license-kit.check
 
 # List signing/root keys and their status
-php artisan licensing:keys:list
+php artisan laranail::license-kit.keys.list
 
 # Issue an offline token for manual inspection
-php artisan licensing:offline:issue --license=XXX --fingerprint=test
+php artisan laranail::license-kit.offline.issue --license=XXX --fingerprint=test
 ```
 
 ### Logging
@@ -745,7 +732,7 @@ Log::channel('licensing')->debug('License activation', [
 ]);
 ```
 
-### Testing Tools
+### Testing tools
 
 ```php
 // Test license creation
@@ -760,27 +747,27 @@ $this->assertTrue(TokenVerifier::verify($token));
 
 // Simulate expiration
 Carbon::setTestNow(now()->addDays(31));
-$this->artisan('licensing:check-expirations')
+$this->artisan('laranail::license-kit.check-expirations')
     ->assertExitCode(0);
 ```
 
-## Getting Additional Help
+## Getting additional help
 
 ### Resources
 
 - [FAQ](faq.md) - Common questions
-- [API Documentation](../api/models.md) - Detailed API reference
+- [API Documentation](tools/models.md) - Detailed API reference
 - [GitHub Issues](https://github.com/laranail/license-kit/issues) - Report bugs
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/laravel-licensing) - Community help
 
-### Support Channels
+### Support channels
 
 1. **GitHub Issues**: Bug reports and feature requests
 2. **Discussions**: General questions and ideas
 3. **Email Support**: For license holders
 4. **Slack Community**: Real-time help
 
-### Providing Debug Information
+### Providing debug information
 
 When reporting issues, include:
 
@@ -801,13 +788,13 @@ tail -n 100 storage/logs/laravel.log | grep -i "licens"
 php artisan db:show licenses
 ```
 
-## Next Steps
+## Next steps
 
-- [Security Guide](../advanced/security.md) - Security best practices
-- [Performance Tuning](../advanced/performance.md) - Optimization guide
+- [Security Guide](security.md) - Security best practices
+- [Performance Tuning](performance.md) - Optimization guide
 - [FAQ](faq.md) - Frequently asked questions
-- [Examples](../examples/practical-examples.md) - Real-world implementations
+- [Examples](recipes/saas-tiered-licensing.md) - Real-world implementations
 
 ---
 
-[← Docs index](../../README.md#documentation)
+[← Docs index](../README.md#documentation)

@@ -1,16 +1,6 @@
-# License Transfers
+# License transfers
 
 License transfers allow changing license ownership between different entities (users, organizations, projects). This feature supports various transfer scenarios including permanent ownership changes, temporary assignments, and delegated access.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Transfer Types](#transfer-types)
-- [Transfer Process](#transfer-process)
-- [Approval Workflows](#approval-workflows)
-- [Transfer Validation](#transfer-validation)
-- [Implementation Examples](#implementation-examples)
-- [Security Considerations](#security-considerations)
 
 ## Overview
 
@@ -30,18 +20,18 @@ $transfer->approve($approver);
 $transfer->complete();
 ```
 
-## Transfer Types
+## Transfer types
 
-### Ownership Transfer
+### Ownership transfer
 Permanent change of license ownership.
 
-### Temporary Transfer
+### Temporary transfer
 Time-limited assignment with automatic reversion.
 
 ### Delegation
 Shared access without ownership change.
 
-## Transfer Process
+## Transfer process
 
 1. **Initiation**: Current owner initiates transfer
 2. **Validation**: System validates transfer requirements
@@ -49,9 +39,9 @@ Shared access without ownership change.
 4. **Completion**: License ownership is changed
 5. **Audit**: Transfer is logged for compliance
 
-## Implementation Examples
+## Implementation examples
 
-### Basic Transfer
+### Basic transfer
 
 ```php
 class LicenseTransferController
@@ -70,7 +60,7 @@ class LicenseTransferController
 }
 ```
 
-### Approval Workflow
+### Approval workflow
 
 ```php
 class TransferApprovalService
@@ -92,7 +82,7 @@ class TransferApprovalService
 
 This transfer system ensures secure and auditable license ownership changes with proper validation and approval workflows.
 
-## Transfer Validation
+## Transfer validation
 
 `TransferValidationService` applies layered safeguards before a transfer is even created:
 
@@ -103,7 +93,7 @@ This transfer system ensures secure and auditable license ownership changes with
 
 All thresholds are driven by `config('licensing.transfer')`, making it easy to adjust behaviour per deployment or environment.
 
-## Security Considerations
+## Security considerations
 
 - Track configuration changes alongside release notes—altering cooling periods or thresholds can impact downstream workflows
 - Surface flagged transfers to operations teams when `suspicious_pattern_requires_review` is enabled

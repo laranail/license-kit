@@ -1,10 +1,10 @@
-# Key Management
+# Key management
 
 Cryptographic key management is critical for offline verification security. This document covers the complete key lifecycle from generation to revocation.
 
-## Key Architecture
+## Key architecture
 
-### Two-Level Hierarchy
+### Two-level hierarchy
 
 ```
 Root Key (Long-lived, 2+ years)
@@ -13,7 +13,7 @@ Root Key (Long-lived, 2+ years)
 └── Signing Key 3 (Revoked)
 ```
 
-### Key Types
+### Key types
 
 **Root Keys:**
 - Long-lived trust anchors
@@ -27,14 +27,14 @@ Root Key (Long-lived, 2+ years)
 - Regularly rotated (90 days default)
 - Include validity periods
 
-## Key Generation
+## Key generation
 
-### Root Key Creation
+### Root key creation
 
 ```bash
 # Generate root key. The passphrase is read from the env var configured by
 # licensing.crypto.keystore.passphrase_env (default: LICENSING_KEY_PASSPHRASE).
-php artisan licensing:keys:make-root
+php artisan laranail::license-kit.keys.make-root
 ```
 
 ```php
@@ -49,11 +49,11 @@ $rootKeyId = $caService->generateRootKey();
 // 4. Public key exported for distribution
 ```
 
-### Signing Key Issuance
+### Signing key issuance
 
 ```bash
 # Issue new signing key
-php artisan licensing:keys:issue-signing \
+php artisan laranail::license-kit.keys.issue-signing \
   --kid="signing-2024-q1" \
   --nbf="2024-01-01T00:00:00Z" \
   --exp="2024-04-01T00:00:00Z"
@@ -74,9 +74,9 @@ $signingKey = $caService->issueSigningKey(
 // - Certificate chain
 ```
 
-## Key Rotation
+## Key rotation
 
-### Scheduled Rotation
+### Scheduled rotation
 
 ```php
 // Automated rotation job
@@ -115,11 +115,11 @@ class RotateSigningKeysJob implements ShouldQueue
 
 > **Security note (v1.1+):** Private keys are now encrypted using `sodium_crypto_pwhash` (Argon2id) with a dedicated salt, replacing the previous SHA-256 single-round KDF. Existing keys encrypted with the v1 format are transparently decryptable — no migration is needed. In long-running environments (Octane, queue workers), the passphrase cache is automatically cleared after each request or job to prevent stale secrets in memory.
 
-### Emergency Rotation
+### Emergency rotation
 
 ```bash
 # Emergency rotation for compromised keys
-php artisan licensing:keys:rotate \
+php artisan laranail::license-kit.keys.rotate \
   --reason=compromised \
   --force \
   --revoke-at=now
@@ -163,9 +163,9 @@ class EmergencyKeyRotation
 }
 ```
 
-## Key Storage
+## Key storage
 
-### File-Based Storage
+### File-based storage
 
 ```php
 // Default file-based keystore
@@ -215,7 +215,7 @@ class FileKeyStore implements KeyStore
 }
 ```
 
-### Database Storage
+### Database storage
 
 ```php
 // Database keystore for distributed environments
@@ -241,7 +241,7 @@ class DatabaseKeyStore implements KeyStore
 }
 ```
 
-### Hardware Security Module (HSM)
+### Hardware security module (HSM)
 
 ```php
 // HSM integration for production environments
@@ -284,9 +284,9 @@ class HsmKeyStore implements KeyStore
 }
 ```
 
-## Key Distribution
+## Key distribution
 
-### Public Key Bundle
+### Public key bundle
 
 ```php
 // Generate public key bundle for client distribution
@@ -323,7 +323,7 @@ class PublicKeyDistribution
 }
 ```
 
-### Automatic Distribution
+### Automatic distribution
 
 ```php
 // Automatic key distribution endpoint
@@ -337,9 +337,9 @@ Route::get('/api/licensing/v1/keys', function () {
 });
 ```
 
-## Key Monitoring
+## Key monitoring
 
-### Health Checks
+### Health checks
 
 ```php
 class KeyHealthMonitor

@@ -1,10 +1,10 @@
-# Getting Started
+# Getting started
 
-This guide walks you through the basics of Laravel Licensing — from installation to issuing your first offline token.
+This guide walks you through the basics of License Kit — from installation to issuing your first offline token.
 
 ## Overview
 
-Laravel Licensing provides:
+License Kit provides:
 - License activation and validation
 - Offline verification with cryptographic tokens
 - Usage tracking and seat management
@@ -12,7 +12,7 @@ Laravel Licensing provides:
 - Template-based license tiers
 - Audit logging
 
-## Quick Start
+## Quick start
 
 ### 1. Installation
 
@@ -20,31 +20,31 @@ Laravel Licensing provides:
 composer require laranail/license-kit
 ```
 
-### 2. Publish Configuration
+### 2. Publish configuration
 
 ```bash
 php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\LicensingServiceProvider"
 ```
 
-### 3. Run Migrations
+### 3. Run migrations
 
 ```bash
 php artisan migrate
 ```
 
-### 4. Generate Root Key
+### 4. Generate root key
 
 ```bash
-php artisan licensing:keys:make-root
+php artisan laranail::license-kit.keys.make-root
 ```
 
-### 5. Issue Signing Key
+### 5. Issue signing key
 
 ```bash
-php artisan licensing:keys:issue-signing --days=30
+php artisan laranail::license-kit.keys.issue-signing --days=30
 ```
 
-## Your First License
+## Your first license
 
 ### Auto-generated key
 
@@ -138,7 +138,7 @@ if ($license->canRegenerateKey()) {
 $isValid = $license->verifyKey($userProvidedKey);
 ```
 
-## Using Templates
+## Using templates
 
 Templates define reusable license configurations:
 
@@ -182,7 +182,7 @@ if ($license->hasFeature('advanced_analytics')) {
 $apiCalls = $license->getEntitlement('api_calls_per_month');
 ```
 
-## Offline Verification
+## Offline verification
 
 Generate tokens for offline license verification:
 
@@ -198,7 +198,7 @@ $token = $tokenService->issue($license, $usage, [
 // The token can be verified offline using the public key bundle
 ```
 
-## Trial Licenses
+## Trial licenses
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Services\TrialService;
@@ -221,12 +221,12 @@ if ($trial->canConvert()) {
 }
 ```
 
-## What's Next?
+## What's next?
 
 - [Installation Guide](installation.md) — detailed installation and setup
 - [Configuration](configuration.md) — customize the package
 - [Basic Usage](basic-usage.md) — common scenarios and patterns
-- [API Reference](api/models.md) — complete API documentation
+- [API Reference](tools/models.md) — complete API documentation
 
 ---
 

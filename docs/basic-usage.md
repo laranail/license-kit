@@ -1,21 +1,10 @@
-# Basic Usage
+# Basic usage
 
-Learn the fundamental operations of Laravel Licensing with practical examples.
+Learn the fundamental operations of License Kit with practical examples.
 
-## Table of Contents
+## Creating licenses
 
-1. [Creating Licenses](#creating-licenses)
-2. [Activating Licenses](#activating-licenses)
-3. [Registering Devices/Usages](#registering-devicesusages)
-4. [Checking License Status](#checking-license-status)
-5. [Managing Features & Entitlements](#managing-features--entitlements)
-6. [Renewing Licenses](#renewing-licenses)
-7. [Handling Expiration](#handling-expiration)
-8. [Common Patterns](#common-patterns)
-
-## Creating Licenses
-
-### Method 1: Auto-Generated License Keys (Recommended)
+### Method 1: auto-generated license keys (recommended)
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Models\License;
@@ -40,7 +29,7 @@ $activationKey = $license->license_key; // e.g., "LIC-A3F2B9K1-C4D8E5H7-9D2EK8F3
 echo "Activation Key: {$activationKey}";
 ```
 
-### Method 2: Custom License Keys
+### Method 2: custom license keys
 
 ```php
 // Provide your own license key format
@@ -61,7 +50,7 @@ $license = License::createWithKey([
 echo "Enterprise Key: {$customKey}";
 ```
 
-### Method 3: Hash-Only (Maximum Security)
+### Method 3: hash-only (maximum security)
 
 ```php
 use Illuminate\Support\Str;
@@ -83,7 +72,7 @@ $license = License::create([
 echo "Activation Key: {$formattedKey}";
 ```
 
-### Using License Templates
+### Using license templates
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Models\{License, LicenseScope, LicenseTemplate};
@@ -134,7 +123,7 @@ echo $license->getFeatures();
 echo $license->getEntitlements();
 ```
 
-### Batch License Creation
+### Batch license creation
 
 ```php
 use Illuminate\Support\Facades\DB;
@@ -167,9 +156,9 @@ DB::transaction(function () use ($organization, $quantity) {
 });
 ```
 
-## Activating Licenses
+## Activating licenses
 
-### Basic Activation
+### Basic activation
 
 ```php
 // Customer provides their activation key
@@ -202,7 +191,7 @@ return response()->json([
 ]);
 ```
 
-### Activation with Device Registration
+### Activation with device registration
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
@@ -254,9 +243,9 @@ public function activateWithDevice(Request $request, UsageRegistrarService $regi
 }
 ```
 
-## Registering Devices/Usages
+## Registering devices/usages
 
-### Register a New Device
+### Register a new device
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
@@ -289,7 +278,7 @@ $usage = $registrar->register(
 $registrar->heartbeat($usage);
 ```
 
-### Managing Multiple Devices
+### Managing multiple devices
 
 ```php
 // List all devices for a license
@@ -318,7 +307,7 @@ if ($license->hasAvailableSeats()) {
 }
 ```
 
-### Auto-Replace Oldest Device
+### Auto-replace oldest device
 
 ```php
 // Configure in config/licensing.php
@@ -339,9 +328,9 @@ if (!$license->hasAvailableSeats()) {
 $newUsage = $registrar->register($license, $newFingerprint, $metadata);
 ```
 
-## License Key Management
+## License key management
 
-### Key Operations
+### Key operations
 
 ```php
 // Retrieve the original license key (if enabled in configuration)
@@ -379,7 +368,7 @@ $license = License::findByKey($userInputKey);
 $license = License::findByUid($uid);
 ```
 
-### Key Recovery Scenarios
+### Key recovery scenarios
 
 ```php
 class LicenseKeyRecoveryService
@@ -425,7 +414,7 @@ class LicenseKeyRecoveryService
 }
 ```
 
-### Security Incident Response
+### Security incident response
 
 ```php
 class SecurityIncidentService
@@ -463,9 +452,9 @@ class SecurityIncidentService
 }
 ```
 
-## Checking License Status
+## Checking license status
 
-### Basic Status Check
+### Basic status check
 
 ```php
 // Check if license is usable (active or in grace period)
@@ -494,7 +483,7 @@ if ($license->isExpired()) {
 }
 ```
 
-### Middleware for License Validation
+### Middleware for license validation
 
 ```php
 namespace App\Http\Middleware;
@@ -541,9 +530,9 @@ class RequireActiveLicense
 }
 ```
 
-## Managing Features & Entitlements
+## Managing features & entitlements
 
-### Checking Features
+### Checking features
 
 ```php
 // Check if a feature is enabled
@@ -576,7 +565,7 @@ class AnalyticsController extends Controller
 }
 ```
 
-### Working with Entitlements
+### Working with entitlements
 
 ```php
 // Get specific entitlement
@@ -599,7 +588,7 @@ if ($apiCallsLimit !== -1 && $currentApiCalls >= $apiCallsLimit) {
 Cache::increment("api_calls:{$license->id}:" . today()->format('Y-m-d'));
 ```
 
-### Dynamic Feature Flags
+### Dynamic feature flags
 
 ```php
 class FeatureService
@@ -645,9 +634,9 @@ $features->unless('watermark_disabled', function () {
 });
 ```
 
-## Renewing Licenses
+## Renewing licenses
 
-### Simple Renewal
+### Simple renewal
 
 ```php
 // Extend license by one year
@@ -665,7 +654,7 @@ $license->renew(now()->addYear(), [
 ]);
 ```
 
-### Renewal Workflow
+### Renewal workflow
 
 ```php
 public function processRenewal(Request $request, License $license)
@@ -703,7 +692,7 @@ public function processRenewal(Request $request, License $license)
 }
 ```
 
-### Auto-Renewal
+### Auto-renewal
 
 ```php
 // Schedule in app/Console/Kernel.php
@@ -745,9 +734,9 @@ class ProcessAutoRenewals implements ShouldQueue
 }
 ```
 
-## Handling Expiration
+## Handling expiration
 
-### Grace Period Management
+### Grace period management
 
 ```php
 // Check and transition to grace period
@@ -769,7 +758,7 @@ if ($license->gracePeriodExpired()) {
 }
 ```
 
-### Expiration Warnings
+### Expiration warnings
 
 ```php
 // Schedule expiration warnings
@@ -792,9 +781,9 @@ class SendExpirationWarnings implements ShouldQueue
 }
 ```
 
-## Common Patterns
+## Common patterns
 
-### License Key Generator
+### License key generator
 
 ```php
 class LicenseKeyGenerator
@@ -829,7 +818,7 @@ class LicenseKeyGenerator
 }
 ```
 
-### License Repository Pattern
+### License repository pattern
 
 ```php
 class LicenseRepository
@@ -869,7 +858,7 @@ class LicenseRepository
 }
 ```
 
-### License Validation Service
+### License validation service
 
 ```php
 class LicenseValidationService
@@ -912,12 +901,12 @@ class LicenseValidationService
 }
 ```
 
-## Next Steps
+## Next steps
 
-- [Core Concepts - Licenses](core/licenses.md) - Deep dive into license management
-- [Templates & Tiers](core/templates-tiers.md) - Template-based licensing
-- [Offline Verification](features/offline-verification.md) - Offline token system
-- [API Reference](api/models.md) - Complete API documentation
+- [Core Concepts - Licenses](tools/licenses.md) - Deep dive into license management
+- [Templates & Tiers](tools/templates-tiers.md) - Template-based licensing
+- [Offline Verification](tools/offline-verification.md) - Offline token system
+- [API Reference](tools/models.md) - Complete API documentation
 
 ---
 

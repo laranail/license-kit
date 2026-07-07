@@ -1,10 +1,10 @@
-# Client Library Architecture
+# Client library architecture
 
-This guide outlines the architectural principles and design patterns for building client libraries that integrate with Laravel Licensing in various programming languages.
+This guide outlines the architectural principles and design patterns for building client libraries that integrate with License Kit in various programming languages.
 
-## Core Principles
+## Core principles
 
-### 1. Separation of Concerns
+### 1. Separation of concerns
 
 Client libraries should be organized into distinct layers:
 
@@ -20,7 +20,7 @@ Client libraries should be organized into distinct layers:
 └─────────────────────────────────────┘
 ```
 
-### 2. Offline-First Design
+### 2. Offline-first design
 
 Client libraries should prioritize offline functionality:
 
@@ -29,7 +29,7 @@ Client libraries should prioritize offline functionality:
 - **Graceful degradation** when server is unreachable
 - **Background synchronization** when connectivity returns
 
-### 3. Security by Default
+### 3. Security by default
 
 Every client library must implement:
 
@@ -38,9 +38,9 @@ Every client library must implement:
 - **Tamper detection** for stored licenses
 - **Time-based validation** with clock skew tolerance
 
-## Essential Components
+## Essential components
 
-### 1. License Manager
+### 1. License manager
 
 The central coordinator that handles all licensing operations:
 
@@ -59,7 +59,7 @@ class LicenseManager:
     def check_entitlement(self, key: str) -> Any
 ```
 
-### 2. Token Verifier
+### 2. Token verifier
 
 Handles cryptographic verification of offline tokens:
 
@@ -84,7 +84,7 @@ class TokenVerifier {
 }
 ```
 
-### 3. Secure Storage
+### 3. Secure storage
 
 Platform-specific secure storage implementation:
 
@@ -107,7 +107,7 @@ public class SecureStorage {
 }
 ```
 
-### 4. Device Fingerprinting
+### 4. Device fingerprinting
 
 Consistent device identification across platforms:
 
@@ -129,7 +129,7 @@ func (f *FingerprintGenerator) Generate() string {
 }
 ```
 
-### 5. API Client
+### 5. API client
 
 RESTful API client with retry logic and rate limiting:
 
@@ -156,9 +156,9 @@ public class LicenseAPIClient
 }
 ```
 
-## Platform-Specific Considerations
+## Platform-specific considerations
 
-### Desktop Applications
+### Desktop applications
 
 #### Windows
 - Use **Windows Credential Manager** for token storage
@@ -178,7 +178,7 @@ public class LicenseAPIClient
 - XDG directories for storage
 - Package manager integration
 
-### Mobile Applications
+### Mobile applications
 
 #### iOS
 - **Keychain Services** for secure storage
@@ -192,7 +192,7 @@ public class LicenseAPIClient
 - WorkManager for background tasks
 - Certificate pinning with Network Security Config
 
-### Web Applications
+### Web applications
 
 #### Browser JavaScript
 - **Web Crypto API** for cryptographic operations
@@ -206,9 +206,9 @@ public class LicenseAPIClient
 - Worker threads for verification
 - Cluster module for scaling
 
-## Implementation Patterns
+## Implementation patterns
 
-### 1. Lazy Initialization
+### 1. Lazy initialization
 
 Initialize licensing only when needed:
 
@@ -226,7 +226,7 @@ impl LicenseManager {
 }
 ```
 
-### 2. Automatic Refresh
+### 2. Automatic refresh
 
 Background refresh before expiration:
 
@@ -244,7 +244,7 @@ class LicenseRefreshScheduler {
 }
 ```
 
-### 3. Graceful Degradation
+### 3. Graceful degradation
 
 Handle offline scenarios elegantly:
 
@@ -265,7 +265,7 @@ class LicenseValidator {
 }
 ```
 
-### 4. Feature Flags
+### 4. Feature flags
 
 Efficient feature checking:
 
@@ -290,9 +290,9 @@ class FeatureManager
 end
 ```
 
-## Error Handling
+## Error handling
 
-### Error Categories
+### Error categories
 
 1. **Recoverable Errors** - Retry with backoff
    - Network timeouts
@@ -309,7 +309,7 @@ end
    - Clock manipulation detected
    - Critical validation failure
 
-### Error Response Structure
+### Error response structure
 
 ```typescript
 interface LicenseError {
@@ -322,9 +322,9 @@ interface LicenseError {
 }
 ```
 
-## Testing Strategy
+## Testing strategy
 
-### 1. Mock Server
+### 1. Mock server
 
 Implement a mock licensing server for testing:
 
@@ -344,7 +344,7 @@ class MockLicenseServer:
         self.licenses['test'].expires_at = datetime.now() - timedelta(days=1)
 ```
 
-### 2. Time Manipulation
+### 2. Time manipulation
 
 Test time-based features:
 
@@ -365,7 +365,7 @@ public class TimeProvider {
 TimeProvider.setClock(Clock.fixed(testTime, ZoneOffset.UTC));
 ```
 
-### 3. Platform Mocking
+### 3. Platform mocking
 
 Mock platform-specific APIs:
 
@@ -386,30 +386,30 @@ class PlatformMock {
 }
 ```
 
-## Performance Optimization
+## Performance optimization
 
-### 1. Caching Strategy
+### 1. Caching strategy
 
 - Cache validation results for 5 minutes
 - Cache feature flags until license refresh
 - Cache public keys until expiration
 - Use LRU cache for API responses
 
-### 2. Async Operations
+### 2. Async operations
 
 - Non-blocking license validation
 - Background token refresh
 - Parallel API calls where possible
 - Queue-based retry mechanism
 
-### 3. Resource Management
+### 3. Resource management
 
 - Connection pooling for API calls
 - Lazy loading of cryptographic libraries
 - Efficient memory usage for token storage
 - Minimal CPU usage during idle
 
-## Deployment Considerations
+## Deployment considerations
 
 ### 1. Versioning
 
@@ -434,7 +434,7 @@ Essential documentation:
 - Migration guides
 - Troubleshooting section
 
-## Security Checklist
+## Security checklist
 
 - [ ] Secure storage implementation
 - [ ] Certificate pinning enabled
@@ -447,7 +447,7 @@ Essential documentation:
 - [ ] Audit logging capability
 - [ ] Update mechanism security
 
-## Example Architecture: Desktop App
+## Example architecture: desktop app
 
 ```
 ┌──────────────────────────────────────────┐
@@ -474,13 +474,13 @@ Essential documentation:
 └──────────────────────────────────────────┘
 ```
 
-## Next Steps
+## Next steps
 
-- Review [Implementation Guide](../CLIENT_IMPLEMENTATION_GUIDE.md) for language-specific details
+- Review [Implementation Guide](client-implementation.md) for language-specific details
 - Check API integration (server communication) for server communication
-- Read [Offline Verification](../features/offline-verification.md) for token handling
-- See [Practical Examples](../examples/practical-examples.md) for real implementations
+- Read [Offline Verification](tools/offline-verification.md) for token handling
+- See [Practical Examples](recipes/saas-tiered-licensing.md) for real implementations
 
 ---
 
-[← Docs index](../../README.md#documentation)
+[← Docs index](../README.md#documentation)

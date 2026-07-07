@@ -1,18 +1,15 @@
-# License Kit - Client Implementation Guide
+# Client implementation guide
 
-## Purpose
-This document provides a complete specification for implementing Laravel Licensing clients in any programming language or architecture. It serves as a reference for AI assistants or developers to create compatible client libraries.
+A complete specification for implementing License Kit clients in any programming language or architecture — a reference for developers (or AI assistants) building compatible client libraries.
 
----
+## Core concepts
 
-## Core Concepts
-
-### 1. License Lifecycle from Client Perspective
+### 1. License lifecycle from client perspective
 ```
 Activation → Token Receipt → Offline Validation → Periodic Refresh → Expiration/Renewal
 ```
 
-### 2. Client Responsibilities
+### 2. Client responsibilities
 - Generate stable device fingerprint
 - Store tokens securely
 - Validate tokens offline
@@ -22,9 +19,9 @@ Activation → Token Receipt → Offline Validation → Periodic Refresh → Exp
 
 ---
 
-## Required Client Components
+## Required client components
 
-### 1. Fingerprint Generator
+### 1. Fingerprint generator
 **Purpose**: Create a unique, stable identifier for the device/installation
 
 **Requirements**:
@@ -54,7 +51,7 @@ fingerprint = SHA256(
 
 ---
 
-### 2. Token Storage
+### 2. Token storage
 **Purpose**: Securely store offline tokens and metadata
 
 **Storage Requirements**:
@@ -85,7 +82,7 @@ fingerprint = SHA256(
 
 ---
 
-### 3. PASETO Token Verifier
+### 3. PASETO token verifier
 **Purpose**: Validate tokens offline without server contact
 
 **PASETO v2.public Token Structure**:
@@ -135,7 +132,7 @@ v2.public.<payload>.<footer>
 
 ---
 
-### 4. License Activator
+### 4. License activator
 **Purpose**: Exchange activation key for offline token
 
 **API Request**:
@@ -190,7 +187,7 @@ Content-Type: application/json
 
 ---
 
-### 5. Token Refresher
+### 5. Token refresher
 **Purpose**: Get new token before expiration
 
 **Refresh Strategy**:
@@ -221,7 +218,7 @@ Authorization: Bearer <current_token>
 
 ---
 
-### 6. Heartbeat Reporter
+### 6. Heartbeat reporter
 **Purpose**: Update last_seen_at to maintain active status
 
 **When to Send**:
@@ -245,7 +242,7 @@ Authorization: Bearer <current_token>
 
 ---
 
-### 7. License Enforcer (Middleware/Interceptor)
+### 7. License enforcer (middleware/interceptor)
 **Purpose**: Block access to protected features
 
 **Pseudocode**:
@@ -275,9 +272,9 @@ def require_license(feature=None):
 
 ---
 
-## Implementation Patterns
+## Implementation patterns
 
-### 1. Initialization Flow
+### 1. Initialization flow
 ```
 Application Start
     ↓
@@ -294,7 +291,7 @@ Activate Online           Update Cache
 Store Token               Continue
 ```
 
-### 2. Periodic Validation Flow
+### 2. Periodic validation flow
 ```
 Every Hour/Day
     ↓
@@ -307,7 +304,7 @@ Yes → Try Refresh → [Success] → Update Cache
          [Fail] → Continue if Valid
 ```
 
-### 3. Error Recovery Flow
+### 3. Error recovery flow
 ```
 Validation Failed
     ↓
@@ -326,27 +323,27 @@ Continue            Block after Grace
 
 ---
 
-## Platform-Specific Considerations
+## Platform-specific considerations
 
-### Desktop Applications
+### Desktop applications
 - Store tokens in OS credential manager
 - Generate fingerprint from hardware IDs
 - Show system tray notifications for expiry
 - Handle sleep/wake for heartbeat
 
-### Web Applications
+### Web applications
 - Use IndexedDB for token storage
 - Implement service worker for offline validation
 - Handle tab visibility for heartbeat
 - Use Web Crypto API for verification
 
-### Mobile Applications
+### Mobile applications
 - Use platform keychain/keystore
 - Handle app backgrounding
 - Request network permission for refresh
 - Implement push notifications for expiry
 
-### Server/CLI Applications
+### Server/CLI applications
 - Use filesystem with permissions 600
 - Generate fingerprint from container/VM ID
 - Implement systemd timer for heartbeat
@@ -360,23 +357,23 @@ Continue            Block after Grace
 
 ---
 
-## Security Requirements
+## Security requirements
 
-### Token Protection
+### Token protection
 1. Never log full tokens
 2. Encrypt tokens at rest
 3. Validate token integrity
 4. Implement rate limiting on validation
 5. Clear tokens on deactivation
 
-### Network Security
+### Network security
 1. Always use HTTPS for API calls
 2. Implement certificate pinning (optional)
 3. Validate server certificates
 4. Handle man-in-the-middle attacks
 5. Implement exponential backoff
 
-### Fingerprint Privacy
+### Fingerprint privacy
 1. Hash all hardware IDs
 2. Never send raw hardware info
 3. Allow user to view fingerprint
@@ -385,23 +382,23 @@ Continue            Block after Grace
 
 ---
 
-## Testing Requirements
+## Testing requirements
 
-### Unit Tests
+### Unit tests
 1. Fingerprint generation consistency
 2. Token parsing and validation
 3. Clock skew handling
 4. Grace period calculation
 5. Error response handling
 
-### Integration Tests
+### Integration tests
 1. Full activation flow
 2. Token refresh flow
 3. Offline validation
 4. Force online handling
 5. Network failure recovery
 
-### Platform Tests
+### Platform tests
 1. Secure storage access
 2. Hardware ID availability
 3. Network permission handling
@@ -410,7 +407,7 @@ Continue            Block after Grace
 
 ---
 
-## Minimum Viable Client
+## Minimum viable client
 
 A minimal client MUST implement:
 
@@ -430,9 +427,9 @@ Optional features for enhanced functionality:
 
 ---
 
-## Reference Implementations
+## Reference implementations
 
-### Minimal Python Client
+### Minimal Python client
 ```python
 import hashlib
 import json
@@ -503,9 +500,9 @@ class LicenseClient:
 
 ---
 
-## Compliance & Legal
+## Compliance & legal
 
-### Data Collection
+### Data collection
 Clients MUST:
 - Document all data collected for fingerprinting
 - Provide privacy policy compliance
@@ -513,12 +510,12 @@ Clients MUST:
 - Implement data deletion on request
 - Comply with GDPR Article 17 (Right to Erasure)
 
-### Export Controls
+### Export controls
 - Implement region restrictions if required
 - Check license against embargo lists
 - Log access attempts from restricted regions
 
-### Audit Trail
+### Audit trail
 - Log all license validations
 - Record activation/deactivation events
 - Track feature usage if required
@@ -526,16 +523,16 @@ Clients MUST:
 
 ---
 
-## Support & Troubleshooting
+## Support & troubleshooting
 
-### Common Issues
+### Common issues
 1. **Clock Skew**: System time off by >60 seconds
 2. **Fingerprint Drift**: Hardware changes causing mismatch
 3. **Token Corruption**: Storage failure or tampering
 4. **Network Isolation**: Can't refresh when required
 5. **Permission Issues**: Can't access secure storage
 
-### Diagnostic Information
+### Diagnostic information
 Clients SHOULD provide debug command/UI showing:
 - Current fingerprint
 - Token expiration
@@ -544,7 +541,7 @@ Clients SHOULD provide debug command/UI showing:
 - Error logs
 - Public key bundle
 
-### Recovery Mechanisms
+### Recovery mechanisms
 - Manual token refresh command
 - License reset option
 - Fingerprint regeneration
@@ -553,20 +550,20 @@ Clients SHOULD provide debug command/UI showing:
 
 ---
 
-## Version Compatibility
+## Version compatibility
 
-### Protocol Version
+### Protocol version
 Current: `v1`
 Token Format: `PASETO v2.public`
 
-### Breaking Changes
+### Breaking changes
 Clients MUST handle:
 - New required claims in tokens
 - Changed API endpoints
 - Updated crypto algorithms
 - Modified fingerprint requirements
 
-### Deprecation Policy
+### Deprecation policy
 - 6 months notice for breaking changes
 - 12 months support for old protocol
 - Clear migration guides

@@ -1,22 +1,12 @@
-# Frequently Asked Questions
+# FAQ
 
-Answers to common questions about Laravel Licensing.
+Answers to common questions about License Kit.
 
-## Table of Contents
+## General questions
 
-- [General Questions](#general-questions)
-- [Licensing Model](#licensing-model)
-- [Security & Cryptography](#security--cryptography)
-- [Offline Verification](#offline-verification)
-- [Performance & Scalability](#performance--scalability)
-- [Integration & Customization](#integration--customization)
-- [Troubleshooting](#troubleshooting)
+### What is License Kit?
 
-## General Questions
-
-### What is Laravel Licensing?
-
-Laravel Licensing is a comprehensive licensing system for Laravel applications that provides:
+License Kit is a comprehensive licensing system for Laravel applications that provides:
 - License key generation and validation
 - Device/seat management
 - Offline verification using cryptographic tokens
@@ -53,7 +43,7 @@ Yes. The package includes:
 - **Extensions**: OpenSSL, Sodium (for PASETO)
 - **Optional**: Redis for caching
 
-## Licensing Model
+## Licensing model
 
 ### How does polymorphic licensing work?
 
@@ -132,7 +122,7 @@ Configure in `config/licensing.php`:
 ],
 ```
 
-## Security & Cryptography
+## Security & cryptography
 
 ### What cryptographic algorithms are used?
 
@@ -182,7 +172,7 @@ Yes, multiple layers:
 - Fingerprint validation
 - Usage anomaly detection
 
-## Offline Verification
+## Offline verification
 
 ### How does offline verification work?
 
@@ -226,7 +216,7 @@ Recommended refresh strategy:
 - **Force online**: Every 14-30 days
 - **On app launch**: If token expires within 24h
 
-## Performance & Scalability
+## Performance & scalability
 
 ### How many licenses can the system handle?
 
@@ -295,7 +285,7 @@ DB::transaction(function () use ($license) {
 });
 ```
 
-## Integration & Customization
+## Integration & customization
 
 ### Can I use custom models?
 
@@ -426,13 +416,13 @@ AND expires_at > NOW();
 
 ```bash
 # Check key status (active and revoked)
-php artisan licensing:keys:list
+php artisan laranail::license-kit.keys.list
 
 # Verify installation (root, signing, schema)
-php artisan licensing:check
+php artisan laranail::license-kit.check
 
 # Issue a test token to confirm the active signing key works
-php artisan licensing:offline:issue --license=<id> --fingerprint=<fp>
+php artisan laranail::license-kit.offline.issue --license=<id> --fingerprint=<fp>
 ```
 
 Verify tokens programmatically with the `TokenVerifier` contract; there is no CLI verifier.
@@ -478,13 +468,13 @@ DB::table('licenses')
     ->delete();
 ```
 
-## Getting Help
+## Getting help
 
 ### Where can I find more documentation?
 
 - [GitHub Repository](https://github.com/laranail/license-kit)
-- [API Documentation](../api/models.md)
-- [Security Guide](../advanced/security.md)
+- [API Documentation](tools/models.md)
+- [Security Guide](security.md)
 - [Troubleshooting Guide](troubleshooting.md)
 
 ### How do I report bugs?
@@ -524,13 +514,13 @@ Contact options:
 - Subscribe to security advisories
 - Join community discussions
 
-## Next Steps
+## Next steps
 
-- [Installation Guide](../installation.md) - Get started
-- [Configuration](../configuration.md) - Customize settings
-- [Basic Usage](../basic-usage.md) - Common operations
+- [Installation Guide](installation.md) - Get started
+- [Configuration](configuration.md) - Customize settings
+- [Basic Usage](basic-usage.md) - Common operations
 - [Troubleshooting](troubleshooting.md) - Solve problems
 
 ---
 
-[← Docs index](../../README.md#documentation)
+[← Docs index](../README.md#documentation)

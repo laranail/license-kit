@@ -1,10 +1,10 @@
-# Core Concepts - Licenses
+# Licenses
 
 Deep dive into the license model and its lifecycle management.
 
-## License Architecture
+## License architecture
 
-### The License Model
+### The license model
 
 The `License` model is the core entity of the licensing system. It uses:
 
@@ -33,9 +33,9 @@ class License extends Model
 }
 ```
 
-## License Lifecycle
+## License lifecycle
 
-### State Transitions
+### State transitions
 
 ```
 ┌─────────┐     activate()     ┌────────┐
@@ -58,7 +58,7 @@ class License extends Model
 Active ────────> Suspended  Active ────> Cancelled
 ```
 
-### Lifecycle Methods
+### Lifecycle methods
 
 ```php
 // Activation
@@ -84,11 +84,11 @@ $license->transitionToExpired();
 // When grace period expires
 ```
 
-## License Key Management
+## License key management
 
 The package provides flexible license key management through a service-based architecture that allows for auto-generation, custom keys, and optional retrieval.
 
-### Key Management Architecture
+### Key management architecture
 
 The system uses three configurable contracts:
 
@@ -96,9 +96,9 @@ The system uses three configurable contracts:
 - **`LicenseKeyRetrieverContract`**: Retrieves stored license keys
 - **`LicenseKeyRegeneratorContract`**: Regenerates existing keys
 
-### Creating Licenses with Keys
+### Creating licenses with keys
 
-#### Method 1: Auto-Generated Keys
+#### Method 1: auto-generated keys
 
 ```php
 // Generate license with auto-generated key
@@ -118,7 +118,7 @@ $licenseKey = $license->license_key; // e.g., "LIC-A3F2B9K1-C4D8E5H7-9D2EK8F3-L6
 // - Encrypted and stored (if retrieval enabled)
 ```
 
-#### Method 2: Custom-Provided Keys
+#### Method 2: custom-provided keys
 
 ```php
 // Provide your own license key
@@ -135,7 +135,7 @@ $license = License::createWithKey([
 $verifyCustom = $license->verifyKey($customKey); // true
 ```
 
-#### Method 3: Traditional Hash-Only Approach
+#### Method 3: traditional hash-only approach
 
 ```php
 // For maximum security (no key retrieval)
@@ -152,7 +152,7 @@ $license = License::create([
 // Key is only stored as hash - cannot be retrieved
 ```
 
-### Key Operations
+### Key operations
 
 #### Verification
 
@@ -214,7 +214,7 @@ Configure key management behavior in `config/licensing.php`:
 ],
 ```
 
-### Custom Key Services
+### Custom key services
 
 Implement your own key generation logic:
 
@@ -245,7 +245,7 @@ $this->app->singleton(
 );
 ```
 
-### Security Considerations
+### Security considerations
 
 - **Hash Storage**: Keys are always stored as salted SHA-256 hashes using `LICENSING_KEY_SALT` (fallback to `APP_KEY` if unset)
 - **Encrypted Retrieval**: Original keys stored encrypted with Laravel's Crypt facade
@@ -253,7 +253,7 @@ $this->app->singleton(
 - **Audit Trail**: Previous key hashes stored when regenerating
 - **Configurable Security**: Disable retrieval/regeneration for maximum security
 
-### Key Format Examples
+### Key format examples
 
 Default format: `LIC-XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX` (8 hex characters per segment, 128-bit entropy)
 
@@ -273,7 +273,7 @@ PRO-2024-ENTERPRISE-001   // Custom business format
 DEMO.TEMP.2024.001        // Trial license format
 ```
 
-### Migration from Hash-Only
+### Migration from hash-only
 
 If migrating from hash-only storage:
 
@@ -287,9 +287,9 @@ $newLicense = License::createWithKey($attributes);
 $retrievedKey = $newLicense->retrieveKey(); // Available
 ```
 
-## Polymorphic Licensing
+## Polymorphic licensing
 
-### Setting Up Licensable Models
+### Setting up licensable models
 
 ```php
 // User model
@@ -339,7 +339,7 @@ class Device extends Model
 }
 ```
 
-### Creating Licenses for Different Entities
+### Creating licenses for different entities
 
 ```php
 // For a user
@@ -367,9 +367,9 @@ $deviceLicense = License::create([
 ]);
 ```
 
-## Metadata System
+## Metadata system
 
-### Using License Metadata
+### Using license metadata
 
 ```php
 // Store custom data in meta field
@@ -431,7 +431,7 @@ $license->meta = array_merge($license->meta ?? [], [
 $license->save();
 ```
 
-### Policy Override System
+### Policy override system
 
 ```php
 class License extends Model
@@ -464,9 +464,9 @@ $graceDays = $license->getPolicy('grace_days'); // 30 (from meta)
 $overLimit = $license->getPolicy('over_limit'); // 'reject' (from config)
 ```
 
-## Expiration Management
+## Expiration management
 
-### Expiration Checking
+### Expiration checking
 
 ```php
 class ExpirationService
@@ -517,7 +517,7 @@ class ExpirationService
 }
 ```
 
-### Grace Period Implementation
+### Grace period implementation
 
 ```php
 trait HandlesGracePeriod
@@ -561,9 +561,9 @@ trait HandlesGracePeriod
 }
 ```
 
-## License Querying
+## License querying
 
-### Common Query Patterns
+### Common query patterns
 
 ```php
 class LicenseQueryBuilder
@@ -621,7 +621,7 @@ class LicenseQueryBuilder
 }
 ```
 
-### Advanced Filtering
+### Advanced filtering
 
 ```php
 // Complex license search
@@ -649,9 +649,9 @@ $licenses = License::query()
     ->paginate();
 ```
 
-## Performance Optimization
+## Performance optimization
 
-### Eager Loading
+### Eager loading
 
 ```php
 // Optimize queries with relationships
@@ -667,7 +667,7 @@ $licenses = License::with([
 ])->get();
 ```
 
-### Caching Strategies
+### Caching strategies
 
 ```php
 class CachedLicense
@@ -699,12 +699,12 @@ class CachedLicense
 }
 ```
 
-## Next Steps
+## Next steps
 
 - [Usage & Seats](usage-seats.md) - Device and seat management
 - [Templates & Tiers](templates-tiers.md) - Template-based licensing
 - [Renewals](renewals.md) - License renewal system
-- [API Reference](../api/models.md) - Complete model documentation
+- [API Reference](models.md) - Complete model documentation
 
 ---
 

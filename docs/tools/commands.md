@@ -1,26 +1,17 @@
-# API Reference: Commands
+# Commands
 
-This document provides comprehensive API reference for all Artisan commands in the Laravel Licensing package. Commands provide CLI interfaces for key management, token operations, and maintenance tasks.
+Reference for the `laranail::license-kit.*` Artisan commands — installation checks, key management, offline tokens, and maintenance. Every command also answers to its legacy `licensing:*` alias.
 
-## Table of Contents
-
-- [Key Management Commands](#key-management-commands)
-- [Token Commands](#token-commands)
-- [Maintenance Commands](#maintenance-commands)
-- [Command Options](#command-options)
-- [Exit Codes](#exit-codes)
-- [Automation](#automation)
-
-## Key Management Commands
+## Key management commands
 
 Commands for managing cryptographic keys and certificates.
 
-### licensing:keys:make-root
+### laranail::license-kit.keys.make-root
 
 Creates a new root key pair for the certificate authority.
 
 ```bash
-php artisan licensing:keys:make-root [options]
+php artisan laranail::license-kit.keys.make-root [options]
 ```
 
 **Options:**
@@ -35,10 +26,10 @@ The signing algorithm comes from `licensing.crypto.algorithm`.
 
 ```bash
 # Create root key
-php artisan licensing:keys:make-root
+php artisan laranail::license-kit.keys.make-root
 
 # Force overwrite existing root key
-php artisan licensing:keys:make-root --force
+php artisan laranail::license-kit.keys.make-root --force
 ```
 
 **Output:**
@@ -54,12 +45,12 @@ Private Key: Encrypted and stored securely
 Bundle exported to: /storage/app/licensing/public-bundle.json
 ```
 
-### licensing:keys:issue-signing
+### laranail::license-kit.keys.issue-signing
 
 Issues a new signing key signed by the root key.
 
 ```bash
-php artisan licensing:keys:issue-signing [options]
+php artisan laranail::license-kit.keys.issue-signing [options]
 ```
 
 **Options:**
@@ -75,24 +66,24 @@ The new key is activated immediately.
 
 ```bash
 # Issue signing key with auto-generated kid
-php artisan licensing:keys:issue-signing
+php artisan laranail::license-kit.keys.issue-signing
 
 # Issue with explicit kid and validity window
-php artisan licensing:keys:issue-signing \
+php artisan laranail::license-kit.keys.issue-signing \
   --kid=signing-2024-q1 \
   --nbf=2024-01-01T00:00:00Z \
   --exp=2024-04-01T00:00:00Z
 
 # Issue scoped to a specific product
-php artisan licensing:keys:issue-signing --scope=erp-system --days=90
+php artisan laranail::license-kit.keys.issue-signing --scope=erp-system --days=90
 ```
 
-### licensing:keys:rotate
+### laranail::license-kit.keys.rotate
 
 Rotates the current signing key (revokes old, issues new).
 
 ```bash
-php artisan licensing:keys:rotate [options]
+php artisan laranail::license-kit.keys.rotate [options]
 ```
 
 **Options:**
@@ -103,18 +94,18 @@ php artisan licensing:keys:rotate [options]
 
 ```bash
 # Routine rotation
-php artisan licensing:keys:rotate --reason=routine
+php artisan laranail::license-kit.keys.rotate --reason=routine
 
 # Emergency rotation for compromised key
-php artisan licensing:keys:rotate --reason=compromised --immediate
+php artisan laranail::license-kit.keys.rotate --reason=compromised --immediate
 ```
 
-### licensing:keys:revoke
+### laranail::license-kit.keys.revoke
 
 Revokes a specific key.
 
 ```bash
-php artisan licensing:keys:revoke {kid} [options]
+php artisan laranail::license-kit.keys.revoke {kid} [options]
 ```
 
 **Arguments:**
@@ -128,20 +119,20 @@ php artisan licensing:keys:revoke {kid} [options]
 
 ```bash
 # Revoke immediately
-php artisan licensing:keys:revoke signing-2024-01
+php artisan laranail::license-kit.keys.revoke signing-2024-01
 
 # Backdate revocation
-php artisan licensing:keys:revoke signing-2024-01 \
+php artisan laranail::license-kit.keys.revoke signing-2024-01 \
   --at=2024-02-01T00:00:00Z \
   --reason=key-rotation
 ```
 
-### licensing:keys:list
+### laranail::license-kit.keys.list
 
 Lists all keys with their status and validity.
 
 ```bash
-php artisan licensing:keys:list [options]
+php artisan laranail::license-kit.keys.list [options]
 ```
 
 Lists every root and signing key (active, revoked, and expired) in a table.
@@ -150,7 +141,7 @@ Has no options.
 **Example:**
 
 ```bash
-php artisan licensing:keys:list
+php artisan laranail::license-kit.keys.list
 ```
 
 **Sample Output:**
@@ -165,12 +156,12 @@ php artisan licensing:keys:list
 +------------------+----------+--------+---------------------+---------------------+
 ```
 
-### licensing:keys:export
+### laranail::license-kit.keys.export
 
 Exports public key materials for client distribution.
 
 ```bash
-php artisan licensing:keys:export [options]
+php artisan laranail::license-kit.keys.export [options]
 ```
 
 **Options:**
@@ -183,22 +174,22 @@ The bundle is written to the path configured by `licensing.publishing.public_bun
 
 ```bash
 # Export as JWKS
-php artisan licensing:keys:export --format=jwks
+php artisan laranail::license-kit.keys.export --format=jwks
 
 # Export PEM bundle with chain
-php artisan licensing:keys:export --format=pem --include-chain
+php artisan laranail::license-kit.keys.export --format=pem --include-chain
 ```
 
-## Token Commands
+## Token commands
 
 Commands for offline token operations.
 
-### licensing:offline:issue
+### laranail::license-kit.offline.issue
 
 Issues offline verification tokens.
 
 ```bash
-php artisan licensing:offline:issue [options]
+php artisan laranail::license-kit.offline.issue [options]
 ```
 
 **Options:**
@@ -209,7 +200,7 @@ php artisan licensing:offline:issue [options]
 **Example:**
 
 ```bash
-php artisan licensing:offline:issue \
+php artisan laranail::license-kit.offline.issue \
   --license=LIC-ABC123-XYZ789 \
   --fingerprint=device-unique-id \
   --ttl=14d
@@ -229,22 +220,22 @@ Token: v4.public.eyJ0eXAiOiJQQVNFVE8iLCJhbGc...
 Token saved to: token.txt
 ```
 
-### Verifying Offline Tokens
+### Verifying offline tokens
 
 There is no CLI verifier. Verify tokens programmatically through the `TokenVerifier`
 contract (resolved via `app(\Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier::class)`),
 which validates signature, chain, expiry, and clock skew.
 
-## Maintenance Commands
+## Maintenance commands
 
 Commands for system maintenance and monitoring.
 
-### licensing:check-expirations
+### laranail::license-kit.check-expirations
 
 Transitions licenses across grace and expired states based on `expires_at`.
 
 ```bash
-php artisan licensing:check-expirations [options]
+php artisan laranail::license-kit.check-expirations [options]
 ```
 
 **Options:**
@@ -256,19 +247,19 @@ php artisan licensing:check-expirations [options]
 
 ```bash
 # Dry run to see what licenses would be affected
-php artisan licensing:check-expirations --dry-run
+php artisan laranail::license-kit.check-expirations --dry-run
 
 # Apply transitions and notify upcoming expirations
-php artisan licensing:check-expirations --notify --expiring-within=14
+php artisan laranail::license-kit.check-expirations --notify --expiring-within=14
 ```
 
-### licensing:cleanup-usages
+### laranail::license-kit.cleanup-usages
 
 Revokes license usages whose `last_seen_at` exceeds the configured inactivity
 threshold (`licensing.policies.usage_inactivity_auto_revoke_days`).
 
 ```bash
-php artisan licensing:cleanup-usages [options]
+php artisan laranail::license-kit.cleanup-usages [options]
 ```
 
 **Options:**
@@ -280,27 +271,27 @@ If `usage_inactivity_auto_revoke_days` is `null`, the command exits as a no-op.
 
 ```bash
 # Apply revocations
-php artisan licensing:cleanup-usages
+php artisan laranail::license-kit.cleanup-usages
 
 # Preview without applying
-php artisan licensing:cleanup-usages --dry-run
+php artisan laranail::license-kit.cleanup-usages --dry-run
 ```
 
-### licensing:check
+### laranail::license-kit.check
 
 Verifies installation: configuration, schema, root key, and active signing key.
 
 ```bash
-php artisan licensing:check
+php artisan laranail::license-kit.check
 ```
 
 Exit code is `0` when every check passes and `1` otherwise. Output is a table
 with one row per check (Configuration, each licensing table, Root key, Signing
 key) and a remediation hint for failing rows.
 
-## Command Options
+## Command options
 
-### Global Options
+### Global options
 
 All commands support these global options:
 
@@ -310,7 +301,7 @@ All commands support these global options:
 - `--no-interaction` - Don't ask interactive questions
 - `--env=testing` - Specify environment
 
-### Date/Time Formats
+### Date/Time formats
 
 Commands accepting date/time values support these formats:
 
@@ -318,7 +309,7 @@ Commands accepting date/time values support these formats:
 - Relative: `+30 days`, `-1 week`, `now`
 - Human readable: `next monday`, `tomorrow 2pm`
 
-### Duration Formats
+### Duration formats
 
 Time-to-live and duration options accept:
 
@@ -327,7 +318,7 @@ Time-to-live and duration options accept:
 - Minutes: `1440m`
 - Seconds: `86400s`
 
-## Exit Codes
+## Exit codes
 
 Commands follow standard exit code conventions:
 
@@ -348,7 +339,7 @@ Commands follow standard exit code conventions:
 #!/bin/bash
 
 # Issue signing key and check result
-php artisan licensing:keys:issue-signing --kid=quarterly-2024-q1
+php artisan laranail::license-kit.keys.issue-signing --kid=quarterly-2024-q1
 
 case $? in
     0) echo "Key issued successfully" ;;
@@ -360,7 +351,7 @@ esac
 
 ## Automation
 
-### Scheduled Commands
+### Scheduled commands
 
 Add to your `app/Console/Kernel.php`:
 
@@ -368,40 +359,40 @@ Add to your `app/Console/Kernel.php`:
 protected function schedule(Schedule $schedule)
 {
     // Check expirations daily at 2 AM
-    $schedule->command('licensing:check-expirations --notify')
+    $schedule->command('laranail::license-kit.check-expirations --notify')
              ->dailyAt('02:00')
              ->withoutOverlapping();
     
     // Rotate signing keys quarterly
-    $schedule->command('licensing:keys:rotate --reason=routine')
+    $schedule->command('laranail::license-kit.keys.rotate --reason=routine')
              ->quarterly()
              ->environments(['production']);
     
     // Clean up inactive usages weekly
-    $schedule->command('licensing:cleanup-usages')
+    $schedule->command('laranail::license-kit.cleanup-usages')
              ->weeklyOn(1, '03:00'); // Mondays at 3 AM
 
     // Installation sanity check daily
-    $schedule->command('licensing:check')
+    $schedule->command('laranail::license-kit.check')
              ->daily()
              ->sendOutputTo('/var/log/licensing-check.log');
 }
 ```
 
-### CI/CD Integration
+### CI/CD integration
 
 ```yaml
 # .github/workflows/deploy.yml
 - name: Setup License Keys
   run: |
-    php artisan licensing:keys:make-root --force --silent
-    php artisan licensing:keys:issue-signing --no-interaction
+    php artisan laranail::license-kit.keys.make-root --force --silent
+    php artisan laranail::license-kit.keys.issue-signing --no-interaction
 
 - name: Installation Check
-  run: php artisan licensing:check
+  run: php artisan laranail::license-kit.check
 ```
 
-### Key Rotation Automation
+### Key rotation automation
 
 ```php
 // app/Console/Commands/AutoRotateKeys.php
@@ -422,7 +413,7 @@ class AutoRotateKeys extends Command
         if ($activeKey->created_at->diffInDays(now()) > 60) {
             $this->info('Rotating signing key (60+ days old)');
 
-            $this->call('licensing:keys:rotate', [
+            $this->call('laranail::license-kit.keys.rotate', [
                 '--reason' => 'routine',
             ]);
 
@@ -436,20 +427,20 @@ class AutoRotateKeys extends Command
 }
 ```
 
-### Backup Commands
+### Backup commands
 
 ```bash
 # Backup key material (be very careful with private keys!)
-php artisan licensing:keys:export --format=json --include-chain > keys-backup.json
+php artisan laranail::license-kit.keys.export --format=json --include-chain > keys-backup.json
 
 # Backup database
 php artisan db:dump --database=licensing
 
 # Verify installation before backup
-php artisan licensing:check
+php artisan laranail::license-kit.check
 ```
 
-This comprehensive command reference provides all the tools needed for managing a Laravel Licensing installation through the command line, including automation and monitoring capabilities.
+This comprehensive command reference provides all the tools needed for managing a License Kit installation through the command line, including automation and monitoring capabilities.
 
 ---
 

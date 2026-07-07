@@ -2,18 +2,6 @@
 
 The trial system allows potential customers to evaluate your software before purchasing. It provides time-limited access with optional feature restrictions and usage limitations, designed to encourage conversion to paid licenses.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Trial Configuration](#trial-configuration)
-- [Starting Trials](#starting-trials)
-- [Trial Management](#trial-management)
-- [Feature Restrictions](#feature-restrictions)
-- [Usage Limitations](#usage-limitations)
-- [Trial Extensions](#trial-extensions)
-- [Conversion Tracking](#conversion-tracking)
-- [Best Practices](#best-practices)
-
 ## Overview
 
 Trials provide temporary access to your software with configurable limitations. The system supports:
@@ -39,9 +27,9 @@ $trial = $trialService->startTrial($license, 14, [
 ]);
 ```
 
-## Trial Configuration
+## Trial configuration
 
-### Global Trial Settings
+### Global trial settings
 
 Configure default trial behavior in `config/licensing.php`:
 
@@ -71,7 +59,7 @@ return [
 ];
 ```
 
-### Per-Template Trial Settings
+### Per-template trial settings
 
 Templates can override global trial settings:
 
@@ -97,9 +85,9 @@ $template = LicenseTemplate::create([
 ]);
 ```
 
-## Starting Trials
+## Starting trials
 
-### Basic Trial Start
+### Basic trial start
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Services\TrialService;
@@ -120,7 +108,7 @@ $trial = $trialService->startTrial($license, 14, [
 ]);
 ```
 
-### Advanced Trial Configuration
+### Advanced trial configuration
 
 ```php
 $trial = $trialService->startTrial(
@@ -145,7 +133,7 @@ assert($license->trials->contains($trial));
 assert($trial->status === TrialStatus::Active);
 ```
 
-### Trial with Custom Start Date
+### Trial with custom start date
 
 ```php
 // Start trial in the future
@@ -166,9 +154,9 @@ $trial = $trialService->startTrialUntil(
 );
 ```
 
-## Trial Management
+## Trial management
 
-### Checking Trial Status
+### Checking trial status
 
 ```php
 // Get active trial for license
@@ -187,7 +175,7 @@ $hasTrialed = $license->trials()->exists();
 $trialHistory = $license->trials()->orderBy('created_at', 'desc')->get();
 ```
 
-### Trial State Transitions
+### Trial state transitions
 
 ```php
 // Check if trial can be extended
@@ -209,7 +197,7 @@ if ($trial->isActive()) {
 }
 ```
 
-### Automated Trial Processing
+### Automated trial processing
 
 Set up scheduled jobs to process trial expirations:
 
@@ -237,9 +225,9 @@ class CheckExpiredTrialsJob
 }
 ```
 
-## Feature Restrictions
+## Feature restrictions
 
-### Implementing Feature Gates
+### Implementing feature gates
 
 ```php
 class TrialFeatureGate
@@ -285,7 +273,7 @@ if ($gate->allows('premium_support')) {
 }
 ```
 
-### Feature Restriction Examples
+### Feature restriction examples
 
 ```php
 // API access restriction
@@ -320,9 +308,9 @@ Route::middleware(['auth', 'license'])->group(function () {
 @endif
 ```
 
-## Usage Limitations
+## Usage limitations
 
-### Implementing Usage Limits
+### Implementing usage limits
 
 ```php
 class TrialLimitationChecker
@@ -372,7 +360,7 @@ class TrialLimitationChecker
 }
 ```
 
-### Usage Tracking Examples
+### Usage tracking examples
 
 ```php
 // API call limiting
@@ -444,9 +432,9 @@ class StorageService
 }
 ```
 
-## Trial Extensions
+## Trial extensions
 
-### Extension Policies
+### Extension policies
 
 ```php
 class TrialExtensionService
@@ -507,7 +495,7 @@ class TrialExtensionService
 }
 ```
 
-### Self-Service Extension
+### Self-service extension
 
 ```php
 // Controller for trial extension requests
@@ -565,9 +553,9 @@ class TrialExtensionController
 }
 ```
 
-## Conversion Tracking
+## Conversion tracking
 
-### Conversion Events
+### Conversion events
 
 ```php
 Event::listen(TrialConverted::class, function (TrialConverted $event) {
@@ -605,7 +593,7 @@ Event::listen(TrialExpired::class, function (TrialExpired $event) {
 });
 ```
 
-### Conversion Analytics
+### Conversion analytics
 
 ```php
 class TrialAnalytics
@@ -648,9 +636,9 @@ class TrialAnalytics
 }
 ```
 
-## Best Practices
+## Best practices
 
-### 1. Trial Duration Strategy
+### 1. Trial duration strategy
 
 ```php
 // Different trial lengths for different segments
@@ -681,7 +669,7 @@ class TrialDurationStrategy
 }
 ```
 
-### 2. Progressive Feature Unlocking
+### 2. Progressive feature unlocking
 
 ```php
 class ProgressiveTrialFeatures
@@ -709,7 +697,7 @@ class ProgressiveTrialFeatures
 }
 ```
 
-### 3. Trial Health Monitoring
+### 3. Trial health monitoring
 
 ```php
 class TrialHealthMonitor

@@ -1,18 +1,8 @@
-# API Reference: Events
+# Events
 
-This document provides comprehensive API reference for all events in the Laravel Licensing package. Events are dispatched during various licensing operations and can be used for notifications, integrations, and custom business logic.
+Reference for the events under `Simtabi\Laranail\Licence\Kit\Events`, dispatched during licensing operations — use them for notifications, integrations, and custom business logic.
 
-## Table of Contents
-
-- [License Events](#license-events)
-- [Usage Events](#usage-events)  
-- [Trial Events](#trial-events)
-- [Transfer Events](#transfer-events)
-- [Event Listeners](#event-listeners)
-- [Event Data](#event-data)
-- [Custom Events](#custom-events)
-
-## License Events
+## License events
 
 Events related to license lifecycle and state changes.
 
@@ -214,7 +204,7 @@ class LicenseCancelled
 }
 ```
 
-## Usage Events
+## Usage events
 
 Events related to seat/usage management.
 
@@ -317,7 +307,7 @@ Event::listen(UsageLimitReached::class, function (UsageLimitReached $event) {
 });
 ```
 
-## Trial Events
+## Trial events
 
 Events related to trial period management.
 
@@ -421,7 +411,7 @@ class TrialExpired
 }
 ```
 
-## Transfer Events
+## Transfer events
 
 Events related to license transfers and ownership changes.
 
@@ -489,9 +479,9 @@ class LicenseTransferRejected
 }
 ```
 
-## Event Listeners
+## Event listeners
 
-### Creating Listeners
+### Creating listeners
 
 Generate event listeners using Artisan:
 
@@ -503,7 +493,7 @@ php artisan make:listener SendLicenseWelcomeEmail --event=LicenseActivated
 php artisan make:listener ProcessLicenseExpiration --event=LicenseExpired --queued
 ```
 
-### Listener Implementation
+### Listener implementation
 
 ```php
 class SendLicenseWelcomeEmail
@@ -541,7 +531,7 @@ class SendLicenseWelcomeEmail
 }
 ```
 
-### Queued Listeners
+### Queued listeners
 
 For heavy processing or external API calls:
 
@@ -570,7 +560,7 @@ class ProcessLicenseExpiration implements ShouldQueue
 }
 ```
 
-### Registering Listeners
+### Registering listeners
 
 In your `EventServiceProvider`:
 
@@ -594,9 +584,9 @@ protected $listen = [
 ];
 ```
 
-## Event Data
+## Event data
 
-### Accessing Event Data
+### Accessing event data
 
 All events provide access to relevant models and context:
 
@@ -622,7 +612,7 @@ Event::listen(UsageRegistered::class, function (UsageRegistered $event) {
 });
 ```
 
-### Event Context
+### Event context
 
 Some events include additional context:
 
@@ -642,9 +632,9 @@ Event::listen(LicenseExpiringSoon::class, function (LicenseExpiringSoon $event) 
 });
 ```
 
-## Custom Events
+## Custom events
 
-### Creating Custom Events
+### Creating custom events
 
 You can dispatch custom events for your specific use cases:
 
@@ -667,7 +657,7 @@ class LicenseUpgraded
 event(new LicenseUpgraded($license, 'basic', 'premium', 5000));
 ```
 
-### Event Subscribers
+### Event subscribers
 
 For complex event handling, use event subscribers:
 
@@ -714,7 +704,7 @@ protected $subscribe = [
 ];
 ```
 
-### Testing Events
+### Testing events
 
 ```php
 use Illuminate\Support\Facades\Event;
@@ -751,9 +741,9 @@ class LicenseTest extends TestCase
 }
 ```
 
-## Event Best Practices
+## Event best practices
 
-### 1. Keep Events Simple
+### 1. Keep events simple
 
 Events should be simple data containers:
 
@@ -776,7 +766,7 @@ class LicenseActivated
 }
 ```
 
-### 2. Use Queued Listeners for Heavy Work
+### 2. Use queued listeners for heavy work
 
 ```php
 // Queue heavy operations
@@ -790,7 +780,7 @@ class UpdateAnalytics implements ShouldQueue
 }
 ```
 
-### 3. Handle Failures Gracefully
+### 3. Handle failures gracefully
 
 ```php
 class SendWelcomeEmail
@@ -810,7 +800,7 @@ class SendWelcomeEmail
 }
 ```
 
-### 4. Make Events Testable
+### 4. Make events testable
 
 Use Event::fake() in tests and assert expected events are dispatched:
 

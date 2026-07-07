@@ -1,19 +1,6 @@
-# Templates & Tiers
+# Templates & tiers
 
 The Templates & Tiers system provides a structured approach to defining license configurations, features, and pricing tiers. Templates serve as blueprints for licenses, allowing you to standardize licensing policies and entitlements across different plans and customer segments.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Template Structure](#template-structure)
-- [Tier Hierarchy](#tier-hierarchy)
-- [Template Inheritance](#template-inheritance)
-- [Features & Entitlements](#features--entitlements)
-- [Configuration Resolution](#configuration-resolution)
-- [Creating Templates](#creating-templates)
-- [Using Templates](#using-templates)
-- [Template Management](#template-management)
-- [Best Practices](#best-practices)
 
 ## Overview
 
@@ -54,9 +41,9 @@ $license = License::createFromTemplate($basicPlan->slug, [
 ]);
 ```
 
-## Template Structure
+## Template structure
 
-### Core Properties
+### Core properties
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -75,7 +62,7 @@ $license = License::createFromTemplate($basicPlan->slug, [
 | `is_active` | Boolean | Whether template is available for use |
 | `meta` | JSON | Additional metadata |
 
-### Configuration Structure
+### Configuration structure
 
 ```php
 $template = LicenseTemplate::create([
@@ -124,7 +111,7 @@ $template = LicenseTemplate::create([
 ]);
 ```
 
-## Tier Hierarchy
+## Tier hierarchy
 
 Templates support numeric tier levels for hierarchical organization:
 
@@ -151,7 +138,7 @@ if ($pro->isHigherTierThan($basic)) {
 }
 ```
 
-### Tier-Based Upgrades
+### Tier-based upgrades
 
 ```php
 class LicenseUpgradeService
@@ -181,11 +168,11 @@ class LicenseUpgradeService
 }
 ```
 
-## Trial and Duration Management
+## Trial and duration management
 
 Templates support automatic trial periods and license duration management:
 
-### Trial Periods
+### Trial periods
 
 ```php
 // Template with 14-day trial
@@ -212,7 +199,7 @@ if ($license->isInTrial()) {
 }
 ```
 
-### Duration Management
+### Duration management
 
 ```php
 // Monthly subscription template
@@ -237,7 +224,7 @@ $lifetime = LicenseTemplate::create([
 ]);
 ```
 
-### Flexible Configuration
+### Flexible configuration
 
 ```php
 // Override template values per license
@@ -260,7 +247,7 @@ $enterprise = LicenseTemplate::create([
 ]);
 ```
 
-### Working with Trial and Duration
+### Working with trial and duration
 
 ```php
 // Access template settings
@@ -288,7 +275,7 @@ $expiringSoon = License::whereHas('template', function($q) {
 })->whereBetween('expires_at', [now(), now()->addDays(7)])->get();
 ```
 
-## Template Inheritance
+## Template inheritance
 
 Templates can inherit configuration from parent templates:
 
@@ -343,7 +330,7 @@ $resolvedFeatures = $proTemplate->resolveFeatures();
 $resolvedEntitlements = $proTemplate->resolveEntitlements();
 ```
 
-### Inheritance Resolution
+### Inheritance resolution
 
 ```php
 // The resolved configuration will be:
@@ -369,7 +356,7 @@ $resolvedEntitlements = [
 ];
 ```
 
-## Features & Entitlements
+## Features & entitlements
 
 ### Features
 
@@ -422,7 +409,7 @@ if ($currentApiCalls >= $apiLimit) {
 }
 ```
 
-### Feature Gates
+### Feature gates
 
 ```php
 class FeatureGate
@@ -452,11 +439,11 @@ class FeatureGate
 }
 ```
 
-## Configuration Resolution
+## Configuration resolution
 
 Templates support deep configuration merging with inheritance:
 
-### Resolution Process
+### Resolution process
 
 1. Start with current template configuration
 2. Recursively merge parent template configurations
@@ -480,7 +467,7 @@ class LicenseTemplate extends Model
 }
 ```
 
-### Custom Resolution
+### Custom resolution
 
 ```php
 class TemplateResolver
@@ -507,9 +494,9 @@ class TemplateResolver
 }
 ```
 
-## Creating Templates
+## Creating templates
 
-### Manual Creation
+### Manual creation
 
 ```php
 $template = LicenseTemplate::create([
@@ -539,7 +526,7 @@ $template = LicenseTemplate::create([
 ]);
 ```
 
-### Template Builder
+### Template builder
 
 ```php
 class TemplateBuilder
@@ -632,9 +619,9 @@ $template = TemplateBuilder::create($scope, 'Professional', 2)
     ->build();
 ```
 
-## Using Templates
+## Using templates
 
-### License Creation from Template
+### License creation from template
 
 ```php
 // Basic usage (scoped template)
@@ -658,7 +645,7 @@ $license = app(TemplateService::class)->createLicenseForScope($scope, $template-
 ]);
 ```
 
-### Template-Based License Factory
+### Template-based license factory
 
 ```php
 use Illuminate\Support\Str;
@@ -708,9 +695,9 @@ class LicenseFactory
 }
 ```
 
-## Template Management
+## Template management
 
-### Template Queries
+### Template queries
 
 ```php
 // All active templates ordered by tier
@@ -733,7 +720,7 @@ $template = LicenseTemplate::with(['scope', 'parentTemplate', 'childTemplates'])
 $templatesWithCounts = LicenseTemplate::with(['scope'])->withCount('licenses')->get();
 ```
 
-### Template Analytics
+### Template analytics
 
 ```php
 class TemplateAnalytics
@@ -779,7 +766,7 @@ class TemplateAnalytics
 }
 ```
 
-### Template Versioning
+### Template versioning
 
 ```php
 class TemplateVersioning
@@ -816,9 +803,9 @@ class TemplateVersioning
 }
 ```
 
-## Best Practices
+## Best practices
 
-### Template Design
+### Template design
 
 1. **Hierarchical Structure**: Use inheritance to avoid duplication
 2. **Clear Naming**: Use descriptive names and consistent slug patterns
@@ -826,7 +813,7 @@ class TemplateVersioning
 4. **Feature Granularity**: Define features at appropriate level of detail
 5. **Entitlement Clarity**: Use clear, measurable entitlement names
 
-### Template Organization
+### Template organization
 
 ```php
 // Good template structure
@@ -845,7 +832,7 @@ $templates = [
 ];
 ```
 
-### Configuration Management
+### Configuration management
 
 ```php
 // Store complex configurations in templates
@@ -874,7 +861,7 @@ $enterpriseConfig = [
 ];
 ```
 
-### Migration Strategy
+### Migration strategy
 
 ```php
 // Handle template changes gracefully

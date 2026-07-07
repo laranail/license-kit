@@ -1,10 +1,10 @@
-# Performance Optimization
+# Performance
 
-This guide covers performance optimization techniques for the Laravel Licensing package in high-load environments.
+This guide covers performance optimization techniques for the License Kit package in high-load environments.
 
-## Database Optimization
+## Database optimization
 
-### Essential Indexes
+### Essential indexes
 
 ```sql
 -- License table indexes
@@ -19,7 +19,7 @@ CREATE INDEX idx_usages_last_seen ON license_usages (last_seen_at);
 CREATE INDEX idx_usages_status ON license_usages (status);
 ```
 
-### Query Optimization
+### Query optimization
 
 ```php
 // Efficient license validation query
@@ -48,9 +48,9 @@ class OptimizedLicenseValidator
 }
 ```
 
-## Caching Strategies
+## Caching strategies
 
-### License Caching
+### License caching
 
 ```php
 class CachedLicenseService
@@ -76,7 +76,7 @@ class CachedLicenseService
 }
 ```
 
-### Token Verification Caching
+### Token verification caching
 
 ```php
 class CachedTokenVerifier implements TokenVerifier
@@ -109,12 +109,12 @@ class CachedTokenVerifier implements TokenVerifier
 }
 ```
 
-## Connection Pooling
+## Connection pooling
 
 The package uses the default database connection. To pool connections, configure
 `PDO::ATTR_PERSISTENT` on your existing connection in `config/database.php`.
 
-## Load Testing
+## Load testing
 
 ```php
 // Performance test example
@@ -141,4 +141,4 @@ Performance optimization focuses on database efficiency, strategic caching, and 
 
 ---
 
-[← Docs index](../../README.md#documentation)
+[← Docs index](../README.md#documentation)

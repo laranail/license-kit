@@ -1,10 +1,10 @@
-# Security Architecture
+# Security
 
-Comprehensive security guide for Laravel Licensing implementation.
+Comprehensive security guide for License Kit implementation.
 
-## Security Principles
+## Security principles
 
-### Defense in Depth
+### Defense in depth
 
 The package implements multiple layers of security:
 
@@ -14,9 +14,9 @@ The package implements multiple layers of security:
 4. **Network Layer** - HTTPS, certificate pinning
 5. **Audit Layer** - Comprehensive logging, tamper detection
 
-## Cryptographic Security
+## Cryptographic security
 
-### Key Hierarchy
+### Key hierarchy
 
 ```
 Root Key (Offline, Long-lived)
@@ -32,11 +32,11 @@ License Tokens (Client-side)
     └── No secrets stored client-side
 ```
 
-### Key Generation
+### Key generation
 
 Keys are generated using Ed25519 via PASETO v4. The private key is encrypted at rest using `sodium_crypto_pwhash` for key derivation (Argon2id under the hood), providing strong brute-force resistance.
 
-### Private Key Encryption (v2 format)
+### Private key encryption (v2 format)
 
 Since v1.1, private keys are encrypted using a two-step process:
 
@@ -49,14 +49,14 @@ The leading `0x02` version byte distinguishes v2 payloads from the legacy v1 for
 
 Derived keys are wiped from memory via `sodium_memzero` immediately after use.
 
-### Octane & Queue Compatibility
+### Octane & queue compatibility
 
 In long-running processes (Laravel Octane, queue workers), the cached passphrase is automatically cleared after each request/job via event listeners on:
 
 - `RequestTerminated` / `TaskTerminated` (Octane)
 - `JobProcessed` / `JobFailed` / `WorkerStopping` (Queue)
 
-### Activation Key Security
+### Activation key security
 
 ```php
 class ActivationKeySecurity
@@ -120,9 +120,9 @@ class ActivationKeySecurity
 }
 ```
 
-## Input Validation & Sanitization
+## Input validation & sanitization
 
-### Request Validation
+### Request validation
 
 ```php
 namespace App\Http\Requests;
@@ -175,7 +175,7 @@ class LicenseActivationRequest extends FormRequest
 }
 ```
 
-### SQL Injection Prevention
+### SQL injection prevention
 
 ```php
 class SecureQueryBuilder
@@ -220,9 +220,9 @@ class SecureQueryBuilder
 }
 ```
 
-## Rate Limiting & DDoS Protection
+## Rate limiting & DDoS protection
 
-### API Rate Limiting
+### API rate limiting
 
 ```php
 namespace App\Http\Middleware;
@@ -294,7 +294,7 @@ class LicenseRateLimiter
 }
 ```
 
-### Brute Force Protection
+### Brute force protection
 
 ```php
 class BruteForceProtection
@@ -349,9 +349,9 @@ class BruteForceProtection
 }
 ```
 
-## Data Protection
+## Data protection
 
-### Encryption at Rest
+### Encryption at rest
 
 ```php
 class DataEncryption
@@ -400,7 +400,7 @@ class DataEncryption
 }
 ```
 
-### Secure Token Storage
+### Secure token storage
 
 ```php
 class SecureStorage
@@ -454,9 +454,9 @@ class SecureStorage
 }
 ```
 
-## Network Security
+## Network security
 
-### HTTPS Enforcement
+### HTTPS enforcement
 
 ```php
 namespace App\Http\Middleware;
@@ -488,7 +488,7 @@ class ForceHTTPS
 }
 ```
 
-### Certificate Pinning
+### Certificate pinning
 
 ```php
 class CertificatePinning
@@ -533,9 +533,9 @@ class CertificatePinning
 }
 ```
 
-## Audit & Monitoring
+## Audit & monitoring
 
-### Security Audit Logging
+### Security audit logging
 
 ```php
 class SecurityAuditLogger
@@ -591,7 +591,7 @@ class SecurityAuditLogger
 }
 ```
 
-### Intrusion Detection
+### Intrusion detection
 
 ```php
 class IntrusionDetectionSystem
@@ -665,9 +665,9 @@ class IntrusionDetectionSystem
 }
 ```
 
-## Compliance & Privacy
+## Compliance & privacy
 
-### GDPR Compliance
+### GDPR compliance
 
 ```php
 class GDPRCompliance
@@ -732,7 +732,7 @@ class GDPRCompliance
 }
 ```
 
-## Security Checklist
+## Security checklist
 
 ### Development
 - [ ] Use HTTPS in all environments
@@ -764,13 +764,13 @@ class GDPRCompliance
 - [ ] Compliance verification
 - [ ] Disaster recovery plan
 
-## Next Steps
+## Next steps
 
-- [Key Management](key-management.md) - Cryptographic key lifecycle
+- [Key Management](tools/key-management.md) - Cryptographic key lifecycle
 - [Performance](performance.md) - Security with performance
-- [Troubleshooting](../reference/troubleshooting.md) - Security issues
-- [API Reference](../api/services.md) - Security services
+- [Troubleshooting](troubleshooting.md) - Security issues
+- [API Reference](tools/services.md) - Security services
 
 ---
 
-[← Docs index](../../README.md#documentation)
+[← Docs index](../README.md#documentation)

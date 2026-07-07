@@ -2,18 +2,6 @@
 
 The Renewal system tracks license extension periods, managing the lifecycle of licenses through multiple renewal cycles. This document covers renewal creation, tracking, billing integration, and renewal workflows.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Renewal Model](#renewal-model)
-- [Renewal Process](#renewal-process)
-- [Renewal Types](#renewal-types)
-- [Billing Integration](#billing-integration)
-- [Automatic Renewals](#automatic-renewals)
-- [Renewal Analytics](#renewal-analytics)
-- [Renewal Notifications](#renewal-notifications)
-- [Best Practices](#best-practices)
-
 ## Overview
 
 License renewals extend the validity period of existing licenses. Each renewal creates a historical record of the extension, including the period covered, pricing information, and any additional notes.
@@ -37,7 +25,7 @@ $renewal = $license->renewals()->latest()->first();
 echo "Renewed from {$renewal->period_start} to {$renewal->period_end}";
 ```
 
-## Renewal Model
+## Renewal model
 
 ### Properties
 
@@ -53,7 +41,7 @@ echo "Renewed from {$renewal->period_start} to {$renewal->period_end}";
 | `created_at` | DateTime | When renewal was processed |
 | `updated_at` | DateTime | Last modification time |
 
-### Renewal Record Structure
+### Renewal record structure
 
 ```php
 $renewal = LicenseRenewal::create([
@@ -81,9 +69,9 @@ $license->renewals;
 $license->renewals()->latest()->first(); // Most recent renewal
 ```
 
-## Renewal Process
+## Renewal process
 
-### Basic Renewal
+### Basic renewal
 
 ```php
 // Simple renewal extending for one year
@@ -110,7 +98,7 @@ $license->renew(
 );
 ```
 
-### Renewal Validation
+### Renewal validation
 
 ```php
 // Check if license can be renewed
@@ -154,7 +142,7 @@ class LicenseRenewalService
 }
 ```
 
-### Renewal History Tracking
+### Renewal history tracking
 
 ```php
 // Get complete renewal history
@@ -182,9 +170,9 @@ $averageRenewal = $license->renewals()
     ->avg('amount_cents');
 ```
 
-## Renewal Types
+## Renewal types
 
-### Standard Renewals
+### Standard renewals
 
 ```php
 // Annual renewal (most common)
@@ -208,7 +196,7 @@ $license->renew(
 );
 ```
 
-### Grace Period Renewals
+### Grace period renewals
 
 ```php
 // Renew license in grace period
@@ -224,7 +212,7 @@ if ($license->isInGracePeriod()) {
 }
 ```
 
-### Expired License Renewals
+### Expired license renewals
 
 ```php
 // Renew expired license (reactivation)
@@ -243,7 +231,7 @@ if ($license->status === LicenseStatus::Expired) {
 }
 ```
 
-### Upgrade Renewals
+### Upgrade renewals
 
 ```php
 // Renew with plan upgrade
@@ -270,9 +258,9 @@ $license->meta = array_merge(
 );
 ```
 
-## Billing Integration
+## Billing integration
 
-### Renewal with Payment Processing
+### Renewal with payment processing
 
 ```php
 class RenewalPaymentService
@@ -333,7 +321,7 @@ class RenewalPaymentService
 }
 ```
 
-### Subscription Integration
+### Subscription integration
 
 ```php
 class SubscriptionRenewalService
@@ -369,9 +357,9 @@ class SubscriptionRenewalService
 }
 ```
 
-## Automatic Renewals
+## Automatic renewals
 
-### Renewal Notifications
+### Renewal notifications
 
 ```php
 // Check for licenses expiring soon
@@ -387,7 +375,7 @@ foreach ($expiringSoon as $license) {
 }
 ```
 
-### Scheduled Renewal Processing
+### Scheduled renewal processing
 
 ```php
 class ProcessScheduledRenewalsJob
@@ -443,9 +431,9 @@ class ProcessScheduledRenewalsJob
 }
 ```
 
-## Renewal Analytics
+## Renewal analytics
 
-### Renewal Metrics
+### Renewal metrics
 
 ```php
 class RenewalAnalytics
@@ -522,7 +510,7 @@ class RenewalAnalytics
 }
 ```
 
-### Customer Lifecycle Analytics
+### Customer lifecycle analytics
 
 ```php
 class CustomerLifecycleAnalytics
@@ -561,9 +549,9 @@ class CustomerLifecycleAnalytics
 }
 ```
 
-## Renewal Notifications
+## Renewal notifications
 
-### Email Notifications
+### Email notifications
 
 ```php
 class RenewalNotificationService
@@ -629,9 +617,9 @@ class RenewalReminderMail extends Mailable
 }
 ```
 
-## Best Practices
+## Best practices
 
-### Renewal Strategy
+### Renewal strategy
 
 1. **Clear Communication**: Send timely renewal notices
 2. **Flexible Terms**: Offer multiple renewal periods
@@ -639,7 +627,7 @@ class RenewalReminderMail extends Mailable
 4. **Grace Periods**: Allow continued usage during renewal process
 5. **Payment Recovery**: Handle failed payments gracefully
 
-### Data Management
+### Data management
 
 ```php
 // Keep detailed renewal history
@@ -671,7 +659,7 @@ $license->meta = array_merge($license->meta ?? [], [
 ]);
 ```
 
-### Monitoring and Alerts
+### Monitoring and alerts
 
 ```php
 // Monitor renewal health

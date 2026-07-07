@@ -1,8 +1,8 @@
-# Core Concepts - Usage & Seats
+# Usage & seats
 
 Complete guide to managing license usage, device registration, and seat allocation.
 
-## Understanding Usage & Seats
+## Understanding usage & seats
 
 ### Terminology
 
@@ -12,7 +12,7 @@ Complete guide to managing license usage, device registration, and seat allocati
 - **Max Usages**: Maximum number of concurrent seats allowed
 - **Active Usage**: Currently registered and valid seat consumption
 
-### The LicenseUsage Model
+### The LicenseUsage model
 
 ```php
 class LicenseUsage extends Model
@@ -33,9 +33,9 @@ class LicenseUsage extends Model
 }
 ```
 
-## Device Fingerprinting
+## Device fingerprinting
 
-### Fingerprint Generation Strategies
+### Fingerprint generation strategies
 
 ```php
 namespace App\Services;
@@ -150,7 +150,7 @@ class FingerprintService
 }
 ```
 
-### Privacy-Conscious Fingerprinting
+### Privacy-conscious fingerprinting
 
 ```php
 class PrivacyFingerprintService
@@ -210,7 +210,7 @@ class PrivacyFingerprintService
 }
 ```
 
-## Usage Registration
+## Usage registration
 
 > **Re-registering a revoked fingerprint.** The uniqueness constraint is
 > `(license_id, usage_fingerprint)` and revoked rows are kept for audit history. When
@@ -311,7 +311,7 @@ class UsageManager
 }
 ```
 
-### Bulk Registration
+### Bulk registration
 
 ```php
 class BulkUsageService
@@ -376,9 +376,9 @@ class BulkUsageService
 }
 ```
 
-## Heartbeat & Activity Tracking
+## Heartbeat & activity tracking
 
-### Heartbeat Management
+### Heartbeat management
 
 ```php
 class HeartbeatService
@@ -483,7 +483,7 @@ class HeartbeatService
 }
 ```
 
-### Activity Monitoring
+### Activity monitoring
 
 ```php
 class UsageActivityMonitor
@@ -537,9 +537,9 @@ class UsageActivityMonitor
 }
 ```
 
-## Seat Management Strategies
+## Seat management strategies
 
-### Dynamic Seat Allocation
+### Dynamic seat allocation
 
 ```php
 class DynamicSeatAllocator
@@ -620,7 +620,7 @@ class DynamicSeatAllocator
 }
 ```
 
-### Named User Licensing
+### Named user licensing
 
 ```php
 class NamedUserLicensing
@@ -680,9 +680,9 @@ class NamedUserLicensing
 }
 ```
 
-## Concurrent Usage Control
+## Concurrent usage control
 
-### Concurrency Management
+### Concurrency management
 
 ```php
 class ConcurrencyController
@@ -738,9 +738,9 @@ class ConcurrencyController
 }
 ```
 
-## Usage Policies
+## Usage policies
 
-### Global vs Per-License Uniqueness
+### Global vs per-license uniqueness
 
 ```php
 class UniqueUsagePolicy
@@ -784,9 +784,9 @@ class UniqueUsagePolicy
 }
 ```
 
-## Usage Analytics
+## Usage analytics
 
-### Usage Reports
+### Usage reports
 
 ```php
 class UsageReportGenerator
@@ -857,12 +857,12 @@ class UsageReportGenerator
 }
 ```
 
-## Next Steps
+## Next steps
 
 - [Templates & Tiers](templates-tiers.md) - Template-based licensing
 - [Renewals](renewals.md) - License renewal system
-- [Offline Verification](../features/offline-verification.md) - Token-based verification
-- [API Reference](../api/models.md) - Complete API documentation
+- [Offline Verification](offline-verification.md) - Token-based verification
+- [API Reference](models.md) - Complete API documentation
 
 ---
 

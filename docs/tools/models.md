@@ -1,20 +1,6 @@
-# API Reference: Models
+# Models
 
-This document provides comprehensive API reference for all models in the Laravel Licensing package. Each model includes properties, relationships, methods, scopes, and usage examples.
-
-## Table of Contents
-
-- [License](#license)
-- [LicenseScope](#licensescope)
-- [LicenseUsage](#licenseusage)
-- [LicenseRenewal](#licenserenewal)
-- [LicenseTemplate](#licensetemplate)
-- [LicenseTrial](#licensetrial)
-- [LicenseTransfer](#licensetransfer)
-- [LicenseTransferHistory](#licensetransferhistory)
-- [LicenseTransferApproval](#licensetransferapproval)
-- [LicensingKey](#licensingkey)
-- [LicensingAuditLog](#licensingauditlog)
+Reference for the 11 Eloquent models under `Simtabi\Laranail\Licence\Kit\Models` — properties, relationships, methods, scopes, and usage examples for each.
 
 ## License
 
@@ -74,9 +60,9 @@ public function template(): BelongsTo
 public function scope(): BelongsTo
 ```
 
-### Core Methods
+### Core methods
 
-#### Creation and Lookup
+#### Creation and lookup
 
 ```php
 // Create license from template
@@ -98,7 +84,7 @@ public static function hashKey(string $key): string
 public function verifyKey(string $key): bool
 ```
 
-#### State Management
+#### State management
 
 ```php
 // Activate license
@@ -118,7 +104,7 @@ public function transitionToGrace(): self
 public function transitionToExpired(): self
 ```
 
-#### Validation Methods
+#### Validation methods
 
 ```php
 // Check if license can be used
@@ -135,7 +121,7 @@ public function hasAvailableSeats(): bool
 public function getAvailableSeats(): int
 ```
 
-#### Policy and Configuration
+#### Policy and configuration
 
 ```php
 // Get policy values
@@ -153,7 +139,7 @@ public function getForceOnlineAfterDays(): int
 public function getClockSkewSeconds(): int
 ```
 
-#### Feature and Entitlement Methods
+#### Feature and entitlement methods
 
 ```php
 // Check features from template
@@ -165,7 +151,7 @@ public function getEntitlement(string $key): mixed
 public function getEntitlements(): array
 ```
 
-#### Transfer Methods
+#### Transfer methods
 
 ```php
 // Transfer management
@@ -274,7 +260,7 @@ LicenseScope::active()->get();
 LicenseScope::needingRotation()->get();
 ```
 
-### Usage Examples
+### Usage examples
 
 ```php
 // Create a scope for a product
@@ -720,9 +706,9 @@ public static function byEventType(AuditEventType $type): Builder
 public static function byActor(Model $actor): Builder
 ```
 
-## Common Patterns
+## Common patterns
 
-### Model Configuration
+### Model configuration
 
 All models can be customized via configuration:
 
@@ -737,7 +723,7 @@ return [
 ];
 ```
 
-### Extending Models
+### Extending models
 
 ```php
 // Custom license model
@@ -765,7 +751,7 @@ class CustomLicense extends License
 }
 ```
 
-### Using Factories
+### Using factories
 
 All models include factories for testing:
 
@@ -788,7 +774,7 @@ $license = License::factory()
     ->create();
 ```
 
-This API reference covers all models in the Laravel Licensing package. Each model provides a specific aspect of license management functionality with clear interfaces and relationships.
+This API reference covers all models in the License Kit package. Each model provides a specific aspect of license management functionality with clear interfaces and relationships.
 
 ---
 

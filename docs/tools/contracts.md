@@ -1,15 +1,8 @@
-# API Reference: Contracts
+# Contracts
 
-This document provides comprehensive API reference for all contracts (interfaces) in the Laravel Licensing package. Contracts define the public API for services and allow for custom implementations.
+Reference for the contracts (interfaces) under `Simtabi\Laranail\Licence\Kit\Contracts` — the public API each service implements and the seams for custom implementations.
 
-## Table of Contents
-
-- [Core Contracts](#core-contracts)
-- [Service Contracts](#service-contracts)
-- [Event Contracts](#event-contracts)
-- [Custom Implementations](#custom-implementations)
-
-## Core Contracts
+## Core contracts
 
 ### UsageRegistrar
 
@@ -197,7 +190,7 @@ interface FingerprintResolver
 }
 ```
 
-## Service Contracts
+## Service contracts
 
 ### CanInitiateLicenseTransfers
 
@@ -277,7 +270,7 @@ interface AuditLog
 }
 ```
 
-## Custom Implementations
+## Custom implementations
 
 ### Implementing UsageRegistrar
 
@@ -505,7 +498,7 @@ class CustomAuditLogger implements AuditLogger
 }
 ```
 
-### Contract Registration
+### Contract registration
 
 Register custom implementations in your service provider:
 
@@ -523,7 +516,7 @@ class AppServiceProvider extends ServiceProvider
 }
 ```
 
-### Testing Custom Implementations
+### Testing custom implementations
 
 ```php
 class CustomUsageRegistrarTest extends TestCase
@@ -558,7 +551,7 @@ class CustomUsageRegistrarTest extends TestCase
 }
 ```
 
-## Contract Benefits
+## Contract benefits
 
 ### 1. Flexibility
 Contracts allow you to replace any component with custom implementations while maintaining compatibility.
@@ -639,7 +632,7 @@ class StripeTokenIssuer implements TokenIssuer
 }
 ```
 
-This comprehensive contract reference provides the foundation for customizing and extending the Laravel Licensing package to meet your specific requirements.
+This comprehensive contract reference provides the foundation for customizing and extending the License Kit package to meet your specific requirements.
 
 ---
 

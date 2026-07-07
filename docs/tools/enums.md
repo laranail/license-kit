@@ -1,15 +1,8 @@
-# API Reference: Enums
+# Enums
 
-This document provides comprehensive API reference for all enums in the Laravel Licensing package. Enums provide type-safe constants and business logic for various states and options.
+Reference for the 11 enums under `Simtabi\Laranail\Licence\Kit\Enums` — type-safe states and policies for licenses, keys, usage, trials, and transfers.
 
-## Table of Contents
-
-- [Core Enums](#core-enums)
-- [Status Enums](#status-enums)
-- [Configuration Enums](#configuration-enums)
-- [Using Enums](#using-enums)
-
-## Core Enums
+## Core enums
 
 ### LicenseStatus
 
@@ -200,7 +193,7 @@ enum ApprovalStatus: string
 }
 ```
 
-## Status Enums
+## Status enums
 
 ### KeyStatus
 
@@ -263,7 +256,7 @@ public function isSigning(): bool
 }
 ```
 
-## Configuration Enums
+## Configuration enums
 
 ### OverLimitPolicy
 
@@ -475,9 +468,9 @@ public function getSeverity(): string
 }
 ```
 
-## Using Enums
+## Using enums
 
-### In Models
+### In models
 
 ```php
 class License extends Model
@@ -492,7 +485,7 @@ $license = License::find(1);
 $license->status = LicenseStatus::Active;
 ```
 
-### In Validation
+### In validation
 
 ```php
 use Illuminate\Validation\Rules\Enum;
@@ -503,7 +496,7 @@ $request->validate([
 ]);
 ```
 
-### In Database Queries
+### In database queries
 
 ```php
 // Find active licenses
@@ -519,7 +512,7 @@ License::whereIn('status', [
 License::where('status', '!=', LicenseStatus::Cancelled)->get();
 ```
 
-### In API Responses
+### In API responses
 
 ```php
 return response()->json([
@@ -532,7 +525,7 @@ return response()->json([
 ]);
 ```
 
-### Custom Enum Methods
+### Custom enum methods
 
 You can extend enums with custom methods:
 
@@ -576,7 +569,7 @@ enum LicenseStatus: string
 }
 ```
 
-### Enum Collections
+### Enum collections
 
 Work with collections of enum values:
 
@@ -599,7 +592,7 @@ $statusCounts = License::selectRaw('status, COUNT(*) as count')
     ]);
 ```
 
-### Testing with Enums
+### Testing with enums
 
 ```php
 class LicenseTest extends TestCase
@@ -625,7 +618,7 @@ class LicenseTest extends TestCase
 }
 ```
 
-Enums provide type safety, better IDE support, and encapsulate business logic related to state management in the Laravel Licensing package. They make the codebase more maintainable and reduce errors from invalid state values.
+Enums provide type safety, better IDE support, and encapsulate business logic related to state management in the License Kit package. They make the codebase more maintainable and reduce errors from invalid state values.
 
 ---
 

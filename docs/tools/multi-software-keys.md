@@ -1,6 +1,6 @@
-# Multi-Software Signing Keys with License Scopes
+# Multi-software signing keys
 
-Laravel Licensing uses **License Scopes** to manage multi-product licensing with isolated signing keys. Each scope represents a different software product or application, providing better security isolation and key management for multi-product environments.
+License Kit uses **License Scopes** to manage multi-product licensing with isolated signing keys. Each scope represents a different software product or application, providing better security isolation and key management for multi-product environments.
 
 ## Overview
 
@@ -22,21 +22,21 @@ Root CA Key (Trust Anchor)
 
 ## Benefits
 
-### 1. **Security Isolation**
+### 1. **Security isolation**
 Each software product has its own signing keys, limiting the impact of a potential key compromise.
 
-### 2. **Independent Key Rotation**
+### 2. **Independent key rotation**
 Rotate keys for one product without affecting others.
 
-### 3. **Compliance & Auditing**
+### 3. **Compliance & auditing**
 Track key usage per product for better compliance reporting.
 
-### 4. **Multi-Tenant Support**
+### 4. **Multi-tenant support**
 Perfect for SaaS platforms managing licenses for multiple clients or products.
 
-## Creating License Scopes
+## Creating license scopes
 
-### Via Code
+### Via code
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
@@ -67,13 +67,13 @@ $crmScope = LicenseScope::create([
 $globalScope = LicenseScope::global();
 ```
 
-## Creating Scoped Signing Keys
+## Creating scoped signing keys
 
 ### Via CLI
 
 ```bash
 # Issue signing key for a specific scope
-php artisan licensing:keys:issue-signing --kid="erp-signing-2024-q1"
+php artisan laranail::license-kit.keys.issue-signing --kid="erp-signing-2024-q1"
 
 # The key will be associated with the scope when used
 
@@ -332,8 +332,8 @@ $auditLogger->log(
 Clients need the appropriate public key bundle for their scope:
 
 ```bash
-# Export public keys for specific scope
-php artisan licensing:keys:export \
+# Multi-software signing keys
+php artisan laranail::license-kit.keys.export \
   --scope="mobile-app" \
   --format=json \
   --output=mobile-app-bundle.json
@@ -473,7 +473,7 @@ class MultiProductLicenseManager
 **Solution**: Ensure a signing key exists for the scope:
 
 ```bash
-php artisan licensing:keys:issue-signing --scope="your-scope"
+php artisan laranail::license-kit.keys.issue-signing --scope="your-scope"
 ```
 
 ### Issue: Clients can't verify tokens after adding scopes
@@ -481,7 +481,7 @@ php artisan licensing:keys:issue-signing --scope="your-scope"
 **Solution**: Export and distribute new public key bundles:
 
 ```bash
-php artisan licensing:keys:export --scope="your-scope" --include-chain
+php artisan laranail::license-kit.keys.export --scope="your-scope" --include-chain
 ```
 
 ### Issue: Need to change a license's scope

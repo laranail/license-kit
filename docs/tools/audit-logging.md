@@ -1,16 +1,6 @@
-# Audit Logging
+# Audit logging
 
 Comprehensive audit logging provides tamper-evident trails of all licensing operations for compliance, security monitoring, and troubleshooting.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Event Types](#event-types)
-- [Log Structure](#log-structure)
-- [Tamper Evidence](#tamper-evidence)
-- [Configuration](#configuration)
-- [Querying Logs](#querying-logs)
-- [Compliance](#compliance)
 
 ## Overview
 
@@ -29,7 +19,7 @@ app(AuditLogger::class)->log(
 );
 ```
 
-## Event Types
+## Event types
 
 Tracked events include:
 - License lifecycle (create, activate, renew, expire)
@@ -38,7 +28,7 @@ Tracked events include:
 - Transfers and approvals
 - Security events
 
-## Log Structure
+## Log structure
 
 Each audit entry contains:
 
@@ -62,7 +52,7 @@ Each audit entry contains:
 ]
 ```
 
-## Tamper Evidence
+## Tamper evidence
 
 Hash chaining provides tamper detection:
 
@@ -114,7 +104,7 @@ return [
 ];
 ```
 
-## Querying Logs
+## Querying logs
 
 ```php
 // Get logs for specific entity

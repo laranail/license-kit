@@ -1,5 +1,7 @@
 # Installation
 
+How to install `laranail/license-kit`: requirements, package installation, migrations, key generation, and verification.
+
 ## Requirements
 
 - **PHP** 8.4.1 or higher
@@ -11,7 +13,7 @@
   - JSON
   - BCMath or GMP (recommended for better performance)
 
-## Installation Steps
+## Installation steps
 
 ### 1. Install via Composer
 
@@ -19,7 +21,7 @@
 composer require laranail/license-kit
 ```
 
-### 2. Publish Resources
+### 2. Publish resources
 
 Publish all resources (config, migrations, etc.):
 
@@ -43,7 +45,7 @@ php artisan vendor:publish --tag=laranail::license-kit-translations
 php artisan vendor:publish --tag=laranail::license-kit-views
 ```
 
-### 3. Configure Database
+### 3. Configure database
 
 Run the migrations to create the necessary tables:
 
@@ -63,7 +65,7 @@ This will create the following tables:
 - `licensing_keys` - Cryptographic keys
 - `licensing_audit_logs` - Audit trail
 
-### 4. Environment Configuration
+### 4. Environment configuration
 
 Add these environment variables to your `.env` file:
 
@@ -91,12 +93,12 @@ LICENSING_TOKEN_TTL_DAYS=7
 LICENSING_FORCE_ONLINE_DAYS=14
 ```
 
-### 5. Generate Cryptographic Keys
+### 5. Generate cryptographic keys
 
 Generate the root key pair (required for offline verification):
 
 ```bash
-php artisan licensing:keys:make-root
+php artisan laranail::license-kit.keys.make-root
 ```
 
 **Important**: This creates your root certificate authority. Back up the generated keys securely.
@@ -104,10 +106,10 @@ php artisan licensing:keys:make-root
 Generate your first signing key:
 
 ```bash
-php artisan licensing:keys:issue-signing --days=30
+php artisan laranail::license-kit.keys.issue-signing --days=30
 ```
 
-### 6. Configure Models (Optional)
+### 6. Configure models (optional)
 
 If you want to customize the models, update `config/licensing.php`:
 
@@ -132,7 +134,7 @@ class License extends BaseLicense
 }
 ```
 
-### 7. Set Up Polymorphic Relationships
+### 7. Set up polymorphic relationships
 
 Configure which models can have licenses in `config/licensing.php`:
 
@@ -159,7 +161,7 @@ class User extends Authenticatable
 }
 ```
 
-### 8. Schedule Jobs (Optional)
+### 8. Schedule jobs (optional)
 
 Add these to your `app/Console/Kernel.php` for automated tasks:
 
@@ -167,29 +169,29 @@ Add these to your `app/Console/Kernel.php` for automated tasks:
 protected function schedule(Schedule $schedule)
 {
     // Check for expired licenses daily
-    $schedule->command('licensing:check-expirations')->daily();
+    $schedule->command('laranail::license-kit.check-expirations')->daily();
     
     // Check for expired trials
     $schedule->job(new CheckExpiredTrialsJob)->daily();
     
     // Clean up inactive usages (optional)
-    $schedule->command('licensing:cleanup-usages')->weekly();
+    $schedule->command('laranail::license-kit.cleanup-usages')->weekly();
     
     // Rotate signing keys monthly
-    $schedule->command('licensing:keys:rotate --reason=routine')
+    $schedule->command('laranail::license-kit.keys.rotate --reason=routine')
         ->monthly()
         ->when(fn() => now()->day === 1);
 }
 ```
 
-## Installation Verification
+## Installation verification
 
-### 1. Check Installation
+### 1. Check installation
 
 Run the installation check command:
 
 ```bash
-php artisan licensing:check
+php artisan laranail::license-kit.check
 ```
 
 This verifies:
@@ -199,7 +201,7 @@ This verifies:
 - Signing key is active
 - Permissions are correct
 
-### 2. Create Test License
+### 2. Create test license
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Models\License;
@@ -218,17 +220,17 @@ if ($license->exists) {
 }
 ```
 
-### 3. Test Key Generation
+### 3. Test key generation
 
 ```bash
 # List all keys
-php artisan licensing:keys:list
+php artisan laranail::license-kit.keys.list
 
 # Export public keys
-php artisan licensing:keys:export --format=json
+php artisan laranail::license-kit.keys.export --format=json
 ```
 
-## Docker Installation
+## Docker installation
 
 If using Docker, add these services to your `docker-compose.yml`:
 
@@ -263,9 +265,9 @@ volumes:
   mysql_data:
 ```
 
-## Production Deployment
+## Production deployment
 
-### 1. Security Checklist
+### 1. Security checklist
 
 - [ ] Set strong `LICENSING_KEY_PASSPHRASE`
 - [ ] Back up cryptographic keys
@@ -275,7 +277,7 @@ volumes:
 - [ ] Enable audit logging
 - [ ] Restrict key management commands
 
-### 2. Performance Optimization
+### 2. Performance optimization
 
 ```bash
 # Cache configuration
@@ -291,7 +293,7 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### 3. Storage Permissions
+### 3. Storage permissions
 
 Ensure proper permissions for key storage:
 
@@ -308,7 +310,7 @@ chmod 700 storage/app/licensing/backups
 chown -R www-data:www-data storage/app/licensing
 ```
 
-### 4. Backup Strategy
+### 4. Backup strategy
 
 Set up automated backups for:
 
@@ -384,11 +386,11 @@ To completely remove the package:
 
 4. Remove from service providers (if manually registered)
 
-## Troubleshooting Installation
+## Troubleshooting installation
 
-### Common Issues
+### Common issues
 
-#### Sodium Extension Missing
+#### Sodium extension missing
 ```
 Error: Call to undefined function sodium_crypto_sign_keypair()
 ```
@@ -406,7 +408,7 @@ pecl install libsodium
 RUN docker-php-ext-install sodium
 ```
 
-#### Migration Fails
+#### Migration fails
 ```
 SQLSTATE[42000]: Syntax error or access violation
 ```
@@ -416,7 +418,7 @@ SQLSTATE[42000]: Syntax error or access violation
 - PostgreSQL 12+ for generated columns
 - SQLite 3.8.8+ for partial indexes
 
-#### Key Generation Fails
+#### Key generation fails
 ```
 Unable to generate key pair: Permission denied
 ```
@@ -428,7 +430,7 @@ chmod -R 775 bootstrap/cache
 chown -R www-data:www-data storage
 ```
 
-#### Rate Limiting Not Working
+#### Rate limiting not working
 ```
 Too Many Attempts
 ```
@@ -439,12 +441,12 @@ php artisan cache:clear
 redis-cli FLUSHDB  # If using Redis
 ```
 
-## Next Steps
+## Next steps
 
 - [Configuration Guide](configuration.md) - Customize the package
 - [Basic Usage](basic-usage.md) - Start using licenses
 - [Getting Started](getting-started.md) - Quick examples
-- [API Reference](api/models.md) - Detailed documentation
+- [API Reference](tools/models.md) - Detailed documentation
 
 ---
 

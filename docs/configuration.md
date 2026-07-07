@@ -1,14 +1,14 @@
-# Configuration Guide
+# Configuration
 
-Comprehensive guide to configuring Laravel Licensing for your application.
+Comprehensive guide to configuring License Kit for your application.
 
-## Configuration File
+## Configuration file
 
 The main configuration file is published to `config/licensing.php`. This file controls all aspects of the licensing system.
 
-## Model Configuration
+## Model configuration
 
-### Custom Models
+### Custom models
 
 Override default models with your own implementations:
 
@@ -33,7 +33,7 @@ Override default models with your own implementations:
 ],
 ```
 
-### Service Configuration
+### Service configuration
 
 Configure license key management services:
 
@@ -57,7 +57,7 @@ Configure license key management services:
 ],
 ```
 
-### Custom Key Services
+### Custom key services
 
 Implement your own key generation logic:
 
@@ -104,7 +104,7 @@ public function register()
 }
 ```
 
-### Security Configuration
+### Security configuration
 
 Configure key security settings:
 
@@ -127,7 +127,7 @@ Configure key security settings:
 ],
 ```
 
-### License Key Salt
+### License key salt
 
 ```php
 'key_salt' => env('LICENSING_KEY_SALT', env('APP_KEY')),
@@ -137,7 +137,7 @@ Configure key security settings:
 - Rotating the salt forces re-issuance of license keys; plan migrations carefully
 - The package falls back to `APP_KEY` for legacy installs, but a dedicated salt is strongly recommended for new deployments
 
-### Creating Custom Models
+### Creating custom models
 
 Your custom models must extend the package models:
 
@@ -172,7 +172,7 @@ class License extends BaseLicense
 }
 ```
 
-### Polymorphic Relationships
+### Polymorphic relationships
 
 Define which models can own licenses:
 
@@ -207,9 +207,9 @@ class Organization extends Model
 }
 ```
 
-## Policy Configuration
+## Policy configuration
 
-### Usage Policies
+### Usage policies
 
 Configure how the system handles various scenarios:
 
@@ -238,9 +238,9 @@ Configure how the system handles various scenarios:
 ],
 ```
 
-### Over-Limit Policies Explained
+### Over-limit policies explained
 
-#### `reject` Policy
+#### `reject` policy
 Rejects new usage registration when limit is reached:
 
 ```php
@@ -251,7 +251,7 @@ Rejects new usage registration when limit is reached:
 // User must manually remove a device
 ```
 
-#### `auto_replace_oldest` Policy
+#### `auto_replace_oldest` policy
 Automatically revokes the least recently used device:
 
 ```php
@@ -263,7 +263,7 @@ Automatically revokes the least recently used device:
 // User is notified of the change
 ```
 
-### Custom Policy Implementation
+### Custom policy implementation
 
 Create custom policy handlers:
 
@@ -291,9 +291,9 @@ class CustomOverLimitPolicy implements OverLimitHandler
 $this->app->bind(OverLimitHandler::class, CustomOverLimitPolicy::class);
 ```
 
-## Offline Token Configuration
+## Offline token configuration
 
-### Token Settings
+### Token settings
 
 Configure offline token generation and validation:
 
@@ -328,9 +328,9 @@ Configure offline token generation and validation:
 ],
 ```
 
-### Token Format Comparison
+### Token format comparison
 
-#### PASETO (Recommended)
+#### PASETO (recommended)
 ```php
 'format' => 'paseto',
 ```
@@ -339,7 +339,7 @@ Configure offline token generation and validation:
 - No algorithm confusion attacks
 - Smaller token size
 
-#### JWS (JWT Compatible)
+#### JWS (JWT compatible)
 ```php
 'format' => 'jws',
 ```
@@ -348,9 +348,9 @@ Configure offline token generation and validation:
 - Requires careful configuration
 - Larger token size
 
-## Cryptographic Configuration
+## Cryptographic configuration
 
-### Key Storage
+### Key storage
 
 Configure how cryptographic keys are stored:
 
@@ -381,7 +381,7 @@ Configure how cryptographic keys are stored:
 ],
 ```
 
-### Custom Key Storage Driver
+### Custom key storage driver
 
 Implement custom key storage:
 
@@ -418,9 +418,9 @@ class VaultKeyStore implements KeyStore
 $this->app->bind(KeyStore::class, VaultKeyStore::class);
 ```
 
-## Publishing Configuration
+## Publishing configuration
 
-### Public Key Distribution
+### Public key distribution
 
 Configure how public keys are distributed:
 
@@ -446,9 +446,9 @@ Configure how public keys are distributed:
 ],
 ```
 
-## Rate Limiting
+## Rate limiting
 
-### API Rate Limits
+### API rate limits
 
 Rate limiting is applied by default to all API endpoints. The package registers three named rate limiters (`licensing-validate`, `licensing-register`, `licensing-token`) that are automatically applied via middleware.
 
@@ -479,7 +479,7 @@ Endpoints and their rate limiters:
 | `GET /licenses/{key}` | `licensing-validate` |
 | `POST /token` | `licensing-token` |
 
-### Custom Rate Limiting
+### Custom rate limiting
 
 Implement custom rate limiters:
 
@@ -512,7 +512,7 @@ class LicenseRateLimiter
 }
 ```
 
-## Transfer Configuration
+## Transfer configuration
 
 Fine-tune how transfers behave and when they require manual review:
 
@@ -537,9 +537,9 @@ Fine-tune how transfers behave and when they require manual review:
 
 Lower the thresholds for sensitive SKUs or raise them for internal sandbox environments. All values can be driven by environment variables when different deployments need different guardrails.
 
-## Notification Configuration
+## Notification configuration
 
-### Notification Channels
+### Notification channels
 
 Configure how notifications are sent:
 
@@ -576,7 +576,7 @@ Configure how notifications are sent:
 ],
 ```
 
-### Custom Notification Implementation
+### Custom notification implementation
 
 Create custom notifications:
 
@@ -626,9 +626,9 @@ class LicenseExpiringNotification extends Notification
 }
 ```
 
-## Audit Configuration
+## Audit configuration
 
-### Audit Logging
+### Audit logging
 
 Configure audit trail settings:
 
@@ -676,7 +676,7 @@ Configure audit trail settings:
 ],
 ```
 
-### Custom Audit Logger
+### Custom audit logger
 
 Implement custom audit logging:
 
@@ -717,9 +717,9 @@ class ElasticsearchAuditLogger implements AuditLogger
 }
 ```
 
-## Environment-Specific Configuration
+## Environment-specific configuration
 
-### Development Environment
+### Development environment
 
 ```php
 // config/licensing.development.php
@@ -739,7 +739,7 @@ return [
 ];
 ```
 
-### Production Environment
+### Production environment
 
 ```php
 // config/licensing.production.php
@@ -760,7 +760,7 @@ return [
 ];
 ```
 
-### Loading Environment Config
+### Loading environment config
 
 ```php
 // AppServiceProvider.php
@@ -775,9 +775,9 @@ public function boot()
 }
 ```
 
-## Validation Rules
+## Validation rules
 
-### Custom Validation Rules
+### Custom validation rules
 
 Create custom validation rules for licensing:
 
@@ -818,9 +818,9 @@ $request->validate([
 ]);
 ```
 
-## Performance Tuning
+## Performance tuning
 
-### Cache Configuration
+### Cache configuration
 
 ```php
 'cache' => [
@@ -844,7 +844,7 @@ $request->validate([
 ],
 ```
 
-### Database Optimization
+### Database optimization
 
 ```php
 'database' => [
@@ -862,9 +862,9 @@ $request->validate([
 ],
 ```
 
-## Testing Configuration
+## Testing configuration
 
-### Test Environment
+### Test environment
 
 ```php
 // config/licensing.testing.php
@@ -884,12 +884,12 @@ return [
 ];
 ```
 
-## Next Steps
+## Next steps
 
 - [Basic Usage](basic-usage.md) - Start using the configured system
-- [API Reference](api/models.md) - Detailed API documentation
-- [Security Guide](advanced/security.md) - Security best practices
-- [Performance Guide](advanced/performance.md) - Optimization tips
+- [API Reference](tools/models.md) - Detailed API documentation
+- [Security Guide](security.md) - Security best practices
+- [Performance Guide](performance.md) - Optimization tips
 
 ---
 

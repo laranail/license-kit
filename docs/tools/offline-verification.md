@@ -1,4 +1,4 @@
-# Offline Verification
+# Offline verification
 
 Complete guide to implementing offline license verification using cryptographic tokens.
 
@@ -6,7 +6,7 @@ Complete guide to implementing offline license verification using cryptographic 
 
 Offline verification allows clients to validate licenses without contacting the server, using cryptographically signed tokens with a two-level key hierarchy for secure rotation.
 
-### Key Features
+### Key features
 
 - **PASETO v4 tokens** (default) or JWS/JWT
 - **Ed25519 signatures** for security
@@ -17,7 +17,7 @@ Offline verification allows clients to validate licenses without contacting the 
 
 ## Architecture
 
-### Two-Level Key Hierarchy
+### Two-level key hierarchy
 
 ```
 ┌──────────────┐
@@ -40,9 +40,9 @@ Offline verification allows clients to validate licenses without contacting the 
 └──────────────┘
 ```
 
-## Token Generation
+## Token generation
 
-### Issuing Offline Tokens
+### Issuing offline tokens
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Services\PasetoTokenService;
@@ -80,7 +80,7 @@ class OfflineTokenController
 
 > **Note:** The service automatically selects the correct signing key by reading the token footer `kid`, so scoped keys work out of the box. Clock-skew tolerance can be tuned per license via `meta['offline_token']['clock_skew_seconds']`; when omitted the package falls back to `licensing.offline_token.clock_skew_seconds`.
 
-### Token Structure
+### Token structure
 
 ```php
 // PASETO v4 Token Payload
@@ -121,9 +121,9 @@ class OfflineTokenController
 }
 ```
 
-## Key Management
+## Key management
 
-### Generating Keys
+### Generating keys
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
@@ -137,7 +137,7 @@ $signingKey = LicensingKey::generateSigningKey('signing-2024-01');
 // The signing key includes a certificate signed by root
 ```
 
-### Key Rotation Strategy
+### Key rotation strategy
 
 ```php
 class KeyRotationService
@@ -206,7 +206,7 @@ class KeyRotationService
 }
 ```
 
-## Client-Side Verification
+## Client-side verification
 
 > ** Security — bind the certificate to the signing key.** Verifying that the
 > signing certificate is root-signed is **not enough**. You must also confirm that
@@ -216,7 +216,7 @@ class KeyRotationService
 > a forged token that still verifies. The package's `PasetoTokenService::verifyOffline()`
 > performs this cross-check; any custom client below must do the same.
 
-### PHP Client Implementation
+### PHP client implementation
 
 ```php
 namespace App\Client;
@@ -363,7 +363,7 @@ class OfflineVerifier
 }
 ```
 
-### JavaScript Client Implementation
+### JavaScript client implementation
 
 ```javascript
 // client.js
@@ -467,9 +467,9 @@ class OfflineVerifier {
 }
 ```
 
-## Token Refresh Strategy
+## Token refresh strategy
 
-### Automatic Token Refresh
+### Automatic token refresh
 
 ```php
 class TokenRefreshService
@@ -548,9 +548,9 @@ class TokenRefreshService
 }
 ```
 
-## Security Considerations
+## Security considerations
 
-### Clock Synchronization
+### Clock synchronization
 
 ```php
 class ClockSyncService
@@ -598,7 +598,7 @@ class ClockSyncService
 }
 ```
 
-### Token Storage
+### Token storage
 
 ```php
 class SecureTokenStorage
@@ -653,9 +653,9 @@ class SecureTokenStorage
 }
 ```
 
-## Force Online Validation
+## Force online validation
 
-### Implementing Force Online Windows
+### Implementing force online Windows
 
 ```php
 class ForceOnlineValidator
@@ -711,9 +711,9 @@ class ForceOnlineValidator
 }
 ```
 
-## Testing Offline Verification
+## Testing offline verification
 
-### Unit Tests
+### Unit tests
 
 ```php
 use Tests\TestCase;
@@ -800,9 +800,9 @@ class OfflineVerificationTest extends TestCase
 }
 ```
 
-## Performance Optimization
+## Performance optimization
 
-### Token Caching
+### Token caching
 
 ```php
 class CachedTokenVerifier
@@ -859,12 +859,12 @@ class CachedTokenVerifier
 }
 ```
 
-## Next Steps
+## Next steps
 
-- [Key Management](../advanced/key-management.md) - Managing cryptographic keys
-- [Security](../advanced/security.md) - Security best practices
-- [Client Libraries](../client-libraries/architecture.md) - Client implementation
-- [API Reference](../api/services.md#tokenservice) - Token service API
+- [Key Management](key-management.md) - Managing cryptographic keys
+- [Security](../security.md) - Security best practices
+- [Client Libraries](../client-libraries.md) - Client implementation
+- [API Reference](services.md#tokenservice) - Token service API
 
 ---
 

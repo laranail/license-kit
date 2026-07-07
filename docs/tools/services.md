@@ -1,19 +1,6 @@
-# API Reference: Services
+# Services
 
-This document provides comprehensive API reference for all services in the Laravel Licensing package. Services encapsulate business logic and provide high-level interfaces for licensing operations.
-
-## Table of Contents
-
-- [UsageRegistrarService](#usageregistrarservice)
-- [PasetoTokenService](#pasetotokenservice)
-- [CertificateAuthorityService](#certificateauthorityservice)
-- [AuditLoggerService](#auditloggerservice)
-- [FingerprintResolverService](#fingerprintresolverservice)
-- [TrialService](#trialservice)
-- [LicenseTransferService](#licensetransferservice)
-- [TransferApprovalService](#transferapprovalservice)
-- [TransferValidationService](#transfervalidationservice)
-- [TemplateService](#templateservice)
+Reference for the services under `Simtabi\Laranail\Licence\Kit\Services` — the business-logic layer behind licensing operations.
 
 ## UsageRegistrarService
 
@@ -266,7 +253,7 @@ try {
 }
 ```
 
-### Token Format
+### Token format
 
 Tokens use PASETO v4 (public key) format with the following structure:
 
@@ -399,7 +386,7 @@ $auditLogger->log(
 );
 ```
 
-### Event Types
+### Event types
 
 ```php
 enum AuditEventType: string
@@ -624,7 +611,7 @@ public function validateTransfer(LicenseTransfer $transfer): array
 
 Coordinates scope-aware template management and license provisioning.
 
-### Common Responsibilities
+### Common responsibilities
 - Retrieve templates for a specific scope or global catalog
 - Assign or detach templates from product scopes
 - Provision licenses from templates while enforcing scope membership
@@ -707,7 +694,7 @@ public function getAvailableUpgrades(License $license): Collection
 
 Returns templates with greater `tier_level` in the same scope (or all active templates when the license has no template).
 
-## Service Configuration
+## Service configuration
 
 Services are bound in the service container and can be customized:
 
@@ -725,7 +712,7 @@ return [
 ];
 ```
 
-## Custom Service Implementation
+## Custom service implementation
 
 You can replace any service with custom implementations:
 
