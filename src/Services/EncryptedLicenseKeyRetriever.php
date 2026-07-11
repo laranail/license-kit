@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Support\Facades\Crypt;
 use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
 
 class EncryptedLicenseKeyRetriever implements LicenseKeyRetrieverContract
 {
@@ -31,8 +32,19 @@ class EncryptedLicenseKeyRetriever implements LicenseKeyRetrieverContract
 
         try {
             return Crypt::decryptString($encryptedKey);
-        } catch (Exception) {
-            // Log the error if needed
+        } catch (Exception $e) {
+            // A tolerated anomaly (failure-handling standard, rule 14): a key is
+            // stored but won't decrypt (tampering, or a rotated APP_KEY). We keep
+            // the documented "not retrievable" null contract, but surface it —
+            // otherwise it is indistinguishable from "no key stored". Redacted
+            // (rule 15): the license id and exception class only, never the
+            // ciphertext or the decrypted key.
+            FailurePolicy::warn('stored license key could not be decrypted', [
+                'license' => $license->getKey(),
+                'reason' => 'threw '.$e::class,
+                'decision' => 'treated as not retrievable (returned null)',
+            ]);
+
             return null;
         }
     }
