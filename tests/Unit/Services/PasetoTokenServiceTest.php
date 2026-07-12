@@ -1,0 +1,281 @@
+<?php
+
+declare(strict_types=1);
+
+use ParagonIE\Paseto\Builder;
+use ParagonIE\Paseto\Keys\AsymmetricSecretKey;
+use ParagonIE\Paseto\Parser;
+use ParagonIE\Paseto\Protocol\Version4;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
+use Simtabi\Laranail\Licence\Kit\Services\PasetoTokenService;
+use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+
+use function Spatie\PestPluginTestTime\testTime;
+
+uses(LicenseTestHelper::class);
+
+beforeEach(function (): void {
+    $this->tokenService = app(PasetoTokenService::class);
+    $this->signingKey = $this->createSigningKey();
+    $this->license = $this->createLicense([
+        'status' => LicenseStatus::Active,
+        'expires_at' => now()->addYear(),
+        'meta' => [
+            'offline_token' => [
+                'ttl_days' => 7,
+                'force_online_after_days' => 14,
+            ],
+        ],
+    ]);
+    $this->usage = $this->createUsage($this->license);
+});
+
+test('can issue PASETO token', function (): void {
+    $token = $this->tokenService->issue($this->license, $this->usage);
+
+    expect($token)->not->toBeEmpty()
+        ->and($token)->toStartWith('v4.public.');
+});
+
+test('token contains required claims', function (): void {
+    $token = $this->tokenService->issue($this->license, $this->usage);
+    $claims = $this->tokenService->extractClaims($token);
+
+    expect($claims)
+        ->toHaveKeys(['iat', 'nbf', 'exp', 'sub', 'iss', 'license_id', 'license_key_hash', 'usage_fingerprint', 'status', 'max_usages', 'force_online_after'])
+        ->and($claims['license_id'])->toBe($this->license->id)
+        ->and($claims['usage_fingerprint'])->toBe($this->usage->usage_fingerprint)
+        ->and($claims['status'])->toBe('active')
+        ->and($claims['max_usages'])->toBe($this->license->max_usages);
+});
+
+test('token respects TTL configuration', function (): void {
+    $customTtl = 3;
+    $token = $this->tokenService->issue($this->license, $this->usage, [
+        'ttl_days' => $customTtl,
+    ]);
+
+    $claims = $this->tokenService->extractClaims($token);
+    $exp = new DateTime($claims['exp']);
+    $iat = new DateTime($claims['iat']);
+    $diffDays = $exp->diff($iat)->days;
+
+    expect($diffDays)->toBe($customTtl);
+});
+
+test('token includes license expiration when set', function (): void {
+    $token = $this->tokenService->issue($this->license, $this->usage);
+    $claims = $this->tokenService->extractClaims($token);
+
+    expect($claims)->toHaveKey('license_expires_at')
+        ->and($claims['license_expires_at'])->toBe($this->license->expires_at->format('c'));
+});
+
+test('token includes grace period information', function (): void {
+    $graceLicense = $this->createLicense([
+        'status' => LicenseStatus::Grace,
+        'expires_at' => now()->subDay(),
+    ]);
+    $graceUsage = $this->createUsage($graceLicense);
+
+    $token = $this->tokenService->issue($graceLicense, $graceUsage);
+    $claims = $this->tokenService->extractClaims($token);
+
+    expect($claims)->toHaveKey('grace_until');
+});
+
+test('can verify valid token', function (): void {
+    $token = $this->tokenService->issue($this->license, $this->usage);
+
+    $verified = $this->tokenService->verify($token);
+
+    expect($verified)->toBeArray()
+        ->and($verified['license_id'])->toBe($this->license->id);
+});
+
+test('verification fails for expired token', function (): void {
+    $expiredLicense = $this->createLicense([
+        'meta' => ['offline_token' => ['ttl_days' => -1]], // Negative TTL for expired token
+    ]);
+    $usage = $this->createUsage($expiredLicense);
+
+    // Mock time to create expired token
+    $this->travel(-2)->days();
+    $token = $this->tokenService->issue($expiredLicense, $usage);
+    $this->travelBack();
+
+    $this->tokenService->verify($token);
+})->throws(RuntimeException::class);
+
+test('verification fails when force online required', function (): void {
+    $license = $this->createLicense([
+        'meta' => ['offline_token' => [
+            'force_online_after_days' => 0,
+            'clock_skew_seconds' => 0,
+        ]],
+    ]);
+    $usage = $this->createUsage($license);
+
+    $token = $this->tokenService->issue($license, $usage);
+
+    $this->tokenService->verify($token);
+})->throws(RuntimeException::class, 'Token requires online verification');
+
+test('respects per-license clock skew when verifying', function (): void {
+    testTime()->freeze();
+
+    $license = $this->createLicense([
+        'meta' => ['offline_token' => [
+            'ttl_days' => 0,
+            'clock_skew_seconds' => 120,
+        ]],
+    ]);
+
+    $usage = $this->createUsage($license);
+    $token = $this->tokenService->issue($license, $usage);
+
+    testTime()->addSeconds(60);
+
+    $verified = $this->tokenService->verify($token);
+
+    expect($verified['license_id'])->toBe($license->id);
+});
+
+test('can refresh token', function (): void {
+    testTime()->freeze();
+    $originalToken = $this->tokenService->issue($this->license, $this->usage);
+
+    testTime()->addSeconds(5); // Ensure different timestamp
+    $refreshedToken = $this->tokenService->refresh($originalToken);
+
+    expect($refreshedToken)->not->toBe($originalToken);
+
+    $originalClaims = $this->tokenService->extractClaims($originalToken);
+    $refreshedClaims = $this->tokenService->extractClaims($refreshedToken);
+
+    expect($refreshedClaims['license_id'])->toBe($originalClaims['license_id'])
+        ->and($refreshedClaims['usage_fingerprint'])->toBe($originalClaims['usage_fingerprint'])
+        ->and($refreshedClaims['iat'])->toBeGreaterThan($originalClaims['iat']);
+});
+
+test('token footer contains certificate chain', function (): void {
+    $token = $this->tokenService->issue($this->license, $this->usage);
+
+    $parts = explode('.', (string) $token);
+    expect($parts)->toHaveCount(4); // v2.public.payload.footer
+
+    $footer = json_decode(base64_decode(strtr($parts[3], '-_', '+/')), true);
+
+    expect($footer)->toHaveKeys(['kid', 'chain'])
+        ->and($footer['chain'])->toHaveKeys(['signing', 'root']);
+});
+
+test('can verify token offline with public key bundle', function (): void {
+    $token = $this->tokenService->issue($this->license, $this->usage);
+
+    $rootKey = LicensingKey::findActiveRoot();
+    $publicKeyBundle = json_encode([
+        'root' => [
+            'public_key' => $rootKey->getPublicKey(),
+        ],
+    ]);
+
+    $verified = $this->tokenService->verifyOffline($token, $publicKeyBundle);
+
+    expect($verified)->toBeArray()
+        ->and($verified['license_id'])->toBe($this->license->id);
+});
+
+test('offline verification fails with wrong public key', function (): void {
+    $token = $this->tokenService->issue($this->license, $this->usage);
+
+    $wrongBundle = json_encode([
+        'root' => [
+            'public_key' => 'wrong-public-key',
+        ],
+    ]);
+
+    $this->tokenService->verifyOffline($token, $wrongBundle);
+})->throws(RuntimeException::class);
+
+test('offline verification rejects a token whose signing key is not the one its certificate vouches for', function (): void {
+    // Lift a real, root-signed certificate + the root public key from a legit token.
+    $legitToken = $this->tokenService->issue($this->license, $this->usage);
+    $footer = json_decode(Parser::extractFooter($legitToken), true);
+    $legitCert = $footer['chain']['signing']['certificate'];
+    $rootPub = $footer['chain']['root']['public_key'];
+
+    // Attacker's own Ed25519 keypair.
+    $seed = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
+    $keypair = sodium_crypto_sign_seed_keypair($seed);
+    $roguePublic = substr($keypair, SODIUM_CRYPTO_SIGN_SECRETKEYBYTES);
+    $rogueSecret = AsymmetricSecretKey::v4($seed);
+
+    // Forge: sign with the rogue key, attach the LEGIT (root-signed) certificate,
+    // and swap the footer's signing public_key to the rogue key. verifyCertificate
+    // passes (the cert is genuinely root-signed); the cross-check must catch it.
+    $forgedFooter = json_encode([
+        'kid' => $footer['kid'] ?? 'forged',
+        'chain' => [
+            'signing' => [
+                'public_key' => base64_encode($roguePublic),
+                'certificate' => $legitCert,
+            ],
+            'root' => ['public_key' => $rootPub],
+        ],
+    ]);
+
+    $forged = Builder::getPublic($rogueSecret, new Version4)
+        ->setIssuedAt(now()->toImmutable())
+        ->setNotBefore(now()->toImmutable())
+        ->setExpiration(now()->addDay()->toImmutable())
+        ->setClaims([
+            'status' => 'active',
+            'usage_fingerprint' => $this->usage->usage_fingerprint,
+        ])
+        ->setFooter($forgedFooter)
+        ->toString();
+
+    $bundle = json_encode(['root' => ['public_key' => $rootPub]]);
+
+    $this->tokenService->verifyOffline($forged, $bundle);
+})->throws(RuntimeException::class, 'Signing key does not match its certificate');
+
+test('custom issuer is included in token', function (): void {
+    $customIssuer = 'my-app-licensing';
+    $token = $this->tokenService->issue($this->license, $this->usage, [
+        'issuer' => $customIssuer,
+    ]);
+
+    $claims = $this->tokenService->extractClaims($token);
+
+    expect($claims['iss'])->toBe($customIssuer);
+});
+
+test('generated signing keys never contain CRLF bytes that break paseto', function (): void {
+    // Paseto Util::dos2unix() pipes the raw Ed25519 secret key through
+    // str_replace("\r\n", "\n", …) inside raw(), dropping a byte for ~0.1%
+    // of randomly generated keys and making sodium_crypto_sign_detached()
+    // fail. HasKeyStore::generate() filters bad keys before persisting
+    // them; verify the invariant holds on freshly generated keys.
+    for ($i = 0; $i < 10; $i++) {
+        $key = new LicensingKey;
+        $key->generate(['type' => KeyType::Signing]);
+
+        $rawPrivate = base64_decode((string) $key->getPrivateKey(), true);
+
+        expect(strpos($rawPrivate, "\r\n"))->toBeFalse();
+    }
+});
+
+test('signing key passes paseto misuse resistance on repeated issue calls', function (): void {
+    $first = $this->tokenService->issue($this->license, $this->usage);
+    $second = $this->tokenService->issue($this->license, $this->usage);
+    $third = $this->tokenService->issue($this->license, $this->usage);
+
+    expect($first)->toStartWith('v4.public.')
+        ->and($second)->toStartWith('v4.public.')
+        ->and($third)->toStartWith('v4.public.');
+});

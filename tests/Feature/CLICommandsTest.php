@@ -1,0 +1,437 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Licence\Kit\Commands\ExportKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\IssueOfflineTokenCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\IssueSigningKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\MakeRootKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\RevokeKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\RotateKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
+use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
+
+uses(LicenseTestHelper::class)->group('cli');
+
+function runCommand(string $commandClass, array $parameters = [], array $inputs = [], int $verbosity = OutputInterface::VERBOSITY_NORMAL): CommandTester
+{
+    $command = app($commandClass);
+    $command->setLaravel(app());
+    $tester = new CommandTester($command);
+
+    // Determine if we should be interactive based on inputs
+    $interactive = $inputs !== [];
+
+    // On Windows CI, disable interactivity to avoid TTY issues
+    if (PHP_OS_FAMILY === 'Windows' && (getenv('CI') || getenv('GITHUB_ACTIONS'))) {
+        $interactive = false;
+    }
+
+    if ($inputs !== []) {
+        $tester->setInputs($inputs);
+    }
+
+    $tester->execute($parameters, [
+        'interactive' => $interactive,
+        'verbosity' => $verbosity,
+    ]);
+
+    return $tester;
+}
+
+beforeEach(function (): void {
+    // Ensure clean key storage
+    $keyPath = config('licensing.crypto.keystore.path');
+    if (File::exists($keyPath)) {
+        File::deleteDirectory($keyPath);
+    }
+
+    // Clear any cached data
+    LicensingKey::forgetCachedPassphrase();
+
+    // Reset the passphrase to the test default
+    config()->set('licensing.crypto.keystore.passphrase', 'test-passphrase-for-testing');
+});
+
+afterEach(function (): void {
+    // Clean up after each test
+    $keyPath = config('licensing.crypto.keystore.path');
+    if (File::exists($keyPath)) {
+        File::deleteDirectory($keyPath);
+    }
+
+    // Clear any cached data
+    LicensingKey::forgetCachedPassphrase();
+});
+
+test('can make root key via CLI', function (): void {
+    $tester = runCommand(MakeRootKeyCommand::class);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain('Generating root key pair...');
+    expect($display)->toContain('Root key generated successfully');
+    expect($display)->toContain('Key ID:');
+    expect($display)->toContain('Public key bundle exported to:');
+
+    $rootKey = LicensingKey::where('type', KeyType::Root)->first();
+
+    expect($rootKey)->not->toBeNull()
+        ->and($rootKey->status)->toBe(KeyStatus::Active);
+});
+
+test('prompts to create passphrase when environment variable is missing', function (): void {
+    // Skip this test on Windows CI due to TTY limitations
+    if (PHP_OS_FAMILY === 'Windows' && (getenv('CI') || getenv('GITHUB_ACTIONS'))) {
+        $this->markTestSkipped('Interactive tests are skipped on Windows CI');
+    }
+
+    config()->set('licensing.crypto.keystore.passphrase');
+    LicensingKey::forgetCachedPassphrase();
+
+    $tester = runCommand(MakeRootKeyCommand::class, [], ['new-passphrase-123', 'new-passphrase-123']);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain('Passphrase environment variable LICENSING_KEY_PASSPHRASE not set.');
+    expect($display)->toContain('A passphrase is required to encrypt generated keys.');
+    expect($display)->toContain('Passphrase set for this run.');
+    expect($display)->toContain('Generating root key pair...');
+});
+
+test('returns error silently when missing passphrase and silent flag used', function (): void {
+    config()->set('licensing.crypto.keystore.passphrase');
+    LicensingKey::forgetCachedPassphrase();
+
+    $tester = runCommand(MakeRootKeyCommand::class, ['--silent' => true]);
+
+    expect($tester->getStatusCode())->not->toBe(0);
+    expect(LicensingKey::findActiveRoot())->toBeNull();
+});
+
+test('cannot create duplicate root key', function (): void {
+    // Ensure clean state
+    LicensingKey::where('type', KeyType::Root)->delete();
+
+    $this->createRootKey();
+
+    $tester = runCommand(MakeRootKeyCommand::class);
+
+    expect($tester->getStatusCode())->not->toBe(0);
+    expect($tester->getDisplay())->toContain('Active root key already exists. Use --force to replace.');
+});
+
+test('can force replace root key', function (): void {
+    // Skip this test on Windows CI due to TTY limitations
+    if (PHP_OS_FAMILY === 'Windows' && (getenv('CI') || getenv('GITHUB_ACTIONS'))) {
+        $this->markTestSkipped('Interactive tests are skipped on Windows CI');
+    }
+    $oldRoot = $this->createRootKey();
+
+    $tester = runCommand(MakeRootKeyCommand::class, ['--force' => true], ['yes']);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain('Revoking existing root key');
+    expect($display)->toContain('Root key generated successfully');
+
+    $oldRoot->refresh();
+    expect($oldRoot->status)->toBe(KeyStatus::Revoked);
+});
+
+test('can issue signing key via CLI', function (): void {
+    $this->createRootKey();
+
+    $tester = runCommand(IssueSigningKeyCommand::class, [
+        '--kid' => 'test-signing-001',
+        '--days' => 90,
+    ]);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain('Generating signing key pair');
+    expect($display)->toContain('Signing key issued successfully');
+    expect($display)->toContain('Key ID: test-signing-001');
+    expect($display)->toContain('Valid for: 90 days');
+
+    $signingKey = LicensingKey::where('kid', 'test-signing-001')->first();
+
+    expect($signingKey)->not->toBeNull()
+        ->and($signingKey->type)->toBe(KeyType::Signing)
+        ->and(abs($signingKey->valid_until->diffInDays($signingKey->valid_from)))->toEqual(90);
+});
+
+test('cannot issue signing key without root', function (): void {
+    // Explicitly ensure no root key exists
+    LicensingKey::where('type', KeyType::Root)->delete();
+
+    $tester = runCommand(IssueSigningKeyCommand::class);
+
+    expect($tester->getStatusCode())->not->toBe(0);
+    expect($tester->getDisplay())->toContain('No active root key found. Run licensing:keys:make-root first.');
+});
+
+test('can rotate signing keys via CLI', function (): void {
+    $this->createRootKey();
+    $oldSigning = $this->createSigningKey();
+
+    $tester = runCommand(RotateKeysCommand::class, [
+        '--reason' => 'routine',
+    ]);
+
+    expect($tester->getStatusCode())->toBe(0);
+    $display = $tester->getDisplay();
+    expect($display)->toContain('Rotating signing key');
+    expect($display)->toContain('Current signing key revoked');
+    expect($display)->toContain('New signing key issued');
+
+    $oldSigning->refresh();
+    expect($oldSigning->status)->toBe(KeyStatus::Revoked)
+        ->and($oldSigning->revocation_reason)->toBe('routine');
+
+    $newSigning = LicensingKey::where('type', KeyType::Signing)
+        ->where('status', KeyStatus::Active)
+        ->first();
+
+    expect($newSigning)->not->toBeNull()
+        ->and($newSigning->id)->not->toBe($oldSigning->id);
+});
+
+test('can revoke key via CLI', function (): void {
+    // Skip this test on Windows CI due to TTY limitations
+    if (PHP_OS_FAMILY === 'Windows' && (getenv('CI') || getenv('GITHUB_ACTIONS'))) {
+        $this->markTestSkipped('Interactive tests are skipped on Windows CI');
+    }
+    $this->createRootKey();
+    $signingKey = $this->createSigningKey();
+
+    $tester = runCommand(RevokeKeyCommand::class, [
+        'kid' => $signingKey->kid,
+        '--reason' => 'compromised',
+    ], ['yes']);
+
+    expect($tester->getStatusCode())->toBe(0);
+    expect($tester->getDisplay())->toContain('Key revoked successfully');
+
+    $signingKey->refresh();
+    expect($signingKey->status)->toBe(KeyStatus::Revoked)
+        ->and($signingKey->revocation_reason)->toBe('compromised');
+});
+
+test('can list keys via CLI', function (): void {
+    $rootKey = $this->createRootKey();
+    $signingKey = $this->createSigningKey();
+
+    $command = app(ListKeysCommand::class);
+    $command->setLaravel($this->app);
+    $tester = new CommandTester($command);
+
+    $exitCode = $tester->execute([]);
+
+    expect($exitCode)->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain($rootKey->kid);
+    expect($display)->toContain($signingKey->kid);
+    expect($display)->toContain('root');
+    expect($display)->toContain('signing');
+});
+
+test('can export keys in different formats', function (): void {
+    $rootKey = $this->createRootKey();
+    $signingKey = $this->createSigningKey();
+
+    // Ensure keys are active
+    expect($rootKey->isActive())->toBeTrue();
+    expect($signingKey->isActive())->toBeTrue();
+
+    // Export as JWKS
+    $jwks = runCommand(ExportKeysCommand::class, ['--format' => 'jwks']);
+    expect($jwks->getStatusCode())->toBe(0);
+    expect($jwks->getDisplay())->toContain('"keys":');
+
+    // Export as PEM (will fall back to JSON)
+    $pem = runCommand(ExportKeysCommand::class, ['--format' => 'pem']);
+    expect($pem->getStatusCode())->toBe(0);
+    expect($pem->getDisplay())->toContain('PEM format is not applicable');
+
+    // Export as JSON bundle
+    $json = runCommand(ExportKeysCommand::class, [
+        '--format' => 'json',
+        '--include-chain' => true,
+    ]);
+
+    expect($json->getStatusCode())->toBe(0);
+    expect($json->getDisplay())->toContain('"root":');
+});
+
+test('can issue offline token via CLI', function (): void {
+    $this->createRootKey();
+    $this->createSigningKey();
+    $license = $this->createLicense();
+    $usage = $this->createUsage($license);
+
+    $tester = runCommand(IssueOfflineTokenCommand::class, [
+        '--license' => (string) $license->id,
+        '--fingerprint' => $usage->usage_fingerprint,
+        '--ttl' => '3d',
+    ]);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain('Offline token issued successfully');
+    expect($display)->toContain('Token:');
+    expect($display)->toContain('v4.public.');
+});
+
+test('validates license exists for token issuance', function (): void {
+    $this->createRootKey();
+    $this->createSigningKey();
+
+    $tester = runCommand(IssueOfflineTokenCommand::class, [
+        '--license' => 'non-existent',
+        '--fingerprint' => 'test-fp',
+    ]);
+
+    expect($tester->getStatusCode())->not->toBe(0);
+    expect($tester->getDisplay())->toContain('License not found: non-existent');
+});
+
+test('validates usage exists for token issuance', function (): void {
+    $this->createRootKey();
+    $this->createSigningKey();
+    $license = $this->createLicense();
+
+    $tester = runCommand(IssueOfflineTokenCommand::class, [
+        '--license' => (string) $license->id,
+        '--fingerprint' => 'non-existent-fp',
+    ]);
+
+    expect($tester->getStatusCode())->not->toBe(0);
+    expect($tester->getDisplay())->toContain('No active usage found for fingerprint: non-existent-fp');
+});
+
+test('can issue token by license key', function (): void {
+    $this->createRootKey();
+    $this->createSigningKey();
+
+    $licenseKey = 'TEST-LICENSE-KEY-123';
+    $license = $this->createLicense([
+        'key_hash' => License::hashKey($licenseKey),
+    ]);
+    $usage = $this->createUsage($license);
+
+    $tester = runCommand(IssueOfflineTokenCommand::class, [
+        '--license' => $licenseKey,
+        '--fingerprint' => $usage->usage_fingerprint,
+    ]);
+
+    expect($tester->getStatusCode())->toBe(0);
+    expect($tester->getDisplay())->toContain('Offline token issued successfully');
+});
+
+test('handles compromised key rotation', function (): void {
+    $this->createRootKey();
+    $signingKey = $this->createSigningKey();
+
+    $tester = runCommand(RotateKeysCommand::class, [
+        '--reason' => 'compromised',
+        '--immediate' => true,
+    ]);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain('SECURITY: Rotating compromised key immediately...');
+    expect($display)->toContain('All tokens signed with the compromised key are now invalid');
+    expect($display)->toContain('Clients must refresh their tokens immediately');
+
+    $signingKey->refresh();
+    expect($signingKey->revocation_reason)->toBe('compromised');
+});
+
+test('auto-generated KID uses cryptographically secure random hex', function (): void {
+    $this->createRootKey();
+
+    $tester = runCommand(IssueSigningKeyCommand::class);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    preg_match('/Key ID: (signing-[a-f0-9]+)/', $display, $matches);
+
+    expect($matches)->toHaveCount(2)
+        ->and($matches[1])->toMatch('/^signing-[a-f0-9]{32}$/');
+});
+
+test('rotate command generates cryptographically secure KID', function (): void {
+    $this->createRootKey();
+    $this->createSigningKey();
+
+    $tester = runCommand(RotateKeysCommand::class, ['--reason' => 'routine']);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    preg_match('/Key ID: (signing-[a-f0-9]+)/', $display, $matches);
+
+    expect($matches)->toHaveCount(2)
+        ->and($matches[1])->toMatch('/^signing-[a-f0-9]{32}$/');
+});
+
+test('respects verbose output flag', function (): void {
+    $this->createRootKey();
+
+    $tester = runCommand(IssueSigningKeyCommand::class, [], [], OutputInterface::VERBOSITY_VERBOSE);
+
+    expect($tester->getStatusCode())->toBe(0);
+
+    $display = $tester->getDisplay();
+    expect($display)->toContain('Generating RSA key pair');
+    expect($display)->toContain('Creating certificate');
+    expect($display)->toContain('Signing certificate with root key');
+    expect($display)->toContain('Storing key in keystore');
+});
+
+test('command return codes follow spec', function (): void {
+    // Success
+    $this->createRootKey();
+    $result = Artisan::call('licensing:keys:list');
+    expect($result)->toBe(0);
+
+    // Invalid arguments
+    $result = Artisan::call('licensing:keys:issue-signing', ['--days' => -1]);
+    expect($result)->toBe(1);
+
+    // Not found
+    $result = Artisan::call('licensing:keys:revoke', ['kid' => 'non-existent']);
+    expect($result)->toBe(2);
+
+    // Revoked/compromised
+    $key = $this->createSigningKey();
+    $key->revoke('compromised');
+    $license = $this->createActiveLicense();
+    $usage = $this->createUsage($license);
+
+    // Verify license has a key
+    expect($license->key)->not->toBeNull();
+
+    $result = Artisan::call('licensing:offline:issue', [
+        '--license' => $license->key,
+        '--fingerprint' => $usage->usage_fingerprint,
+    ]);
+    expect($result)->toBe(3);
+});

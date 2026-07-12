@@ -1,0 +1,221 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Simtabi\Laranail\Licence\Kit\Models\Traits;
+
+use DateTimeInterface;
+use Illuminate\Support\Str;
+use RuntimeException;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
+
+trait HasKeyStore
+{
+    protected static ?string $cachedPassphrase = null;
+
+    private const ENCRYPTION_VERSION_V2 = "\x02";
+
+    public function generate(array $options = []): self
+    {
+        $type = $options['type'] ?? KeyType::Signing;
+
+        // Paseto v4 pipes the raw Ed25519 secret key through
+        // str_replace("\r\n", "\n", …) inside raw(), which silently drops a
+        // byte when the 64-byte key happens to contain that sequence and
+        // makes sodium_crypto_sign_detached() fail. Reject such keys up
+        // front so they never reach the token signer.
+        do {
+            $seed = random_bytes(SODIUM_CRYPTO_SIGN_SEEDBYTES);
+            $keyPair = sodium_crypto_sign_seed_keypair($seed);
+            $rawPrivateKey = substr($keyPair, 0, SODIUM_CRYPTO_SIGN_SECRETKEYBYTES);
+            $rawPublicKey = substr($keyPair, SODIUM_CRYPTO_SIGN_SECRETKEYBYTES);
+        } while (str_contains($rawPrivateKey, "\r\n"));
+        sodium_memzero($seed);
+        sodium_memzero($keyPair);
+
+        // Use existing kid if set, otherwise generate new one
+        $this->kid ??= 'kid_'.Str::random(32);
+        $this->type = $type;
+        $this->algorithm = 'Ed25519';
+        $this->public_key = base64_encode($rawPublicKey);
+        $this->private_key_encrypted = $this->encryptPrivateKey(base64_encode($rawPrivateKey));
+        $this->valid_from ??= $options['valid_from'] ?? now();
+        $this->valid_until ??= $options['valid_until'] ?? null;
+        $this->status = KeyStatus::Active;
+
+        if ($type === KeyType::Signing && ! $this->valid_until) {
+            $this->valid_until = $this->valid_from->addDays(30);
+        }
+
+        $this->save();
+
+        return $this;
+    }
+
+    public function getPublicKey(): string
+    {
+        return $this->public_key;
+    }
+
+    public function getPrivateKey(): ?string
+    {
+        if (! $this->private_key_encrypted) {
+            return null;
+        }
+
+        return $this->decryptPrivateKey($this->private_key_encrypted);
+    }
+
+    public function getCertificate(): ?string
+    {
+        return $this->certificate;
+    }
+
+    public function isActive(): bool
+    {
+        if ($this->status !== KeyStatus::Active) {
+            return false;
+        }
+
+        now();
+
+        if ($this->valid_from && $this->valid_from->isFuture()) {
+            return false;
+        }
+
+        return ! $this->valid_until || ! $this->valid_until->isPast();
+    }
+
+    public function revoke(string $reason, ?DateTimeInterface $revokedAt = null): self
+    {
+        $this->update([
+            'status' => KeyStatus::Revoked,
+            'revoked_at' => $revokedAt ?? now(),
+            'revocation_reason' => $reason,
+        ]);
+
+        return $this;
+    }
+
+    protected function encryptPrivateKey(string $privateKey): string
+    {
+        $passphrase = $this->resolvePassphrase();
+
+        $salt = random_bytes(SODIUM_CRYPTO_PWHASH_SALTBYTES);
+        $key = sodium_crypto_pwhash(
+            32,
+            $passphrase,
+            $salt,
+            SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
+            SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
+        );
+
+        try {
+            $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+            $encrypted = sodium_crypto_secretbox($privateKey, $nonce, $key);
+
+            return base64_encode(self::ENCRYPTION_VERSION_V2.$salt.$nonce.$encrypted);
+        } finally {
+            sodium_memzero($key);
+        }
+    }
+
+    protected function decryptPrivateKey(string $encryptedKey): string
+    {
+        $passphrase = $this->resolvePassphrase();
+
+        $decoded = base64_decode($encryptedKey);
+        $versionByte = $decoded[0];
+
+        // Legacy v1 payloads carry no version marker — their first byte is a random
+        // nonce byte — so a v1 payload can coincidentally start with the v2 marker
+        // (~1/256). In that case the v2 attempt fails authentication; fall back to v1
+        // before giving up so those legacy keys still decrypt.
+        if ($versionByte === self::ENCRYPTION_VERSION_V2) {
+            try {
+                return $this->decryptV2($decoded, $passphrase);
+            } catch (RuntimeException) {
+                return $this->decryptV1Legacy($decoded, $passphrase);
+            }
+        }
+
+        return $this->decryptV1Legacy($decoded, $passphrase);
+    }
+
+    private function decryptV2(string $decoded, string $passphrase): string
+    {
+        $offset = 1; // skip version byte
+        $salt = substr($decoded, $offset, SODIUM_CRYPTO_PWHASH_SALTBYTES);
+        $offset += SODIUM_CRYPTO_PWHASH_SALTBYTES;
+        $nonce = substr($decoded, $offset, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $offset += SODIUM_CRYPTO_SECRETBOX_NONCEBYTES;
+        $ciphertext = substr($decoded, $offset);
+
+        $key = sodium_crypto_pwhash(
+            32,
+            $passphrase,
+            $salt,
+            SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
+            SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
+        );
+
+        try {
+            $decrypted = sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
+
+            if ($decrypted === false) {
+                throw new RuntimeException('Failed to decrypt private key');
+            }
+
+            return $decrypted;
+        } finally {
+            sodium_memzero($key);
+        }
+    }
+
+    private function decryptV1Legacy(string $decoded, string $passphrase): string
+    {
+        $nonce = substr($decoded, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $ciphertext = substr($decoded, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+        $key = hash('sha256', $passphrase, true);
+
+        try {
+            $decrypted = sodium_crypto_secretbox_open($ciphertext, $nonce, $key);
+
+            if ($decrypted === false) {
+                throw new RuntimeException('Failed to decrypt private key');
+            }
+
+            return $decrypted;
+        } finally {
+            sodium_memzero($key);
+        }
+    }
+
+    protected function resolvePassphrase(): string
+    {
+        if (static::$cachedPassphrase !== null) {
+            return static::$cachedPassphrase;
+        }
+
+        $passphrase = config('licensing.crypto.keystore.passphrase');
+
+        if (! $passphrase) {
+            throw new RuntimeException('Key passphrase not configured');
+        }
+
+        static::$cachedPassphrase = $passphrase;
+
+        return static::$cachedPassphrase;
+    }
+
+    public static function cachePassphrase(string $passphrase): void
+    {
+        static::$cachedPassphrase = $passphrase;
+    }
+
+    public static function forgetCachedPassphrase(): void
+    {
+        static::$cachedPassphrase = null;
+    }
+}
