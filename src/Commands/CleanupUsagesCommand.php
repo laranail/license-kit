@@ -22,7 +22,7 @@ class CleanupUsagesCommand extends Command
         $days = config('licensing.policies.usage_inactivity_auto_revoke_days');
 
         if ($days === null) {
-            $this->comment(__('license-kit::license-kit.cleanup.disabled'));
+            $this->comment(__('laranail-license-kit::license-kit.cleanup.disabled'));
 
             return 0;
         }
@@ -35,14 +35,14 @@ class CleanupUsagesCommand extends Command
             ->get();
 
         if ($this->option('dry-run')) {
-            $this->line(__('license-kit::license-kit.cleanup.dry', ['count' => $usages->count(), 'days' => $days]));
+            $this->line(__('laranail-license-kit::license-kit.cleanup.dry', ['count' => $usages->count(), 'days' => $days]));
 
             return 0;
         }
 
         $usages->each(fn (LicenseUsage $usage): LicenseUsage => $usage->revoke('inactivity'));
 
-        $this->info(__('license-kit::license-kit.cleanup.revoked', ['count' => $usages->count()]));
+        $this->info(__('laranail-license-kit::license-kit.cleanup.revoked', ['count' => $usages->count()]));
 
         return 0;
     }

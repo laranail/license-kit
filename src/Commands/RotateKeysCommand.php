@@ -25,23 +25,23 @@ class RotateKeysCommand extends Command
         $immediate = $this->option('immediate');
 
         if (! in_array($reason, ['routine', 'compromised'])) {
-            $this->line(__('license-kit::license-kit.rotate.invalid_reason'));
+            $this->line(__('laranail-license-kit::license-kit.rotate.invalid_reason'));
 
             return 1;
         }
 
         if ($reason === 'compromised' && $immediate) {
-            $this->line(__('license-kit::license-kit.rotate.security_immediate'));
+            $this->line(__('laranail-license-kit::license-kit.rotate.security_immediate'));
         }
 
         $rootKey = LicensingKey::findActiveRoot();
         if (! $rootKey instanceof LicensingKey) {
-            $this->line(__('license-kit::license-kit.rotate.no_root'));
+            $this->line(__('laranail-license-kit::license-kit.rotate.no_root'));
 
             return 2;
         }
 
-        $this->line(__('license-kit::license-kit.rotate.rotating'));
+        $this->line(__('laranail-license-kit::license-kit.rotate.rotating'));
 
         $newKid = 'signing-'.bin2hex(random_bytes(16));
 
@@ -70,16 +70,16 @@ class RotateKeysCommand extends Command
         });
 
         if ($revokedExisting) {
-            $this->line(__('license-kit::license-kit.rotate.revoked'));
+            $this->line(__('laranail-license-kit::license-kit.rotate.revoked'));
         }
 
-        $this->line(__('license-kit::license-kit.rotate.issued'));
-        $this->line(__('license-kit::license-kit.rotate.key_id', ['kid' => $newKid]));
+        $this->line(__('laranail-license-kit::license-kit.rotate.issued'));
+        $this->line(__('laranail-license-kit::license-kit.rotate.key_id', ['kid' => $newKid]));
 
         if ($reason === 'compromised') {
-            $this->line(__('license-kit::license-kit.rotate.compromised_invalid'));
-            $this->line(__('license-kit::license-kit.rotate.refresh_clients'));
-            $this->line(__('license-kit::license-kit.rotate.update_clients'));
+            $this->line(__('laranail-license-kit::license-kit.rotate.compromised_invalid'));
+            $this->line(__('laranail-license-kit::license-kit.rotate.refresh_clients'));
+            $this->line(__('laranail-license-kit::license-kit.rotate.update_clients'));
         }
 
         return 0;

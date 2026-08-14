@@ -49,11 +49,11 @@ class CheckExpirationsCommand extends Command
             : collect();
 
         if ($dryRun) {
-            $this->line(__('license-kit::license-kit.check_expirations.dry_grace', ['count' => $toGrace->count()]));
-            $this->line(__('license-kit::license-kit.check_expirations.dry_expired', ['count' => $toExpired->count()]));
+            $this->line(__('laranail-license-kit::license-kit.check_expirations.dry_grace', ['count' => $toGrace->count()]));
+            $this->line(__('laranail-license-kit::license-kit.check_expirations.dry_expired', ['count' => $toExpired->count()]));
 
             if ($notify) {
-                $this->line(__('license-kit::license-kit.check_expirations.dry_notify', ['count' => $expiringSoon->count(), 'days' => $expiringWithin]));
+                $this->line(__('laranail-license-kit::license-kit.check_expirations.dry_notify', ['count' => $expiringSoon->count(), 'days' => $expiringWithin]));
             }
 
             return 0;
@@ -68,11 +68,11 @@ class CheckExpirationsCommand extends Command
             });
         }
 
-        $this->info(__('license-kit::license-kit.check_expirations.transitioned_grace', ['count' => $toGrace->count()]));
-        $this->info(__('license-kit::license-kit.check_expirations.transitioned_expired', ['count' => $toExpired->count()]));
+        $this->info(__('laranail-license-kit::license-kit.check_expirations.transitioned_grace', ['count' => $toGrace->count()]));
+        $this->info(__('laranail-license-kit::license-kit.check_expirations.transitioned_expired', ['count' => $toExpired->count()]));
 
         if ($notify) {
-            $this->info(__('license-kit::license-kit.check_expirations.notifications_dispatched', ['count' => $expiringSoon->count()]));
+            $this->info(__('laranail-license-kit::license-kit.check_expirations.notifications_dispatched', ['count' => $expiringSoon->count()]));
         }
 
         return 0;

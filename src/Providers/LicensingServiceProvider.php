@@ -62,7 +62,7 @@ class LicensingServiceProvider extends PackageServiceProvider
             ->name('laranail/license-kit')
             ->hasConfigFile('licensing')
             ->withoutConfigNamespacing()
-            ->hasTranslations('license-kit')
+            ->hasTranslations('laranail-license-kit')
             ->hasMigrations([
                 // Order matters: parents before children, FK targets before FK holders.
                 'create_license_scopes_table',

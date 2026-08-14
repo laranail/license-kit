@@ -21,7 +21,7 @@ class MakeRootKeyCommand extends Command
 
         if ($existingRoot instanceof LicensingKey) {
             if (! $this->option('force')) {
-                $this->line(__('license-kit::license-kit.make_root.exists'));
+                $this->line(__('laranail-license-kit::license-kit.make_root.exists'));
 
                 return 1;
             }
@@ -30,7 +30,7 @@ class MakeRootKeyCommand extends Command
                 return 0;
             }
 
-            $this->line(__('license-kit::license-kit.make_root.revoking'));
+            $this->line(__('laranail-license-kit::license-kit.make_root.revoking'));
             $existingRoot->revoke('replaced');
         }
 
@@ -38,14 +38,14 @@ class MakeRootKeyCommand extends Command
             return 3;
         }
 
-        $this->line(__('license-kit::license-kit.make_root.generating'));
+        $this->line(__('laranail-license-kit::license-kit.make_root.generating'));
 
         $rootKey = LicensingKey::generateRootKey();
 
-        $this->line(__('license-kit::license-kit.make_root.generated'));
-        $this->line(__('license-kit::license-kit.make_root.key_id', ['kid' => $rootKey->kid]));
-        $this->line(__('license-kit::license-kit.make_root.bundle_exported', ['path' => $this->getPublicBundlePath()]));
-        $this->line(__('license-kit::license-kit.make_root.backup_warning'));
+        $this->line(__('laranail-license-kit::license-kit.make_root.generated'));
+        $this->line(__('laranail-license-kit::license-kit.make_root.key_id', ['kid' => $rootKey->kid]));
+        $this->line(__('laranail-license-kit::license-kit.make_root.bundle_exported', ['path' => $this->getPublicBundlePath()]));
+        $this->line(__('laranail-license-kit::license-kit.make_root.backup_warning'));
 
         return 0;
     }
@@ -75,14 +75,14 @@ class MakeRootKeyCommand extends Command
             return false;
         }
 
-        $this->line(__('license-kit::license-kit.make_root.passphrase_unset'));
-        $this->line(__('license-kit::license-kit.make_root.passphrase_required'));
+        $this->line(__('laranail-license-kit::license-kit.make_root.passphrase_unset'));
+        $this->line(__('laranail-license-kit::license-kit.make_root.passphrase_required'));
 
         for ($attempt = 0; $attempt < 3; $attempt++) {
             $passphrase = (string) $this->secret('Create a new passphrase');
 
             if ($passphrase === '') {
-                $this->line(__('license-kit::license-kit.make_root.passphrase_empty'));
+                $this->line(__('laranail-license-kit::license-kit.make_root.passphrase_empty'));
 
                 continue;
             }
@@ -90,7 +90,7 @@ class MakeRootKeyCommand extends Command
             $confirmation = (string) $this->secret('Confirm passphrase');
 
             if ($passphrase !== $confirmation) {
-                $this->line(__('license-kit::license-kit.make_root.passphrase_mismatch'));
+                $this->line(__('laranail-license-kit::license-kit.make_root.passphrase_mismatch'));
 
                 continue;
             }
@@ -98,12 +98,12 @@ class MakeRootKeyCommand extends Command
             config()->set('licensing.crypto.keystore.passphrase', $passphrase);
             LicensingKey::cachePassphrase($passphrase);
 
-            $this->line(__('license-kit::license-kit.make_root.passphrase_set'));
+            $this->line(__('laranail-license-kit::license-kit.make_root.passphrase_set'));
 
             return true;
         }
 
-        $this->line(__('license-kit::license-kit.make_root.passphrase_failed'));
+        $this->line(__('laranail-license-kit::license-kit.make_root.passphrase_failed'));
 
         return false;
     }
