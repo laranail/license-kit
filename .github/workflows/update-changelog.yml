@@ -25,8 +25,31 @@ jobs:
           release-notes: ${{ github.event.release.body }}
 
       - name: Commit updated CHANGELOG
+        id: changelog-commit
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           branch: main
           commit_message: Update CHANGELOG
           file_pattern: CHANGELOG.md
+
+      # The commit above lands on main AFTER the tag was cut, which leaves the
+      # tag one commit behind the branch it is supposed to track — and pre-1.0
+      # the whole family depends on `^0.1` resolving whatever the tag points at.
+      # Releasing therefore breaks release currency unless the tag follows.
+      #
+      # Only re-points a tag that already exists and only when the changelog
+      # commit actually happened, so a release with nothing to prepend is a
+      # no-op rather than a spurious force-push.
+      - name: Move the moving tag onto the changelog commit
+        if: steps.changelog-commit.outputs.changes_detected == 'true'
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          # An annotated tag needs a committer identity, and actions/checkout
+          # does not set one. git-auto-commit configures its own for the commit
+          # and that does not survive into this step.
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --tags --quiet
+          git tag -f -a "$TAG" HEAD -m "Moving the pre-1.0 tag onto the changelog commit"
+          git push --force origin "refs/tags/$TAG"
