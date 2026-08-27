@@ -45,7 +45,8 @@
         "paragonie/paseto": "^3.5",
         "spatie/crypto": "^2.0",
         "spatie/laravel-sluggable": "^4.0.0",
-        "symfony/uid": "^7.0 || ^8.0"
+        "symfony/uid": "^7.0 || ^8.0",
+        "laranail/console": "^0.1"
     },
     "require-dev": {
         "larastan/larastan": "^3.0",
