@@ -14,20 +14,20 @@ enum ApprovalStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => __('Pending'),
+            self::Pending  => __('Pending'),
             self::Approved => __('Approved'),
             self::Rejected => __('Rejected'),
-            self::Expired => __('Expired'),
+            self::Expired  => __('Expired'),
         };
     }
 
     public function color(): string
     {
         return match ($this) {
-            self::Pending => 'yellow',
+            self::Pending  => 'yellow',
             self::Approved => 'green',
             self::Rejected => 'red',
-            self::Expired => 'gray',
+            self::Expired  => 'gray',
         };
     }
 }

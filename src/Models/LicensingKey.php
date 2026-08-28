@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use DateTimeInterface;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Override;
-use Simtabi\Laranail\Licence\Kit\Contracts\KeyStore;
-use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
+use DateTimeInterface;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Simtabi\Laranail\Licence\Kit\Contracts\KeyStore;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Simtabi\Laranail\Licence\Kit\Models\Traits\HasKeyStore;
 
 /**
@@ -54,94 +54,17 @@ class LicensingKey extends Model implements KeyStore
     ];
 
     protected $casts = [
-        'type' => KeyType::class,
-        'status' => KeyStatus::class,
-        'valid_from' => 'datetime',
+        'type'        => KeyType::class,
+        'status'      => KeyStatus::class,
+        'valid_from'  => 'datetime',
         'valid_until' => 'datetime',
-        'revoked_at' => 'datetime',
-        'meta' => AsArrayObject::class,
+        'revoked_at'  => 'datetime',
+        'meta'        => AsArrayObject::class,
     ];
 
     protected $attributes = [
         'status' => KeyStatus::Active,
     ];
-
-    #[Override]
-    protected static function booted(): void
-    {
-        static::creating(function (self $key): void {
-            if (! $key->kid) {
-                $key->kid = 'kid_'.Str::random(32);
-            }
-            if (! $key->valid_from) {
-                $key->valid_from = now();
-            }
-        });
-    }
-
-    #[Scope]
-    protected function active(Builder $query): void
-    {
-        $query->where('status', KeyStatus::Active)
-            ->where('valid_from', '<=', now())
-            ->where(function ($q): void {
-                $q->whereNull('valid_until')
-                    ->orWhere('valid_until', '>', now());
-            });
-    }
-
-    #[Scope]
-    protected function revoked(Builder $query): void
-    {
-        $query->where('status', KeyStatus::Revoked);
-    }
-
-    #[Scope]
-    protected function expired(Builder $query): void
-    {
-        $query->where('status', KeyStatus::Expired)
-            ->orWhere(function ($q): void {
-                $q->whereNotNull('valid_until')
-                    ->where('valid_until', '<=', now());
-            });
-    }
-
-    #[Scope]
-    protected function ofType(Builder $query, KeyType $type): void
-    {
-        $query->where('type', $type);
-    }
-
-    public function scope(): BelongsTo
-    {
-        return $this->belongsTo(LicenseScope::class, 'license_scope_id');
-    }
-
-    #[Scope]
-    protected function forScope(Builder $query, ?LicenseScope $scope): void
-    {
-        if (! $scope instanceof LicenseScope) {
-            $query->whereNull('license_scope_id');
-        } else {
-            $query->where('license_scope_id', $scope->id);
-        }
-    }
-
-    public function revoke(string $reason, ?DateTimeInterface $revokedAt = null): KeyStore
-    {
-        $this->update([
-            'status' => KeyStatus::Revoked,
-            'revoked_at' => $revokedAt ?? now(),
-            'revocation_reason' => $reason,
-        ]);
-
-        return $this;
-    }
-
-    public function isRevoked(): bool
-    {
-        return $this->status === KeyStatus::Revoked;
-    }
 
     public static function findActiveRoot(): ?self
     {
@@ -187,7 +110,7 @@ class LicensingKey extends Model implements KeyStore
     public static function generateRootKey(?string $kid = null): self
     {
         $key = new self;
-        $key->kid = $kid ?? 'root_'.Str::random(32);
+        $key->kid = $kid ?? 'root_' . Str::random(32);
 
         return $key->generate([
             'type' => KeyType::Root,
@@ -197,7 +120,7 @@ class LicensingKey extends Model implements KeyStore
     public static function generateSigningKey(?string $kid = null, ?LicenseScope $scope = null): self
     {
         $key = new self;
-        $key->kid = $kid ?? 'signing_'.Str::random(32);
+        $key->kid = $kid ?? 'signing_' . Str::random(32);
 
         if ($scope instanceof LicenseScope) {
             $key->license_scope_id = $scope->id;
@@ -215,5 +138,82 @@ class LicensingKey extends Model implements KeyStore
         }
 
         return $key;
+    }
+
+    public function scope(): BelongsTo
+    {
+        return $this->belongsTo(LicenseScope::class, 'license_scope_id');
+    }
+
+    public function revoke(string $reason, ?DateTimeInterface $revokedAt = null): KeyStore
+    {
+        $this->update([
+            'status'            => KeyStatus::Revoked,
+            'revoked_at'        => $revokedAt ?? now(),
+            'revocation_reason' => $reason,
+        ]);
+
+        return $this;
+    }
+
+    public function isRevoked(): bool
+    {
+        return $this->status === KeyStatus::Revoked;
+    }
+
+    #[Override]
+    protected static function booted(): void
+    {
+        static::creating(function (self $key): void {
+            if (! $key->kid) {
+                $key->kid = 'kid_' . Str::random(32);
+            }
+            if (! $key->valid_from) {
+                $key->valid_from = now();
+            }
+        });
+    }
+
+    #[Scope]
+    protected function active(Builder $query): void
+    {
+        $query->where('status', KeyStatus::Active)
+            ->where('valid_from', '<=', now())
+            ->where(function ($q): void {
+                $q->whereNull('valid_until')
+                    ->orWhere('valid_until', '>', now());
+            });
+    }
+
+    #[Scope]
+    protected function revoked(Builder $query): void
+    {
+        $query->where('status', KeyStatus::Revoked);
+    }
+
+    #[Scope]
+    protected function expired(Builder $query): void
+    {
+        $query->where('status', KeyStatus::Expired)
+            ->orWhere(function ($q): void {
+                $q->whereNotNull('valid_until')
+                    ->where('valid_until', '<=', now());
+            });
+    }
+
+    #[Scope]
+    protected function ofType(Builder $query, KeyType $type): void
+    {
+        $query->where('type', $type);
+    }
+
+    #[Scope]
+    protected function forScope(Builder $query, ?LicenseScope $scope): void
+    {
+        if (! $scope instanceof LicenseScope) {
+            $query->whereNull('license_scope_id');
+        } else {
+            $query->where('license_scope_id', $scope->id);
+        }
     }
 }

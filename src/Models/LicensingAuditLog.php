@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Override;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Simtabi\Laranail\Licence\Kit\Contracts\AuditLog;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 use Simtabi\Laranail\Licence\Kit\Models\Traits\HasAuditLog;
 
@@ -48,8 +48,8 @@ class LicensingAuditLog extends Model implements AuditLog
     ];
 
     protected $casts = [
-        'event_type' => AuditEventType::class,
-        'meta' => AsArrayObject::class,
+        'event_type'  => AuditEventType::class,
+        'meta'        => AsArrayObject::class,
         'occurred_at' => 'datetime',
     ];
 

@@ -4,17 +4,27 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models\Traits;
 
+use RuntimeException;
 use DateTimeInterface;
 use Illuminate\Support\Str;
-use RuntimeException;
-use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
 
 trait HasKeyStore
 {
+    private const ENCRYPTION_VERSION_V2 = "\x02";
+
     protected static ?string $cachedPassphrase = null;
 
-    private const ENCRYPTION_VERSION_V2 = "\x02";
+    public static function cachePassphrase(string $passphrase): void
+    {
+        static::$cachedPassphrase = $passphrase;
+    }
+
+    public static function forgetCachedPassphrase(): void
+    {
+        static::$cachedPassphrase = null;
+    }
 
     public function generate(array $options = []): self
     {
@@ -35,7 +45,7 @@ trait HasKeyStore
         sodium_memzero($keyPair);
 
         // Use existing kid if set, otherwise generate new one
-        $this->kid ??= 'kid_'.Str::random(32);
+        $this->kid ??= 'kid_' . Str::random(32);
         $this->type = $type;
         $this->algorithm = 'Ed25519';
         $this->public_key = base64_encode($rawPublicKey);
@@ -90,8 +100,8 @@ trait HasKeyStore
     public function revoke(string $reason, ?DateTimeInterface $revokedAt = null): self
     {
         $this->update([
-            'status' => KeyStatus::Revoked,
-            'revoked_at' => $revokedAt ?? now(),
+            'status'            => KeyStatus::Revoked,
+            'revoked_at'        => $revokedAt ?? now(),
             'revocation_reason' => $reason,
         ]);
 
@@ -108,14 +118,14 @@ trait HasKeyStore
             $passphrase,
             $salt,
             SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
-            SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
+            SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE,
         );
 
         try {
             $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
             $encrypted = sodium_crypto_secretbox($privateKey, $nonce, $key);
 
-            return base64_encode(self::ENCRYPTION_VERSION_V2.$salt.$nonce.$encrypted);
+            return base64_encode(self::ENCRYPTION_VERSION_V2 . $salt . $nonce . $encrypted);
         } finally {
             sodium_memzero($key);
         }
@@ -143,6 +153,23 @@ trait HasKeyStore
         return $this->decryptV1Legacy($decoded, $passphrase);
     }
 
+    protected function resolvePassphrase(): string
+    {
+        if (static::$cachedPassphrase !== null) {
+            return static::$cachedPassphrase;
+        }
+
+        $passphrase = config('licensing.crypto.keystore.passphrase');
+
+        if (! $passphrase) {
+            throw new RuntimeException('Key passphrase not configured');
+        }
+
+        static::$cachedPassphrase = $passphrase;
+
+        return static::$cachedPassphrase;
+    }
+
     private function decryptV2(string $decoded, string $passphrase): string
     {
         $offset = 1; // skip version byte
@@ -157,7 +184,7 @@ trait HasKeyStore
             $passphrase,
             $salt,
             SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
-            SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE
+            SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE,
         );
 
         try {
@@ -190,32 +217,5 @@ trait HasKeyStore
         } finally {
             sodium_memzero($key);
         }
-    }
-
-    protected function resolvePassphrase(): string
-    {
-        if (static::$cachedPassphrase !== null) {
-            return static::$cachedPassphrase;
-        }
-
-        $passphrase = config('licensing.crypto.keystore.passphrase');
-
-        if (! $passphrase) {
-            throw new RuntimeException('Key passphrase not configured');
-        }
-
-        static::$cachedPassphrase = $passphrase;
-
-        return static::$cachedPassphrase;
-    }
-
-    public static function cachePassphrase(string $passphrase): void
-    {
-        static::$cachedPassphrase = $passphrase;
-    }
-
-    public static function forgetCachedPassphrase(): void
-    {
-        static::$cachedPassphrase = null;
     }
 }

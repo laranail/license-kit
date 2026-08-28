@@ -5,24 +5,19 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Models\Traits;
 
 use DateTimeInterface;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 
 trait HasAuditLog
 {
-    public function auditable(): MorphTo
-    {
-        return $this->morphTo();
-    }
-
     public static function record(
         AuditEventType $eventType,
         array $data,
         ?string $actor = null,
-        array $context = []
+        array $context = [],
     ): self {
         $auditableType = null;
         $auditableId = null;
@@ -35,15 +30,52 @@ trait HasAuditLog
         }
 
         return static::create([
-            'event_type' => $eventType,
+            'event_type'     => $eventType,
             'auditable_type' => $auditableType,
-            'auditable_id' => $auditableId,
-            'actor' => $actor,
-            'ip' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'meta' => array_merge($data, $context),
-            'occurred_at' => now(),
+            'auditable_id'   => $auditableId,
+            'actor'          => $actor,
+            'ip'             => request()->ip(),
+            'user_agent'     => request()->userAgent(),
+            'meta'           => array_merge($data, $context),
+            'occurred_at'    => now(),
         ]);
+    }
+
+    public function auditable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function calculateHash(): string
+    {
+        // Cover the forensic attribution fields too (actor/ip/user_agent/occurred_at):
+        // they are stored as dedicated columns, so omitting them let a raw UPDATE rewrite
+        // WHO performed an action and WHEN while the chain still verified intact.
+        $data = [
+            'id'             => $this->id,
+            'event_type'     => $this->event_type->value,
+            'auditable_type' => $this->auditable_type,
+            'auditable_id'   => $this->auditable_id,
+            'actor'          => $this->getAttributeValue('actor'),
+            'actor_type'     => $this->actor_type,
+            'actor_id'       => $this->actor_id,
+            'ip'             => $this->ip,
+            'user_agent'     => $this->user_agent,
+            'meta'           => json_encode($this->meta),
+            'occurred_at'    => $this->occurred_at?->toIso8601String(),
+            'created_at'     => $this->created_at?->toIso8601String(),
+        ];
+
+        return hash('sha256', json_encode($data));
+    }
+
+    public function verifyChain($previousLog): bool
+    {
+        if (! $previousLog) {
+            return ! $this->previous_hash;
+        }
+
+        return $this->previous_hash === $previousLog->calculateHash();
     }
 
     #[Scope]
@@ -81,37 +113,5 @@ trait HasAuditLog
     {
         $query->where('auditable_type', $model->getMorphClass())
             ->where('auditable_id', $model->getKey());
-    }
-
-    public function calculateHash(): string
-    {
-        // Cover the forensic attribution fields too (actor/ip/user_agent/occurred_at):
-        // they are stored as dedicated columns, so omitting them let a raw UPDATE rewrite
-        // WHO performed an action and WHEN while the chain still verified intact.
-        $data = [
-            'id' => $this->id,
-            'event_type' => $this->event_type->value,
-            'auditable_type' => $this->auditable_type,
-            'auditable_id' => $this->auditable_id,
-            'actor' => $this->getAttributeValue('actor'),
-            'actor_type' => $this->actor_type,
-            'actor_id' => $this->actor_id,
-            'ip' => $this->ip,
-            'user_agent' => $this->user_agent,
-            'meta' => json_encode($this->meta),
-            'occurred_at' => $this->occurred_at?->toIso8601String(),
-            'created_at' => $this->created_at?->toIso8601String(),
-        ];
-
-        return hash('sha256', json_encode($data));
-    }
-
-    public function verifyChain($previousLog): bool
-    {
-        if (! $previousLog) {
-            return ! $this->previous_hash;
-        }
-
-        return $this->previous_hash === $previousLog->calculateHash();
     }
 }

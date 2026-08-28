@@ -12,7 +12,7 @@ interface CertificateAuthority
         string $signingPublicKey,
         string $kid,
         DateTimeInterface $validFrom,
-        DateTimeInterface $validUntil
+        DateTimeInterface $validUntil,
     ): string;
 
     public function verifyCertificate(string $certificate): bool;

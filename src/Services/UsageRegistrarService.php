@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
 use RuntimeException;
-use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 use Simtabi\Laranail\Licence\Kit\Enums\OverLimitPolicy;
-use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
-use Simtabi\Laranail\Licence\Kit\Events\UsageLimitReached;
 use Simtabi\Laranail\Licence\Kit\Events\UsageRegistered;
-use Simtabi\Laranail\Licence\Kit\Models\License;
-use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
+use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
+use Simtabi\Laranail\Licence\Kit\Events\UsageLimitReached;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
 
 class UsageRegistrarService implements UsageRegistrar
@@ -24,7 +24,7 @@ class UsageRegistrarService implements UsageRegistrar
     public function register(
         License $license,
         string $fingerprint,
-        array $metadata = []
+        array $metadata = [],
     ): LicenseUsage {
         $shouldLogLimitReached = false;
         /** @var array{license_id?: string, license_class?: string, fingerprint?: string} $auditData */
@@ -74,9 +74,9 @@ class UsageRegistrarService implements UsageRegistrar
 
                         $shouldLogLimitReached = true;
                         $auditData = [
-                            'license_id' => (string) $lockedLicense->id,
+                            'license_id'    => (string) $lockedLicense->id,
                             'license_class' => $lockedLicense::class,
-                            'fingerprint' => $fingerprint,
+                            'fingerprint'   => $fingerprint,
                         ];
 
                         throw new RuntimeException('License usage limit reached');
@@ -96,15 +96,15 @@ class UsageRegistrarService implements UsageRegistrar
 
                 $attributes = [
                     'usage_fingerprint' => $fingerprint,
-                    'status' => UsageStatus::Active->value,
-                    'registered_at' => now(),
-                    'last_seen_at' => now(),
-                    'revoked_at' => null,
-                    'client_type' => $metadata['client_type'] ?? null,
-                    'name' => $metadata['name'] ?? null,
-                    'ip' => $this->contextValue('ip', $metadata),
-                    'user_agent' => $this->contextValue('user_agent', $metadata),
-                    'meta' => $metadata['meta'] ?? null,
+                    'status'            => UsageStatus::Active->value,
+                    'registered_at'     => now(),
+                    'last_seen_at'      => now(),
+                    'revoked_at'        => null,
+                    'client_type'       => $metadata['client_type'] ?? null,
+                    'name'              => $metadata['name'] ?? null,
+                    'ip'                => $this->contextValue('ip', $metadata),
+                    'user_agent'        => $this->contextValue('user_agent', $metadata),
+                    'meta'              => $metadata['meta'] ?? null,
                 ];
 
                 if ($reusable) {
@@ -122,10 +122,10 @@ class UsageRegistrarService implements UsageRegistrar
         } catch (Exception $e) {
             if ($shouldLogLimitReached && isset($auditData['license_class']) && config('licensing.audit.enabled', true)) {
                 LicensingAuditLog::create([
-                    'event_type' => AuditEventType::UsageLimitReached,
+                    'event_type'     => AuditEventType::UsageLimitReached,
                     'auditable_type' => $auditData['license_class'],
-                    'auditable_id' => $auditData['license_id'],
-                    'meta' => [
+                    'auditable_id'   => $auditData['license_id'],
+                    'meta'           => [
                         'fingerprint' => $auditData['fingerprint'],
                     ],
                 ]);
@@ -210,9 +210,9 @@ class UsageRegistrarService implements UsageRegistrar
         }
 
         return match ($key) {
-            'ip' => $request->ip(),
+            'ip'         => $request->ip(),
             'user_agent' => $request->userAgent(),
-            default => null,
+            default      => null,
         };
     }
 

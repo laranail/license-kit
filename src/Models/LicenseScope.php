@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
+use Override;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Override;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 
 /**
  * @property int $id
@@ -46,38 +46,45 @@ class LicenseScope extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'key_rotation_days' => 'integer',
-        'last_key_rotation_at' => 'datetime',
-        'next_key_rotation_at' => 'datetime',
-        'default_max_usages' => 'integer',
+        'is_active'             => 'boolean',
+        'key_rotation_days'     => 'integer',
+        'last_key_rotation_at'  => 'datetime',
+        'next_key_rotation_at'  => 'datetime',
+        'default_max_usages'    => 'integer',
         'default_duration_days' => 'integer',
-        'default_grace_days' => 'integer',
-        'meta' => AsArrayObject::class,
+        'default_grace_days'    => 'integer',
+        'meta'                  => AsArrayObject::class,
     ];
 
     protected $attributes = [
-        'is_active' => true,
+        'is_active'         => true,
         'key_rotation_days' => 90,
     ];
 
-    #[Override]
-    protected static function booted(): void
+    /**
+     * Find scope by slug or identifier
+     */
+    public static function findBySlugOrIdentifier(string $value): ?self
     {
-        static::creating(function (self $scope): void {
-            if (! $scope->slug) {
-                $scope->slug = Str::slug($scope->name);
-            }
+        return static::where('slug', $value)
+            ->orWhere('identifier', $value)
+            ->first();
+    }
 
-            if (! $scope->identifier) {
-                $scope->identifier = 'com.example.'.$scope->slug;
-            }
-
-            // Set next rotation date if rotation is enabled
-            if ($scope->key_rotation_days > 0 && ! $scope->next_key_rotation_at) {
-                $scope->next_key_rotation_at = now()->addDays($scope->key_rotation_days);
-            }
-        });
+    /**
+     * Get or create global scope
+     */
+    public static function global(): self
+    {
+        return static::firstOrCreate(
+            ['slug' => 'global'],
+            [
+                'name'              => 'Global',
+                'identifier'        => 'global',
+                'description'       => 'Global scope for licenses without specific scope',
+                'key_rotation_days' => 90,
+            ],
+        );
     }
 
     /**
@@ -127,7 +134,7 @@ class LicenseScope extends Model
 
     public function createLicenseFromTemplate(
         LicenseTemplate|int|string $template,
-        array $attributes = []
+        array $attributes = [],
     ): License {
         $resolvedTemplate = $this->resolveTemplateForScope($template);
 
@@ -135,40 +142,6 @@ class LicenseScope extends Model
             ...$attributes,
             'license_scope_id' => $this->getKey(),
         ]);
-    }
-
-    protected function resolveTemplateForScope(LicenseTemplate|int|string $template): LicenseTemplate
-    {
-        $resolved = $this->findTemplate($template);
-
-        if ($resolved instanceof LicenseTemplate) {
-            return $resolved;
-        }
-
-        $reference = $template instanceof LicenseTemplate
-            ? $template->slug
-            : (string) $template;
-
-        throw new InvalidArgumentException("Template {$reference} is not assigned to scope {$this->slug}");
-    }
-
-    protected function findTemplate(LicenseTemplate|int|string $template): ?LicenseTemplate
-    {
-        $query = $this->templates();
-
-        if ($template instanceof LicenseTemplate) {
-            return $template->license_scope_id === $this->getKey()
-                ? $template
-                : null;
-        }
-
-        if (is_int($template)) {
-            /** @var LicenseTemplate|null */
-            return $query->whereKey($template)->first();
-        }
-
-        /** @var LicenseTemplate|null */
-        return $query->where('slug', $template)->first();
     }
 
     /**
@@ -225,15 +198,15 @@ class LicenseScope extends Model
         $this->signingKeys()
             ->where('status', 'active')
             ->update([
-                'status' => 'revoked',
-                'revoked_at' => now(),
+                'status'            => 'revoked',
+                'revoked_at'        => now(),
                 'revocation_reason' => $reason,
             ]);
 
         // Create new signing key
         $newKey = LicensingKey::generateSigningKey(
-            kid: $this->slug.'-'.now()->format('Y-m-d'),
-            scope: $this
+            kid: $this->slug . '-' . now()->format('Y-m-d'),
+            scope: $this,
         );
         $newKey->save();
 
@@ -259,37 +232,11 @@ class LicenseScope extends Model
             'meta' => array_merge(
                 $this->meta?->toArray() ?? [],
                 [
-                    'scope' => $this->slug,
+                    'scope'      => $this->slug,
                     'scope_name' => $this->name,
-                ]
+                ],
             ),
         ], fn ($value): bool => $value !== null);
-    }
-
-    /**
-     * Find scope by slug or identifier
-     */
-    public static function findBySlugOrIdentifier(string $value): ?self
-    {
-        return static::where('slug', $value)
-            ->orWhere('identifier', $value)
-            ->first();
-    }
-
-    /**
-     * Get or create global scope
-     */
-    public static function global(): self
-    {
-        return static::firstOrCreate(
-            ['slug' => 'global'],
-            [
-                'name' => 'Global',
-                'identifier' => 'global',
-                'description' => 'Global scope for licenses without specific scope',
-                'key_rotation_days' => 90,
-            ]
-        );
     }
 
     /**
@@ -310,5 +257,58 @@ class LicenseScope extends Model
                 $q->whereNull('next_key_rotation_at')
                     ->orWhere('next_key_rotation_at', '<=', now());
             });
+    }
+
+    #[Override]
+    protected static function booted(): void
+    {
+        static::creating(function (self $scope): void {
+            if (! $scope->slug) {
+                $scope->slug = Str::slug($scope->name);
+            }
+
+            if (! $scope->identifier) {
+                $scope->identifier = 'com.example.' . $scope->slug;
+            }
+
+            // Set next rotation date if rotation is enabled
+            if ($scope->key_rotation_days > 0 && ! $scope->next_key_rotation_at) {
+                $scope->next_key_rotation_at = now()->addDays($scope->key_rotation_days);
+            }
+        });
+    }
+
+    protected function resolveTemplateForScope(LicenseTemplate|int|string $template): LicenseTemplate
+    {
+        $resolved = $this->findTemplate($template);
+
+        if ($resolved instanceof LicenseTemplate) {
+            return $resolved;
+        }
+
+        $reference = $template instanceof LicenseTemplate
+            ? $template->slug
+            : (string) $template;
+
+        throw new InvalidArgumentException("Template {$reference} is not assigned to scope {$this->slug}");
+    }
+
+    protected function findTemplate(LicenseTemplate|int|string $template): ?LicenseTemplate
+    {
+        $query = $this->templates();
+
+        if ($template instanceof LicenseTemplate) {
+            return $template->license_scope_id === $this->getKey()
+                ? $template
+                : null;
+        }
+
+        if (is_int($template)) {
+            /** @var LicenseTemplate|null */
+            return $query->whereKey($template)->first();
+        }
+
+        /** @var LicenseTemplate|null */
+        return $query->where('slug', $template)->first();
     }
 }

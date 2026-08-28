@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use Illuminate\Database\Eloquent\Model;
-use Simtabi\Laranail\Licence\Kit\Contracts\CanReceiveLicenseTransfers;
-use Simtabi\Laranail\Licence\Kit\Enums\TransferType;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TransferValidationException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\TransferType;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransfer;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransferApproval;
+use Simtabi\Laranail\Licence\Kit\Contracts\CanReceiveLicenseTransfers;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TransferValidationException;
 
 class TransferValidationService
 {
     public function validateTransferEligibility(
         License $license,
         Model $targetEntity,
-        TransferType $transferType
+        TransferType $transferType,
     ): void {
         if (! $license->isTransferable()) {
             throw new TransferValidationException('License is not transferable in its current state');
@@ -31,6 +31,15 @@ class TransferValidationService
         }
 
         $this->detectSuspiciousPatterns($license, $targetEntity);
+    }
+
+    public function validateApprovalToken(string $token, LicenseTransferApproval $approval): bool
+    {
+        if ($approval->isExpired()) {
+            return false;
+        }
+
+        return $approval->validateToken($token);
     }
 
     protected function validateCoolingPeriod(License $license): void
@@ -55,7 +64,7 @@ class TransferValidationService
 
         if ($daysSinceLastTransfer < $coolingDays) {
             throw new TransferValidationException(
-                "Transfer cooling period not met. Please wait {$coolingDays} days between transfers."
+                "Transfer cooling period not met. Please wait {$coolingDays} days between transfers.",
             );
         }
     }
@@ -63,23 +72,23 @@ class TransferValidationService
     protected function validateTransferType(
         License $license,
         Model $targetEntity,
-        TransferType $transferType
+        TransferType $transferType,
     ): void {
         $sourceType = class_basename($license->licensable_type);
         $targetType = class_basename($targetEntity::class);
 
         $expectedType = match ([$sourceType, $targetType]) {
-            ['User', 'User'] => TransferType::UserToUser,
-            ['User', 'Organization'] => TransferType::UserToOrg,
-            ['Organization', 'User'] => TransferType::OrgToUser,
+            ['User', 'User']                 => TransferType::UserToUser,
+            ['User', 'Organization']         => TransferType::UserToOrg,
+            ['Organization', 'User']         => TransferType::OrgToUser,
             ['Organization', 'Organization'] => TransferType::OrgToOrg,
-            default => null,
+            default                          => null,
         };
 
         if ($expectedType && $transferType !== $expectedType &&
             ! in_array($transferType, [TransferType::Recovery, TransferType::Migration])) {
             throw new TransferValidationException(
-                "Invalid transfer type. Expected {$expectedType->value}, got {$transferType->value}"
+                "Invalid transfer type. Expected {$expectedType->value}, got {$transferType->value}",
             );
         }
     }
@@ -88,13 +97,13 @@ class TransferValidationService
     {
         if (! $targetEntity->canReceiveLicenseTransfers()) {
             throw new TransferValidationException(
-                'Target entity cannot receive license transfers at this time'
+                'Target entity cannot receive license transfers at this time',
             );
         }
 
         if ($targetEntity->hasReachedLicenseLimit()) {
             throw new TransferValidationException(
-                'Target entity has reached its license limit'
+                'Target entity has reached its license limit',
             );
         }
     }
@@ -120,7 +129,7 @@ class TransferValidationService
 
             if ($requiresReview) {
                 throw new TransferValidationException(
-                    'Transfer blocked due to suspicious patterns'
+                    'Transfer blocked due to suspicious patterns',
                 );
             }
         }
@@ -173,14 +182,5 @@ class TransferValidationService
         $highValueThreshold = (int) config('licensing.transfer.high_value_threshold', 10000);
 
         return $value > $highValueThreshold;
-    }
-
-    public function validateApprovalToken(string $token, LicenseTransferApproval $approval): bool
-    {
-        if ($approval->isExpired()) {
-            return false;
-        }
-
-        return $approval->validateToken($token);
     }
 }

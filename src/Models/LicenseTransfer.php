@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Override;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
-use Override;
-use Simtabi\Laranail\Licence\Kit\Enums\TransferStatus;
 use Simtabi\Laranail\Licence\Kit\Enums\TransferType;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Simtabi\Laranail\Licence\Kit\Enums\TransferStatus;
 
 /**
  * @property int $id
@@ -98,38 +98,24 @@ class LicenseTransfer extends Model
     ];
 
     protected $casts = [
-        'status' => TransferStatus::class,
-        'transfer_type' => TransferType::class,
+        'status'                   => TransferStatus::class,
+        'transfer_type'            => TransferType::class,
         'requires_source_approval' => 'boolean',
         'requires_target_approval' => 'boolean',
-        'requires_admin_approval' => 'boolean',
-        'preserve_usages' => 'boolean',
-        'preserve_expiration' => 'boolean',
-        'reset_activation' => 'boolean',
-        'conditions' => 'array',
-        'metadata' => 'array',
-        'source_approved_at' => 'datetime',
-        'target_approved_at' => 'datetime',
-        'admin_approved_at' => 'datetime',
-        'completed_at' => 'datetime',
-        'cancelled_at' => 'datetime',
-        'rolled_back_at' => 'datetime',
-        'expires_at' => 'datetime',
+        'requires_admin_approval'  => 'boolean',
+        'preserve_usages'          => 'boolean',
+        'preserve_expiration'      => 'boolean',
+        'reset_activation'         => 'boolean',
+        'conditions'               => 'array',
+        'metadata'                 => 'array',
+        'source_approved_at'       => 'datetime',
+        'target_approved_at'       => 'datetime',
+        'admin_approved_at'        => 'datetime',
+        'completed_at'             => 'datetime',
+        'cancelled_at'             => 'datetime',
+        'rolled_back_at'           => 'datetime',
+        'expires_at'               => 'datetime',
     ];
-
-    #[Override]
-    protected static function boot(): void
-    {
-        parent::boot();
-
-        static::creating(function (self $transfer): void {
-            $transfer->transfer_token ??= Str::random(64);
-            $transfer->transfer_code ??= strtoupper(Str::random(12));
-            $transfer->expires_at ??= now()->addDays(7);
-
-            $transfer->applyTransferTypeDefaults();
-        });
-    }
 
     /** @return BelongsTo<License, self> */
     public function license(): BelongsTo
@@ -262,8 +248,8 @@ class LicenseTransfer extends Model
         return match ($type) {
             'source' => $this->requires_source_approval && ! $this->source_approved_at,
             'target' => $this->requires_target_approval && ! $this->target_approved_at,
-            'admin' => $this->requires_admin_approval && ! $this->admin_approved_at,
-            default => false,
+            'admin'  => $this->requires_admin_approval && ! $this->admin_approved_at,
+            default  => false,
         };
     }
 
@@ -300,6 +286,69 @@ class LicenseTransfer extends Model
         return (int) (($completed / $totalRequired) * 100);
     }
 
+    public function markAsApproved(Model $approver): void
+    {
+        $this->update([
+            'status'           => TransferStatus::Approved,
+            'approved_by_type' => $approver::class,
+            'approved_by_id'   => $approver->getKey(),
+        ]);
+    }
+
+    public function markAsRejected(Model $rejector, ?string $reason = null): void
+    {
+        $this->update([
+            'status'           => TransferStatus::Rejected,
+            'rejected_by_type' => $rejector::class,
+            'rejected_by_id'   => $rejector->getKey(),
+            'rejection_reason' => $reason,
+        ]);
+    }
+
+    public function markAsCompleted(Model $executor): void
+    {
+        $this->update([
+            'status'           => TransferStatus::Completed,
+            'completed_at'     => now(),
+            'executed_by_type' => $executor::class,
+            'executed_by_id'   => $executor->getKey(),
+        ]);
+    }
+
+    public function markAsCancelled(): void
+    {
+        $this->update([
+            'status'       => TransferStatus::Cancelled,
+            'cancelled_at' => now(),
+        ]);
+    }
+
+    public function markAsRolledBack(Model $executor, ?string $reason = null): void
+    {
+        $this->update([
+            'status'         => TransferStatus::RolledBack,
+            'rolled_back_at' => now(),
+            'metadata'       => array_merge($this->metadata ?? [], [
+                'rollback_reason' => $reason,
+                'rolled_back_by'  => $executor::class . ':' . $executor->getKey(),
+            ]),
+        ]);
+    }
+
+    #[Override]
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (self $transfer): void {
+            $transfer->transfer_token ??= Str::random(64);
+            $transfer->transfer_code ??= strtoupper(Str::random(12));
+            $transfer->expires_at ??= now()->addDays(7);
+
+            $transfer->applyTransferTypeDefaults();
+        });
+    }
+
     protected function applyTransferTypeDefaults(): void
     {
         if (! $this->transfer_type) {
@@ -319,54 +368,5 @@ class LicenseTransfer extends Model
         if ($this->transfer_type->canPreserveUsages()) {
             $this->preserve_usages ??= true;
         }
-    }
-
-    public function markAsApproved(Model $approver): void
-    {
-        $this->update([
-            'status' => TransferStatus::Approved,
-            'approved_by_type' => $approver::class,
-            'approved_by_id' => $approver->getKey(),
-        ]);
-    }
-
-    public function markAsRejected(Model $rejector, ?string $reason = null): void
-    {
-        $this->update([
-            'status' => TransferStatus::Rejected,
-            'rejected_by_type' => $rejector::class,
-            'rejected_by_id' => $rejector->getKey(),
-            'rejection_reason' => $reason,
-        ]);
-    }
-
-    public function markAsCompleted(Model $executor): void
-    {
-        $this->update([
-            'status' => TransferStatus::Completed,
-            'completed_at' => now(),
-            'executed_by_type' => $executor::class,
-            'executed_by_id' => $executor->getKey(),
-        ]);
-    }
-
-    public function markAsCancelled(): void
-    {
-        $this->update([
-            'status' => TransferStatus::Cancelled,
-            'cancelled_at' => now(),
-        ]);
-    }
-
-    public function markAsRolledBack(Model $executor, ?string $reason = null): void
-    {
-        $this->update([
-            'status' => TransferStatus::RolledBack,
-            'rolled_back_at' => now(),
-            'metadata' => array_merge($this->metadata ?? [], [
-                'rollback_reason' => $reason,
-                'rolled_back_by' => $executor::class.':'.$executor->getKey(),
-            ]),
-        ]);
     }
 }

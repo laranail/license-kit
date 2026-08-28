@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Http\Controllers\Api;
 
+use Throwable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Throwable;
 
 class HealthController extends ApiController
 {
     public function show(): JsonResponse
     {
         $checks = [
-            'database' => $this->checkDatabase(),
-            'root_key' => $this->checkRootKey(),
+            'database'    => $this->checkDatabase(),
+            'root_key'    => $this->checkRootKey(),
             'signing_key' => $this->checkSigningKey(),
         ];
 

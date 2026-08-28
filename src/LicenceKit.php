@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit;
 
 use RuntimeException;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Contracts\TokenIssuer;
 use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
 use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
-use Simtabi\Laranail\Licence\Kit\Models\License;
-use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 
 class LicenceKit
 {
     public function __construct(
         protected UsageRegistrar $usageRegistrar,
         protected TokenIssuer $tokenIssuer,
-        protected TokenVerifier $tokenVerifier
+        protected TokenVerifier $tokenVerifier,
     ) {}
 
     public function findByKey(string $key): ?License

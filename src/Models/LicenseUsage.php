@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Override;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Simtabi\Laranail\Licence\Kit\Events\UsageRevoked;
 
 /**
@@ -46,29 +46,16 @@ class LicenseUsage extends Model
     ];
 
     protected $casts = [
-        'status' => UsageStatus::class,
+        'status'        => UsageStatus::class,
         'registered_at' => 'datetime',
-        'last_seen_at' => 'datetime',
-        'revoked_at' => 'datetime',
-        'meta' => AsArrayObject::class,
+        'last_seen_at'  => 'datetime',
+        'revoked_at'    => 'datetime',
+        'meta'          => AsArrayObject::class,
     ];
 
     protected $attributes = [
         'status' => UsageStatus::Active,
     ];
-
-    #[Override]
-    protected static function booted(): void
-    {
-        static::creating(function (self $usage): void {
-            if (! $usage->registered_at) {
-                $usage->registered_at = now();
-            }
-            if (! $usage->last_seen_at) {
-                $usage->last_seen_at = now();
-            }
-        });
-    }
 
     /** @return BelongsTo<License, self> */
     public function license(): BelongsTo
@@ -90,7 +77,7 @@ class LicenseUsage extends Model
         }
 
         $updateData = [
-            'status' => UsageStatus::Revoked,
+            'status'     => UsageStatus::Revoked,
             'revoked_at' => now(),
         ];
 
@@ -126,6 +113,19 @@ class LicenseUsage extends Model
     public function getDaysSinceLastSeen(): int
     {
         return (int) $this->last_seen_at?->diffInDays(now());
+    }
+
+    #[Override]
+    protected static function booted(): void
+    {
+        static::creating(function (self $usage): void {
+            if (! $usage->registered_at) {
+                $usage->registered_at = now();
+            }
+            if (! $usage->last_seen_at) {
+                $usage->last_seen_at = now();
+            }
+        });
     }
 
     #[Scope]

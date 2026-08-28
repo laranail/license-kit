@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use Illuminate\Support\Facades\DB;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTrial;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
 
 class TrialService
 {
     public function __construct(
-        protected FingerprintResolverService $fingerprintResolver
+        protected FingerprintResolverService $fingerprintResolver,
     ) {}
 
     public function startTrial(
@@ -23,7 +23,7 @@ class TrialService
         string $fingerprint,
         int $durationDays = 14,
         array $limitations = [],
-        array $featureRestrictions = []
+        array $featureRestrictions = [],
     ): LicenseTrial {
         return DB::transaction(function () use ($license, $fingerprint, $durationDays, $limitations, $featureRestrictions) {
             $this->checkTrialEligibility($license, $fingerprint);
@@ -32,12 +32,12 @@ class TrialService
 
             /** @var LicenseTrial $trial */
             $trial = $license->trials()->create([
-                'trial_fingerprint' => $hashedFingerprint,
-                'status' => TrialStatus::Active,
-                'started_at' => now(),
-                'expires_at' => now()->addDays($durationDays),
-                'duration_days' => $durationDays,
-                'limitations' => $limitations,
+                'trial_fingerprint'    => $hashedFingerprint,
+                'status'               => TrialStatus::Active,
+                'started_at'           => now(),
+                'expires_at'           => now()->addDays($durationDays),
+                'duration_days'        => $durationDays,
+                'limitations'          => $limitations,
                 'feature_restrictions' => $featureRestrictions,
             ]);
 
@@ -64,27 +64,16 @@ class TrialService
 
         if ($existingTrial) {
             throw new TrialAlreadyExistsException(
-                "Trial already exists for this fingerprint on license {$license->id}"
+                "Trial already exists for this fingerprint on license {$license->id}",
             );
         }
 
         // Check for trial reset attempts (same fingerprint on different licenses)
         if ($this->isTrialResetAttempt($hmacHash, $legacyHash)) {
             throw new TrialResetAttemptException(
-                'Trial reset attempt detected for fingerprint'
+                'Trial reset attempt detected for fingerprint',
             );
         }
-    }
-
-    protected function isTrialResetAttempt(string $hmacHash, string $legacyHash): bool
-    {
-        // Check if this fingerprint has been used in any completed/expired trials
-        return LicenseTrial::whereIn('status', [TrialStatus::Expired, TrialStatus::Converted, TrialStatus::Cancelled])
-            ->where(function ($query) use ($hmacHash, $legacyHash): void {
-                $query->where('trial_fingerprint', $hmacHash)
-                    ->orWhere('trial_fingerprint', $legacyHash);
-            })
-            ->exists();
     }
 
     public function convertTrial(LicenseTrial $trial, ?string $trigger = null, ?float $value = null): License
@@ -138,15 +127,26 @@ class TrialService
         $trials = $license->trials;
 
         return [
-            'total_trials' => $trials->count(),
-            'active_trials' => $trials->where('status', TrialStatus::Active)->count(),
+            'total_trials'     => $trials->count(),
+            'active_trials'    => $trials->where('status', TrialStatus::Active)->count(),
             'converted_trials' => $trials->where('status', TrialStatus::Converted)->count(),
-            'expired_trials' => $trials->where('status', TrialStatus::Expired)->count(),
+            'expired_trials'   => $trials->where('status', TrialStatus::Expired)->count(),
             'cancelled_trials' => $trials->where('status', TrialStatus::Cancelled)->count(),
-            'conversion_rate' => $trials->count() > 0
+            'conversion_rate'  => $trials->count() > 0
                 ? round(($trials->where('status', TrialStatus::Converted)->count() / $trials->count()) * 100, 2)
                 : 0,
             'total_conversion_value' => $trials->where('status', TrialStatus::Converted)->sum('conversion_value'),
         ];
+    }
+
+    protected function isTrialResetAttempt(string $hmacHash, string $legacyHash): bool
+    {
+        // Check if this fingerprint has been used in any completed/expired trials
+        return LicenseTrial::whereIn('status', [TrialStatus::Expired, TrialStatus::Converted, TrialStatus::Cancelled])
+            ->where(function ($query) use ($hmacHash, $legacyHash): void {
+                $query->where('trial_fingerprint', $hmacHash)
+                    ->orWhere('trial_fingerprint', $legacyHash);
+            })
+            ->exists();
     }
 }

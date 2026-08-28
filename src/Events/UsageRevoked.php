@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 
 class UsageRevoked
@@ -14,6 +14,6 @@ class UsageRevoked
 
     public function __construct(
         public LicenseUsage $usage,
-        public ?string $reason = null
+        public ?string $reason = null,
     ) {}
 }

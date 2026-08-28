@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
 use Simtabi\Laranail\Licence\Kit\Services\PasetoTokenService;
+use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
 
 test('can create signing key with scope', function (): void {
     // Create root key
@@ -18,15 +18,15 @@ test('can create signing key with scope', function (): void {
 
     // Create scope
     $scope = LicenseScope::create([
-        'name' => 'Software A',
-        'slug' => 'software-a',
+        'name'       => 'Software A',
+        'slug'       => 'software-a',
         'identifier' => 'com.example.software-a',
     ]);
 
     // Create scoped signing key
     $signingKey = LicensingKey::generateSigningKey(
         kid: 'test-signing',
-        scope: $scope
+        scope: $scope,
     );
     $signingKey->save();
 
@@ -43,14 +43,14 @@ test('can find active signing key by scope', function (): void {
 
     // Create scopes
     $scopeA = LicenseScope::create([
-        'name' => 'Software A',
-        'slug' => 'software-a',
+        'name'       => 'Software A',
+        'slug'       => 'software-a',
         'identifier' => 'com.example.software-a',
     ]);
 
     $scopeB = LicenseScope::create([
-        'name' => 'Software B',
-        'slug' => 'software-b',
+        'name'       => 'Software B',
+        'slug'       => 'software-b',
         'identifier' => 'com.example.software-b',
     ]);
 
@@ -61,14 +61,14 @@ test('can find active signing key by scope', function (): void {
     // Create scoped signing key for Software A
     $softwareAKey = LicensingKey::generateSigningKey(
         kid: 'software-a-key',
-        scope: $scopeA
+        scope: $scopeA,
     );
     $softwareAKey->save();
 
     // Create scoped signing key for Software B
     $softwareBKey = LicensingKey::generateSigningKey(
         kid: 'software-b-key',
-        scope: $scopeB
+        scope: $scopeB,
     );
     $softwareBKey->save();
 
@@ -89,8 +89,8 @@ test('license uses scoped signing key for token generation', function (): void {
 
     // Create scope
     $scope = LicenseScope::create([
-        'name' => 'App Premium',
-        'slug' => 'app-premium',
+        'name'       => 'App Premium',
+        'slug'       => 'app-premium',
         'identifier' => 'com.example.app-premium',
     ]);
 
@@ -104,14 +104,14 @@ test('license uses scoped signing key for token generation', function (): void {
         $globalKey->getPublicKey(),
         $globalKey->kid,
         now(),
-        now()->addDays(30)
+        now()->addDays(30),
     );
     $globalKey->update(['certificate' => $globalCert]);
 
     // Create scoped signing key
     $scopedKey = LicensingKey::generateSigningKey(
         kid: 'scoped-key',
-        scope: $scope
+        scope: $scope,
     );
     $scopedKey->save();
 
@@ -121,28 +121,28 @@ test('license uses scoped signing key for token generation', function (): void {
         $scopedKey->kid,
         now(),
         now()->addDays(30),
-        $scope
+        $scope,
     );
     $scopedKey->update(['certificate' => $scopedCert]);
 
     // Create license with scope
     $license = License::create([
-        'key_hash' => License::hashKey('test-key'),
-        'licensable_type' => 'App\\Models\\User',
-        'licensable_id' => 1,
+        'key_hash'         => License::hashKey('test-key'),
+        'licensable_type'  => 'App\\Models\\User',
+        'licensable_id'    => 1,
         'license_scope_id' => $scope->id,
-        'max_usages' => 5,
-        'expires_at' => now()->addYear(),
+        'max_usages'       => 5,
+        'expires_at'       => now()->addYear(),
     ]);
 
     $license->activate();
 
     // Create usage
     $usage = LicenseUsage::create([
-        'license_id' => $license->id,
+        'license_id'        => $license->id,
         'usage_fingerprint' => 'test-fingerprint',
-        'name' => 'Test Device',
-        'registered_at' => now(),
+        'name'              => 'Test Device',
+        'registered_at'     => now(),
     ]);
 
     // Issue token
@@ -164,8 +164,8 @@ test('falls back to global key when scoped key not found', function (): void {
 
     // Create scope without signing key
     $scope = LicenseScope::create([
-        'name' => 'Non-existent Scope',
-        'slug' => 'non-existent-scope',
+        'name'       => 'Non-existent Scope',
+        'slug'       => 'non-existent-scope',
         'identifier' => 'com.example.non-existent',
     ]);
 
@@ -179,28 +179,28 @@ test('falls back to global key when scoped key not found', function (): void {
         $globalKey->getPublicKey(),
         $globalKey->kid,
         now(),
-        now()->addDays(30)
+        now()->addDays(30),
     );
     $globalKey->update(['certificate' => $cert]);
 
     // Create license with scope that has no signing key
     $license = License::create([
-        'key_hash' => License::hashKey('test-key'),
-        'licensable_type' => 'App\\Models\\User',
-        'licensable_id' => 1,
+        'key_hash'         => License::hashKey('test-key'),
+        'licensable_type'  => 'App\\Models\\User',
+        'licensable_id'    => 1,
         'license_scope_id' => $scope->id,
-        'max_usages' => 5,
-        'expires_at' => now()->addYear(),
+        'max_usages'       => 5,
+        'expires_at'       => now()->addYear(),
     ]);
 
     $license->activate();
 
     // Create usage
     $usage = LicenseUsage::create([
-        'license_id' => $license->id,
+        'license_id'        => $license->id,
         'usage_fingerprint' => 'test-fingerprint',
-        'name' => 'Test Device',
-        'registered_at' => now(),
+        'name'              => 'Test Device',
+        'registered_at'     => now(),
     ]);
 
     // Issue token - should fall back to global key
@@ -227,16 +227,16 @@ test('multiple software can have their own signing keys', function (): void {
     $keys = [];
 
     $softwares = [
-        'erp-system' => 'com.enterprise.erp',
-        'crm-platform' => 'com.enterprise.crm',
+        'erp-system'     => 'com.enterprise.erp',
+        'crm-platform'   => 'com.enterprise.crm',
         'analytics-tool' => 'com.enterprise.analytics',
     ];
 
     foreach ($softwares as $slug => $identifier) {
         // Create scope
         $scope = LicenseScope::create([
-            'name' => ucwords(str_replace('-', ' ', $slug)),
-            'slug' => $slug,
+            'name'       => ucwords(str_replace('-', ' ', $slug)),
+            'slug'       => $slug,
             'identifier' => $identifier,
         ]);
         $scopes[$slug] = $scope;
@@ -244,7 +244,7 @@ test('multiple software can have their own signing keys', function (): void {
         // Create signing key for this scope
         $key = LicensingKey::generateSigningKey(
             kid: "key-{$slug}",
-            scope: $scope
+            scope: $scope,
         );
         $key->save();
 
@@ -254,7 +254,7 @@ test('multiple software can have their own signing keys', function (): void {
             $key->kid,
             now(),
             now()->addDays(30),
-            $scope
+            $scope,
         );
         $key->update(['certificate' => $cert]);
 
@@ -284,15 +284,15 @@ test('can programmatically create scoped signing key', function (): void {
 
     // Create scope
     $scope = LicenseScope::create([
-        'name' => 'Mobile App',
-        'slug' => 'mobile-app',
+        'name'       => 'Mobile App',
+        'slug'       => 'mobile-app',
         'identifier' => 'com.example.mobile',
     ]);
 
     // Create signing key with scope programmatically
     $key = LicensingKey::generateSigningKey(
         kid: 'programmatic-scoped-key',
-        scope: $scope
+        scope: $scope,
     );
     $key->save();
 
@@ -303,7 +303,7 @@ test('can programmatically create scoped signing key', function (): void {
         $key->kid,
         now(),
         now()->addDays(30),
-        $scope
+        $scope,
     );
     $key->update(['certificate' => $cert]);
 

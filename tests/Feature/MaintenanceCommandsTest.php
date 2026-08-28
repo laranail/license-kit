@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
+use Illuminate\Support\Facades\Artisan;
 use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseExpiringSoon;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
 
@@ -23,7 +23,7 @@ test('licensing:check passes after root and signing keys exist', function (): vo
     $exit = Artisan::call('licensing:check');
 
     // surface the report on failure so ci tells us which check failed
-    expect($exit)->toBe(0, 'licensing:check failed: '.Artisan::output());
+    expect($exit)->toBe(0, 'licensing:check failed: ' . Artisan::output());
 });
 
 test('licensing:check --json reports the enhanced crypto checks', function (): void {
@@ -39,7 +39,7 @@ test('licensing:check --json reports the enhanced crypto checks', function (): v
 
     $exit = Artisan::call('licensing:check', ['--json' => true]);
 
-    expect($exit)->toBe(0, 'licensing:check --json failed: '.Artisan::output());
+    expect($exit)->toBe(0, 'licensing:check --json failed: ' . Artisan::output());
 });
 
 test('licensing:check fails when the key salt is not configured', function (): void {
@@ -53,7 +53,7 @@ test('licensing:check fails when the key salt is not configured', function (): v
 
 test('licensing:check-expirations transitions active expired licenses to grace', function (): void {
     $license = $this->createLicense([
-        'status' => LicenseStatus::Active,
+        'status'     => LicenseStatus::Active,
         'expires_at' => now()->subDay(),
     ]);
 
@@ -64,7 +64,7 @@ test('licensing:check-expirations transitions active expired licenses to grace',
 
 test('licensing:check-expirations transitions grace licenses past grace window to expired', function (): void {
     $license = $this->createLicense([
-        'status' => LicenseStatus::Grace,
+        'status'     => LicenseStatus::Grace,
         'expires_at' => now()->subDays(config('licensing.policies.grace_days') + 1),
     ]);
 
@@ -75,7 +75,7 @@ test('licensing:check-expirations transitions grace licenses past grace window t
 
 test('licensing:check-expirations dry-run leaves licenses untouched', function (): void {
     $license = $this->createLicense([
-        'status' => LicenseStatus::Active,
+        'status'     => LicenseStatus::Active,
         'expires_at' => now()->subDay(),
     ]);
 
@@ -90,7 +90,7 @@ test('licensing:check-expirations notifies licenses expiring soon', function ():
     Event::fake([LicenseExpiringSoon::class]);
 
     $this->createLicense([
-        'status' => LicenseStatus::Active,
+        'status'     => LicenseStatus::Active,
         'expires_at' => now()->addDays(3),
     ]);
 

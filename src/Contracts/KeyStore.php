@@ -8,6 +8,12 @@ use DateTimeInterface;
 
 interface KeyStore
 {
+    public static function findActiveRoot(): ?self;
+
+    public static function findActiveSigning(): ?self;
+
+    public static function findByKid(string $kid): ?self;
+
     public function generate(array $options = []): self;
 
     public function getPublicKey(): string;
@@ -19,10 +25,4 @@ interface KeyStore
     public function isActive(): bool;
 
     public function revoke(string $reason, ?DateTimeInterface $revokedAt = null): self;
-
-    public static function findActiveRoot(): ?self;
-
-    public static function findActiveSigning(): ?self;
-
-    public static function findByKid(string $kid): ?self;
 }

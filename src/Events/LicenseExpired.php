@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 
 class LicenseExpired
@@ -13,6 +13,6 @@ class LicenseExpired
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public License $license
+        public License $license,
     ) {}
 }

@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTrial;
 use Simtabi\Laranail\Licence\Kit\Services\TrialService;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
 
 beforeEach(function (): void {
     $this->trialService = app(TrialService::class);
     $this->license = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 1,
-        'status' => LicenseStatus::Pending,
+        'licensable_id'   => 1,
+        'status'          => LicenseStatus::Pending,
     ]);
 });
 
@@ -24,7 +24,7 @@ it('can start trial', function (): void {
     $trial = $this->trialService->startTrial(
         license: $this->license,
         fingerprint: 'test-device-123',
-        durationDays: 7
+        durationDays: 7,
     );
 
     expect($trial)->toBeInstanceOf(LicenseTrial::class)
@@ -48,7 +48,7 @@ it('cannot start duplicate trial', function (): void {
 it('cannot reset trial with same fingerprint', function (): void {
     $license2 = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 2,
+        'licensable_id'   => 2,
     ]);
     $fingerprint = 'test-device-123';
 
@@ -64,7 +64,7 @@ it('can convert trial to license', function (): void {
     $convertedLicense = $this->trialService->convertTrial(
         trial: $trial,
         trigger: 'user_purchase',
-        value: 99.99
+        value: 99.99,
     );
 
     $trial->refresh();
@@ -84,7 +84,7 @@ it('can extend trial', function (): void {
     $extendedTrial = $this->trialService->extendTrial(
         trial: $trial,
         days: 3,
-        reason: 'Customer requested extension'
+        reason: 'Customer requested extension',
     );
 
     expect($extendedTrial->is_extended)->toBeTrue()
@@ -119,7 +119,7 @@ it('respects feature restrictions', function (): void {
         fingerprint: 'test-device-123',
         durationDays: 7,
         limitations: [],
-        featureRestrictions: ['export', 'api_access']
+        featureRestrictions: ['export', 'api_access'],
     );
 
     expect($trial->isFeatureRestricted('export'))->toBeTrue()
@@ -136,8 +136,8 @@ it('enforces limitations', function (): void {
         durationDays: 7,
         limitations: [
             'max_api_calls' => 100,
-            'max_records' => 50,
-        ]
+            'max_records'   => 50,
+        ],
     );
 
     expect($trial->hasLimitation('max_api_calls'))->toBeTrue()
@@ -150,7 +150,7 @@ it('calculates trial stats correctly', function (): void {
     // Create multiple licenses for different trial scenarios
     $license = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 1,
+        'licensable_id'   => 1,
     ]);
 
     // Create various trials

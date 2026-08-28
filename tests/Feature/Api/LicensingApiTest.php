@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Route;
 
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseActivated;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 use Simtabi\Laranail\Licence\Kit\LicenceKit;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseActivated;
 use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
 
 function ensureApiRoutesRegistered(): void
@@ -24,7 +24,7 @@ function ensureApiRoutesRegistered(): void
         return;
     }
 
-    $routeFile = realpath(__DIR__.'/../../../routes/api.php');
+    $routeFile = realpath(__DIR__ . '/../../../routes/api.php');
     if (! $routeFile) {
         throw new RuntimeException('API route file not found');
     }
@@ -51,7 +51,7 @@ function seedKeys(): void
             $signing->getPublicKey(),
             $signing->kid,
             now()->subDay(),
-            now()->addDays(30)
+            now()->addDays(30),
         );
         $signing->update(['certificate' => $certificate]);
     }
@@ -61,15 +61,15 @@ function createLicenseWithKey(string $plainKey, array $attributes = []): License
 {
     return License::factory()
         ->state(array_merge([
-            'key_hash' => License::hashKey($plainKey),
-            'status' => LicenseStatus::Pending,
+            'key_hash'   => License::hashKey($plainKey),
+            'status'     => LicenseStatus::Pending,
             'max_usages' => 1,
-            'meta' => [
+            'meta'       => [
                 'offline_token' => [
-                    'enabled' => true,
-                    'ttl_days' => 7,
+                    'enabled'                 => true,
+                    'ttl_days'                => 7,
                     'force_online_after_days' => 14,
-                    'clock_skew_seconds' => 60,
+                    'clock_skew_seconds'      => 60,
                 ],
             ],
         ], $attributes))
@@ -89,7 +89,7 @@ test('license activation registers usage and returns token payload', function ()
     $response = postJson(route('licensing.activate'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'device-fingerprint-1',
-        'metadata' => ['client_type' => 'desktop'],
+        'metadata'    => ['client_type' => 'desktop'],
     ]);
 
     $response->assertOk()
@@ -97,7 +97,7 @@ test('license activation registers usage and returns token payload', function ()
         ->assertJsonStructure([
             'data' => [
                 'license' => ['id', 'status', 'max_usages'],
-                'usage' => ['id', 'fingerprint', 'last_seen_at'],
+                'usage'   => ['id', 'fingerprint', 'last_seen_at'],
                 'token',
                 'token_expires_at',
                 'refresh_after',
@@ -120,10 +120,10 @@ test('activation fails when usage limit is reached', function (): void {
 
     $licenseKey = 'LIC-LIMIT-0001';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(10),
-        'max_usages' => 1,
+        'expires_at'   => now()->addDays(10),
+        'max_usages'   => 1,
     ]);
 
     $licensing = app(LicenceKit::class);
@@ -143,9 +143,9 @@ test('refresh issues new token for active usage', function (): void {
 
     $licenseKey = 'LIC-REFRESH-1234';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(20),
+        'expires_at'   => now()->addDays(20),
     ]);
 
     $licensing = app(LicenceKit::class);
@@ -173,9 +173,9 @@ test('validate confirms active fingerprint and license state', function (): void
 
     $licenseKey = 'LIC-VALIDATE-9999';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(5),
+        'expires_at'   => now()->addDays(5),
     ]);
 
     $licensing = app(LicenceKit::class);
@@ -196,9 +196,9 @@ test('validate fails for mismatched fingerprint', function (): void {
 
     $licenseKey = 'LIC-VALIDATE-FAIL';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(5),
+        'expires_at'   => now()->addDays(5),
     ]);
 
     app(LicenceKit::class)->register($license, 'known-fingerprint');
@@ -217,9 +217,9 @@ test('heartbeat updates usage metadata and timestamp', function (): void {
 
     $licenseKey = 'LIC-HEARTBEAT-1';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(15),
+        'expires_at'   => now()->addDays(15),
     ]);
 
     $licensing = app(LicenceKit::class);
@@ -232,7 +232,7 @@ test('heartbeat updates usage metadata and timestamp', function (): void {
     $response = postJson(route('licensing.heartbeat'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'heartbeat-device',
-        'data' => ['app_version' => '1.2.3'],
+        'data'        => ['app_version' => '1.2.3'],
     ]);
 
     Carbon::setTestNow();
@@ -249,9 +249,9 @@ test('heartbeat client data does not overwrite existing meta keys', function ():
 
     $licenseKey = 'LIC-META-SAFE-1';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(15),
+        'expires_at'   => now()->addDays(15),
     ]);
 
     $licensing = app(LicenceKit::class);
@@ -262,7 +262,7 @@ test('heartbeat client data does not overwrite existing meta keys', function ():
     $response = postJson(route('licensing.heartbeat'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'meta-safe-device',
-        'data' => ['internal_flag' => 'overwritten', 'app_version' => '2.0'],
+        'data'        => ['internal_flag' => 'overwritten', 'app_version' => '2.0'],
     ]);
 
     $response->assertOk();
@@ -277,9 +277,9 @@ test('license detail endpoint returns license information with valid fingerprint
 
     $licenseKey = 'LIC-DETAIL-0005';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(60),
+        'expires_at'   => now()->addDays(60),
     ]);
 
     app(LicenceKit::class)->register($license, 'detail-device');
@@ -300,9 +300,9 @@ test('license detail endpoint rejects invalid fingerprint', function (): void {
 
     $licenseKey = 'LIC-DETAIL-REJECT';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(60),
+        'expires_at'   => now()->addDays(60),
     ]);
 
     app(LicenceKit::class)->register($license, 'real-device');
@@ -349,13 +349,13 @@ test('API error responses do not expose internal exception details', function ()
 
     $licenseKey = 'LIC-ERROR-TEST-001';
     createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(10),
-        'max_usages' => 1,
-        'meta' => [
+        'expires_at'   => now()->addDays(10),
+        'max_usages'   => 1,
+        'meta'         => [
             'offline_token' => [
-                'enabled' => true,
+                'enabled'  => true,
                 'ttl_days' => 7,
             ],
         ],
@@ -386,10 +386,10 @@ test('usages endpoint lists the seats registered to a license', function (): voi
 
     $licenseKey = 'LIC-SEATS-1';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(15),
-        'max_usages' => 5,
+        'expires_at'   => now()->addDays(15),
+        'max_usages'   => 5,
     ]);
 
     $licensing = app(LicenceKit::class);
@@ -414,9 +414,9 @@ test('usages endpoint rejects a caller whose fingerprint is not an active seat',
 
     $licenseKey = 'LIC-SEATS-2';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(15),
+        'expires_at'   => now()->addDays(15),
     ]);
 
     app(LicenceKit::class)->register($license, 'known-device');
@@ -432,10 +432,10 @@ test('usages/revoke revokes a seat by fingerprint', function (): void {
 
     $licenseKey = 'LIC-SEATS-3';
     $license = createLicenseWithKey($licenseKey, [
-        'status' => LicenseStatus::Active,
+        'status'       => LicenseStatus::Active,
         'activated_at' => now()->subDay(),
-        'expires_at' => now()->addDays(15),
-        'max_usages' => 5,
+        'expires_at'   => now()->addDays(15),
+        'max_usages'   => 5,
     ]);
 
     $licensing = app(LicenceKit::class);
@@ -445,7 +445,7 @@ test('usages/revoke revokes a seat by fingerprint', function (): void {
     $response = postJson(route('licensing.usages.revoke'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'caller-device',
-        'target' => 'doomed-device',
+        'target'      => 'doomed-device',
     ]);
 
     $response->assertOk()->assertJsonPath('data.revoked', true);

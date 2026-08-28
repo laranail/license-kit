@@ -6,9 +6,9 @@ namespace Simtabi\Laranail\Licence\Kit\Commands;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Notification;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseExpiringSoon;
-use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Notifications\LicenseExpiringNotification;
 
 class NotifyExpiringCommand extends Command

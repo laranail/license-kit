@@ -4,54 +4,55 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Providers;
 
+use Override;
+
 use function class_exists;
 
 use Composer\InstalledVersions;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Queue\Events\WorkerStopping;
 use Illuminate\Support\Facades\RateLimiter;
-use Override;
-use Simtabi\Laranail\Licence\Kit\Commands\CheckExpirationsCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\CheckInstallationCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\CleanupUsagesCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\ExportKeysCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\IssueOfflineTokenCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\IssueSigningKeyCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\LicenseCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\MakeRootKeyCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\NotifyExpiringCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\RevokeKeyCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\RotateKeysCommand;
-use Simtabi\Laranail\Licence\Kit\Contracts\AuditLogger;
-use Simtabi\Laranail\Licence\Kit\Contracts\CertificateAuthority;
-use Simtabi\Laranail\Licence\Kit\Contracts\FingerprintResolver;
-use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyGeneratorContract;
-use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRegeneratorContract;
-use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
-use Simtabi\Laranail\Licence\Kit\Contracts\TokenIssuer;
-use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
-use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
-use Simtabi\Laranail\Licence\Kit\Doctor\Checks;
+use Simtabi\Laranail\Package\Tools\Package;
 use Simtabi\Laranail\Licence\Kit\LicenceKit;
+use Simtabi\Laranail\Licence\Kit\Doctor\Checks;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
-use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Simtabi\Laranail\Licence\Kit\Observers\LicenseObserver;
-use Simtabi\Laranail\Licence\Kit\Observers\LicenseUsageObserver;
-use Simtabi\Laranail\Licence\Kit\Observers\LicensingAuditLogObserver;
-use Simtabi\Laranail\Licence\Kit\Observers\LicensingKeyObserver;
-use Simtabi\Laranail\Licence\Kit\Services\AuditLoggerService;
-use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
-use Simtabi\Laranail\Licence\Kit\Services\FingerprintResolverService;
+use Simtabi\Laranail\Licence\Kit\Contracts\AuditLogger;
+use Simtabi\Laranail\Licence\Kit\Contracts\TokenIssuer;
+use Simtabi\Laranail\Licence\Kit\Commands\LicenseCommand;
+use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
+use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
 use Simtabi\Laranail\Licence\Kit\Services\TemplateService;
+use Simtabi\Laranail\Licence\Kit\Commands\RevokeKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Observers\LicenseObserver;
+use Simtabi\Laranail\Licence\Kit\Commands\ExportKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\RotateKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\MakeRootKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Services\AuditLoggerService;
+use Simtabi\Laranail\Licence\Kit\Commands\CleanupUsagesCommand;
+use Simtabi\Laranail\Licence\Kit\Contracts\FingerprintResolver;
+use Simtabi\Laranail\Licence\Kit\Commands\NotifyExpiringCommand;
+use Simtabi\Laranail\Licence\Kit\Contracts\CertificateAuthority;
+use Simtabi\Laranail\Licence\Kit\Observers\LicenseUsageObserver;
+use Simtabi\Laranail\Licence\Kit\Observers\LicensingKeyObserver;
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
-use Simtabi\Laranail\Package\Tools\Package;
+use Simtabi\Laranail\Licence\Kit\Commands\IssueSigningKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\CheckExpirationsCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\CheckInstallationCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\IssueOfflineTokenCommand;
 use Simtabi\Laranail\Package\Tools\Providers\PackageServiceProvider;
+use Simtabi\Laranail\Licence\Kit\Observers\LicensingAuditLogObserver;
+use Simtabi\Laranail\Licence\Kit\Services\FingerprintResolverService;
+use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
+use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyGeneratorContract;
+use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
+use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRegeneratorContract;
 use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
 
 class LicensingServiceProvider extends PackageServiceProvider
@@ -96,7 +97,7 @@ class LicensingServiceProvider extends PackageServiceProvider
             ->hasAboutSection(
                 AboutSectionDefinition::make('License Kit')
                     ->field('Version', fn (): string => (string) InstalledVersions::getPrettyVersion('laranail/license-kit'))
-                    ->field('Key prefix', fn (): string => (string) config('licensing.key_management.key_prefix', 'LIC'))
+                    ->field('Key prefix', fn (): string => (string) config('licensing.key_management.key_prefix', 'LIC')),
             );
     }
 
@@ -117,19 +118,6 @@ class LicensingServiceProvider extends PackageServiceProvider
         $this->registerRateLimiters();
         $this->registerSchedule();
         $this->registerApiRoutes();
-    }
-
-    /**
-     * Load the API routes when enabled — at boot, where the merged config (including
-     * the package default) is authoritative. Gating at configurePackage() time reads
-     * config before the package config is merged, so an app that has not published the
-     * config would silently never register the API routes (the default is `true`).
-     */
-    private function registerApiRoutes(): void
-    {
-        if (config('licensing.api.enabled')) {
-            $this->loadRoutesFrom($this->package->basePath('/routes/api.php'));
-        }
     }
 
     /**
@@ -200,23 +188,31 @@ class LicensingServiceProvider extends PackageServiceProvider
 
     protected function registerTokenService(): void
     {
-        $this->app->singleton(TokenIssuer::class, fn ($app) => $app->make(config('licensing.offline_token.service'))
+        $this->app->singleton(
+            TokenIssuer::class,
+            fn ($app) => $app->make(config('licensing.offline_token.service')),
         );
 
-        $this->app->singleton(TokenVerifier::class, fn ($app) => $app->make(config('licensing.offline_token.service'))
+        $this->app->singleton(
+            TokenVerifier::class,
+            fn ($app) => $app->make(config('licensing.offline_token.service')),
         );
 
-        $this->app->singleton('licensing.token', fn ($app) => $app->make(config('licensing.offline_token.service'))
+        $this->app->singleton(
+            'licensing.token',
+            fn ($app) => $app->make(config('licensing.offline_token.service')),
         );
     }
 
     protected function registerLicensing(): void
     {
-        $this->app->singleton(LicenceKit::class, fn ($app): LicenceKit => new LicenceKit(
-            $app->make(UsageRegistrar::class),
-            $app->make(TokenIssuer::class),
-            $app->make(TokenVerifier::class)
-        )
+        $this->app->singleton(
+            LicenceKit::class,
+            fn ($app): LicenceKit => new LicenceKit(
+                $app->make(UsageRegistrar::class),
+                $app->make(TokenIssuer::class),
+                $app->make(TokenVerifier::class),
+            ),
         );
     }
 
@@ -256,5 +252,18 @@ class LicensingServiceProvider extends PackageServiceProvider
         LicenseUsage::observe(LicenseUsageObserver::class);
         LicensingKey::observe(LicensingKeyObserver::class);
         LicensingAuditLog::observe(LicensingAuditLogObserver::class);
+    }
+
+    /**
+     * Load the API routes when enabled — at boot, where the merged config (including
+     * the package default) is authoritative. Gating at configurePackage() time reads
+     * config before the package config is merged, so an app that has not published the
+     * config would silently never register the API routes (the default is `true`).
+     */
+    private function registerApiRoutes(): void
+    {
+        if (config('licensing.api.enabled')) {
+            $this->loadRoutesFrom($this->package->basePath('/routes/api.php'));
+        }
     }
 }

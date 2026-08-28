@@ -13,7 +13,7 @@ interface AuditLogger
         AuditEventType $eventType,
         array $data,
         ?string $actor = null,
-        array $context = []
+        array $context = [],
     ): void;
 
     public function query(array $filters = []): iterable;

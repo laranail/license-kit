@@ -4,33 +4,33 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use DateTimeInterface;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Crypt;
-use InvalidArgumentException;
 use Override;
 use RuntimeException;
-use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyGeneratorContract;
-use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRegeneratorContract;
-use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Enums\OverLimitPolicy;
+use DateTimeInterface;
+use InvalidArgumentException;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Simtabi\Laranail\Licence\Kit\Enums\TokenFormat;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Simtabi\Laranail\Licence\Kit\Enums\TransferStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\OverLimitPolicy;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseExpired;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseRenewed;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseActivated;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseCancelled;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseExpired;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseGracePeriodStarted;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseRenewed;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseSuspended;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseGracePeriodStarted;
+use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyGeneratorContract;
+use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
+use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRegeneratorContract;
 
 /**
  * @property string $id
@@ -72,17 +72,97 @@ class License extends Model
     protected ?string $temporaryLicenseKey = null;
 
     protected $casts = [
-        'status' => LicenseStatus::class,
+        'status'       => LicenseStatus::class,
         'activated_at' => 'datetime',
-        'expires_at' => 'datetime',
-        'max_usages' => 'integer',
-        'meta' => AsArrayObject::class,
+        'expires_at'   => 'datetime',
+        'max_usages'   => 'integer',
+        'meta'         => AsArrayObject::class,
     ];
 
     protected $attributes = [
-        'status' => LicenseStatus::Pending,
+        'status'     => LicenseStatus::Pending,
         'max_usages' => 1,
     ];
+
+    public static function findByKey(string $key): ?self
+    {
+        return static::where('key_hash', static::hashKey($key))->first();
+    }
+
+    public static function findByUid(string $uid): ?self
+    {
+        return static::where('uid', $uid)->first();
+    }
+
+    public static function hashKey(string $key): string
+    {
+        return hash_hmac('sha256', $key, static::keySalt());
+    }
+
+    public static function createFromTemplate(string|LicenseTemplate $template, array $attributes = []): self
+    {
+        if (is_string($template)) {
+            $template = LicenseTemplate::findBySlug($template);
+
+            if (! $template instanceof LicenseTemplate) {
+                throw new InvalidArgumentException("Template not found: {$template}");
+            }
+        }
+
+        $config = $template->resolveConfiguration();
+
+        $defaultAttributes = [
+            'template_id' => $template->id,
+            'max_usages'  => $config['max_usages'] ?? 1,
+            'meta'        => array_merge(
+                $config,
+                $attributes['meta'] ?? [],
+            ),
+        ];
+
+        if ($template->license_scope_id && ! array_key_exists('license_scope_id', $attributes)) {
+            $defaultAttributes['license_scope_id'] = $template->license_scope_id;
+        }
+
+        $durationDays = $template->getLicenseDurationDays();
+
+        if ($durationDays !== null && ! array_key_exists('expires_at', $attributes)) {
+            $defaultAttributes['expires_at'] = now()->addDays($durationDays);
+        }
+
+        return static::create(array_merge($defaultAttributes, $attributes));
+    }
+
+    /**
+     * Generate a new license key using the configured generator service.
+     */
+    public static function generateKey(): string
+    {
+        return app(LicenseKeyGeneratorContract::class)->generate();
+    }
+
+    /**
+     * Create a new license with an encrypted key stored.
+     */
+    public static function createWithKey(array $attributes = [], ?string $providedKey = null): static
+    {
+        $key = $providedKey ?? static::generateKey();
+
+        $meta = $attributes['meta'] ?? [];
+        if (config('licensing.key_management.retrieval_enabled', true)) {
+            $meta['encrypted_key'] = Crypt::encryptString($key);
+        }
+
+        $attributes['key_hash'] = static::hashKey($key);
+        $attributes['meta'] = $meta;
+
+        /** @var static */
+        $license = static::create($attributes);
+
+        $license->temporaryLicenseKey = $key;
+
+        return $license;
+    }
 
     #[Override]
     public function uniqueIds(): array
@@ -139,49 +219,19 @@ class License extends Model
         return $this->usages()->where('status', 'active');
     }
 
-    public static function findByKey(string $key): ?self
-    {
-        return static::where('key_hash', static::hashKey($key))->first();
-    }
-
-    public static function findByUid(string $uid): ?self
-    {
-        return static::where('uid', $uid)->first();
-    }
-
-    public static function hashKey(string $key): string
-    {
-        return hash_hmac('sha256', $key, static::keySalt());
-    }
-
     public function verifyKey(string $key): bool
     {
         return hash_equals($this->key_hash, static::hashKey($key));
     }
 
-    protected static function keySalt(): string
-    {
-        $salt = config('licensing.key_salt');
-
-        if (! $salt) {
-            $salt = config('app.key');
-        }
-
-        if (! $salt) {
-            throw new RuntimeException('Licensing key salt is not configured');
-        }
-
-        return $salt;
-    }
-
     public function activate(): self
     {
         if (! $this->status->canActivate()) {
-            throw new RuntimeException('License cannot be activated in current status: '.$this->status->value);
+            throw new RuntimeException('License cannot be activated in current status: ' . $this->status->value);
         }
 
         $this->update([
-            'status' => LicenseStatus::Active,
+            'status'       => LicenseStatus::Active,
             'activated_at' => now(),
         ]);
 
@@ -193,19 +243,19 @@ class License extends Model
     public function renew(DateTimeInterface $expiresAt, array $renewalData = []): self
     {
         if (! $this->status->canRenew()) {
-            throw new RuntimeException('License cannot be renewed in current status: '.$this->status->value);
+            throw new RuntimeException('License cannot be renewed in current status: ' . $this->status->value);
         }
 
         $oldExpiresAt = $this->expires_at;
 
         $this->update([
             'expires_at' => $expiresAt,
-            'status' => LicenseStatus::Active,
+            'status'     => LicenseStatus::Active,
         ]);
 
         $this->renewals()->create([
             'period_start' => $oldExpiresAt ?? now(),
-            'period_end' => $expiresAt,
+            'period_end'   => $expiresAt,
             ...$renewalData,
         ]);
 
@@ -397,40 +447,6 @@ class License extends Model
         return $this->template->resolveEntitlements();
     }
 
-    public static function createFromTemplate(string|LicenseTemplate $template, array $attributes = []): self
-    {
-        if (is_string($template)) {
-            $template = LicenseTemplate::findBySlug($template);
-
-            if (! $template instanceof LicenseTemplate) {
-                throw new InvalidArgumentException("Template not found: {$template}");
-            }
-        }
-
-        $config = $template->resolveConfiguration();
-
-        $defaultAttributes = [
-            'template_id' => $template->id,
-            'max_usages' => $config['max_usages'] ?? 1,
-            'meta' => array_merge(
-                $config,
-                $attributes['meta'] ?? []
-            ),
-        ];
-
-        if ($template->license_scope_id && ! array_key_exists('license_scope_id', $attributes)) {
-            $defaultAttributes['license_scope_id'] = $template->license_scope_id;
-        }
-
-        $durationDays = $template->getLicenseDurationDays();
-
-        if ($durationDays !== null && ! array_key_exists('expires_at', $attributes)) {
-            $defaultAttributes['expires_at'] = now()->addDays($durationDays);
-        }
-
-        return static::create(array_merge($defaultAttributes, $attributes));
-    }
-
     public function hasPendingTransfers(): bool
     {
         return $this->transfers()
@@ -464,14 +480,6 @@ class License extends Model
     }
 
     /**
-     * Generate a new license key using the configured generator service.
-     */
-    public static function generateKey(): string
-    {
-        return app(LicenseKeyGeneratorContract::class)->generate();
-    }
-
-    /**
      * Retrieve the license key if available.
      */
     public function retrieveKey(): ?string
@@ -502,29 +510,6 @@ class License extends Model
     }
 
     /**
-     * Create a new license with an encrypted key stored.
-     */
-    public static function createWithKey(array $attributes = [], ?string $providedKey = null): static
-    {
-        $key = $providedKey ?? static::generateKey();
-
-        $meta = $attributes['meta'] ?? [];
-        if (config('licensing.key_management.retrieval_enabled', true)) {
-            $meta['encrypted_key'] = Crypt::encryptString($key);
-        }
-
-        $attributes['key_hash'] = static::hashKey($key);
-        $attributes['meta'] = $meta;
-
-        /** @var static */
-        $license = static::create($attributes);
-
-        $license->temporaryLicenseKey = $key;
-
-        return $license;
-    }
-
-    /**
      * Get the temporary license key (only available after creation).
      */
     public function getLicenseKeyAttribute(): ?string
@@ -546,5 +531,20 @@ class License extends Model
     public function canRegenerateKey(): bool
     {
         return app(LicenseKeyRegeneratorContract::class)->isAvailable();
+    }
+
+    protected static function keySalt(): string
+    {
+        $salt = config('licensing.key_salt');
+
+        if (! $salt) {
+            $salt = config('app.key');
+        }
+
+        if (! $salt) {
+            throw new RuntimeException('Licensing key salt is not configured');
+        }
+
+        return $salt;
     }
 }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Events;
 
-use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Foundation\Events\Dispatchable;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTrial;
 
 class TrialStarted
@@ -13,6 +13,6 @@ class TrialStarted
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public LicenseTrial $trial
+        public LicenseTrial $trial,
     ) {}
 }

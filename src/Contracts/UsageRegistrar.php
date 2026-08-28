@@ -12,7 +12,7 @@ interface UsageRegistrar
     public function register(
         License $license,
         string $fingerprint,
-        array $metadata = []
+        array $metadata = [],
     ): LicenseUsage;
 
     public function heartbeat(LicenseUsage $usage): void;
