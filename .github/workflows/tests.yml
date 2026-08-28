@@ -1,13 +1,14 @@
 name: Tests
 
 on:
-  push:
+  pull_request:
     paths:
       - '**.php'
-      - '.github/workflows/run-tests.yml'
+      - '.github/workflows/tests.yml'
       - 'phpunit.xml.dist'
       - 'composer.json'
       - 'composer.lock'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
