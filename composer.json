@@ -84,11 +84,11 @@
             "@analyse",
             "@rector"
         ],
-        "pint": "vendor/bin/pint --test --config vendor/laranail/package-tools/pint.json",
+        "pint": "@php vendor/bin/laranail-pint --test",
         "format": "@pint-fix",
         "rector": "vendor/bin/rector process --dry-run",
         "rector-fix": "vendor/bin/rector process",
-        "pint-fix": "vendor/bin/pint --parallel --config vendor/laranail/package-tools/pint.json"
+        "pint-fix": "@php vendor/bin/laranail-pint --parallel"
     },
     "config": {
         "sort-packages": true,
