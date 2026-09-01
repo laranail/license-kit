@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Licence\Kit\Commands;
 
 use Exception;
 use RuntimeException;
-use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
 use Simtabi\Laranail\Licence\Kit\Services\PasetoTokenService;

@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Crypt;
-use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyGeneratorContract;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 
 it('can generate a license key', function (): void {
     $generator = app(LicenseKeyGeneratorContract::class);
@@ -142,7 +142,7 @@ it('generates unique keys', function (): void {
 
 it('respects custom key prefix and separator', function (): void {
     config([
-        'licensing.key_management.key_prefix'    => 'TEST',
+        'licensing.key_management.key_prefix' => 'TEST',
         'licensing.key_management.key_separator' => '_',
     ]);
 
@@ -157,7 +157,7 @@ it('can create license with provided key', function (): void {
     $providedKey = 'CUSTOM-KEY-1234-5678';
 
     $license = License::create([
-        'key_hash'   => License::hashKey($providedKey),
+        'key_hash' => License::hashKey($providedKey),
         'max_usages' => 3,
     ]);
 
@@ -170,9 +170,9 @@ it('can create license with provided key and store it encrypted', function (): v
     $providedKey = 'CUSTOM-KEY-1234-5678';
 
     $license = License::create([
-        'key_hash'   => License::hashKey($providedKey),
+        'key_hash' => License::hashKey($providedKey),
         'max_usages' => 3,
-        'meta'       => [
+        'meta' => [
             'encrypted_key' => Crypt::encryptString($providedKey),
         ],
     ]);
@@ -219,7 +219,7 @@ it('encrypt and decrypt preserve exact key format', function (): void {
     // Test with actual license
     $license = License::create([
         'key_hash' => License::hashKey($testKey),
-        'meta'     => [
+        'meta' => [
             'encrypted_key' => $encrypted,
         ],
     ]);
@@ -232,7 +232,7 @@ it('handles special characters in license key', function (): void {
 
     $license = License::create([
         'key_hash' => License::hashKey($specialKey),
-        'meta'     => [
+        'meta' => [
             'encrypted_key' => Crypt::encryptString($specialKey),
         ],
     ]);

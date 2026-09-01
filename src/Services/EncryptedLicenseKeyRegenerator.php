@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
-use RuntimeException;
 use Illuminate\Support\Facades\Crypt;
-use Simtabi\Laranail\Licence\Kit\Models\License;
+use RuntimeException;
 use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyGeneratorContract;
 use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRegeneratorContract;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 
 class EncryptedLicenseKeyRegenerator implements LicenseKeyRegeneratorContract
 {
@@ -38,7 +38,7 @@ class EncryptedLicenseKeyRegenerator implements LicenseKeyRegeneratorContract
         if ($license->key_hash) {
             $meta['previous_key_hashes'] ??= [];
             $meta['previous_key_hashes'][] = [
-                'hash'        => $license->key_hash,
+                'hash' => $license->key_hash,
                 'replaced_at' => now()->toIso8601String(),
             ];
         }
@@ -46,7 +46,7 @@ class EncryptedLicenseKeyRegenerator implements LicenseKeyRegeneratorContract
         // Update license with new hash and meta
         $license->update([
             'key_hash' => License::hashKey($newKey),
-            'meta'     => $meta,
+            'meta' => $meta,
         ]);
 
         return $newKey;

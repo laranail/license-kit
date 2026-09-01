@@ -3,13 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
-
-use function Spatie\PestPluginTestTime\testTime;
-
 use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
 use Simtabi\Laranail\Licence\Kit\Events\UsageRevoked;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+
+use function Spatie\PestPluginTestTime\testTime;
 
 uses(LicenseTestHelper::class);
 

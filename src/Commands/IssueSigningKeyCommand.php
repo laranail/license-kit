@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Commands;
 
-use Exception;
 use DateTimeImmutable;
+use Exception;
+use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 use Simtabi\Laranail\Licence\Kit\Services\AuditLoggerService;
 use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
 
 class IssueSigningKeyCommand extends Command
 {
     protected $signature = 'laranail::license-kit.keys.issue-signing '
-        . '{--kid= : Key ID for the new signing key} '
-        . '{--scope= : Scope slug or identifier for the signing key} '
-        . '{--days= : Validity window in days} '
-        . '{--nbf= : Not before date (ISO format)} '
-        . '{--exp= : Expiration date (ISO format)}';
+        .'{--kid= : Key ID for the new signing key} '
+        .'{--scope= : Scope slug or identifier for the signing key} '
+        .'{--days= : Validity window in days} '
+        .'{--nbf= : Not before date (ISO format)} '
+        .'{--exp= : Expiration date (ISO format)}';
 
     protected $description = 'Issue a new signing key signed by the active root key';
 
@@ -39,7 +39,7 @@ class IssueSigningKeyCommand extends Command
             return self::FAILURE;
         }
 
-        $kid = $this->option('kid') ?? 'signing-' . bin2hex(random_bytes(16));
+        $kid = $this->option('kid') ?? 'signing-'.bin2hex(random_bytes(16));
 
         $licenseScope = null;
         if ($scopeOption = $this->option('scope')) {
@@ -89,8 +89,8 @@ class IssueSigningKeyCommand extends Command
         try {
             $signingKey = new LicensingKey;
             $signingKey->generate([
-                'type'        => KeyType::Signing,
-                'valid_from'  => $validFrom,
+                'type' => KeyType::Signing,
+                'valid_from' => $validFrom,
                 'valid_until' => $validUntil,
             ]);
 
@@ -124,10 +124,10 @@ class IssueSigningKeyCommand extends Command
             $auditLogger->log(
                 AuditEventType::KeySigningIssued,
                 [
-                    'kid'         => $kid,
-                    'scope_id'    => $licenseScope?->id,
-                    'scope_name'  => $licenseScope?->name,
-                    'valid_from'  => $validFrom->format('c'),
+                    'kid' => $kid,
+                    'scope_id' => $licenseScope?->id,
+                    'scope_name' => $licenseScope?->name,
+                    'valid_from' => $validFrom->format('c'),
                     'valid_until' => $validUntil->format('c'),
                 ],
                 'console',

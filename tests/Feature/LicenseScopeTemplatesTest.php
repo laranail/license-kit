@@ -8,25 +8,25 @@ use Simtabi\Laranail\Licence\Kit\Services\TemplateService;
 
 it('assegna template ad uno scope e restituisce solo quelli attivi', function (): void {
     $scope = LicenseScope::create([
-        'name'        => 'Gestione Software',
+        'name' => 'Gestione Software',
         'description' => 'Scope per il software principale',
     ]);
 
     $templateService = app(TemplateService::class);
 
     $monthly = LicenseTemplate::create([
-        'name'               => 'Mensile',
-        'tier_level'         => 1,
+        'name' => 'Mensile',
+        'tier_level' => 1,
         'base_configuration' => [
-            'max_usages'    => 5,
+            'max_usages' => 5,
             'validity_days' => 30,
         ],
     ]);
 
     $annual = LicenseTemplate::create([
-        'name'       => 'Annuale',
+        'name' => 'Annuale',
         'tier_level' => 2,
-        'is_active'  => false,
+        'is_active' => false,
     ]);
 
     $templateService->assignTemplateToScope($scope, $monthly);
@@ -46,8 +46,8 @@ it('impedisce di riassegnare un template già collegato ad un altro scope', func
 
     $template = LicenseTemplate::create([
         'license_scope_id' => $scopeA->id,
-        'name'             => 'Trimestrale',
-        'tier_level'       => 1,
+        'name' => 'Trimestrale',
+        'tier_level' => 1,
     ]);
 
     expect($scopeA->assignTemplate($template))->toBeInstanceOf(LicenseTemplate::class);
@@ -62,13 +62,13 @@ it('crea una licenza partendo da un template assegnato allo scope', function ():
     ]);
 
     $template = LicenseTemplate::create([
-        'license_scope_id'   => $scope->id,
-        'name'               => 'Mensile',
-        'tier_level'         => 1,
+        'license_scope_id' => $scope->id,
+        'name' => 'Mensile',
+        'tier_level' => 1,
         'base_configuration' => [
-            'max_usages'    => 2,
+            'max_usages' => 2,
             'validity_days' => 30,
-            'grace_days'    => 5,
+            'grace_days' => 5,
         ],
     ]);
 

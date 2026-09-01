@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use RuntimeException;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use RuntimeException;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Events\TrialExpired;
-use Simtabi\Laranail\Licence\Kit\Events\TrialStarted;
-use Simtabi\Laranail\Licence\Kit\Events\TrialExtended;
+use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
 use Simtabi\Laranail\Licence\Kit\Events\TrialConverted;
+use Simtabi\Laranail\Licence\Kit\Events\TrialExpired;
+use Simtabi\Laranail\Licence\Kit\Events\TrialExtended;
+use Simtabi\Laranail\Licence\Kit\Events\TrialStarted;
 
 /**
  * @property int $id
@@ -56,22 +56,22 @@ class LicenseTrial extends Model
     ];
 
     protected $casts = [
-        'status'               => TrialStatus::class,
-        'started_at'           => 'datetime',
-        'expires_at'           => 'datetime',
-        'converted_at'         => 'datetime',
-        'duration_days'        => 'integer',
-        'is_extended'          => 'boolean',
-        'extension_days'       => 'integer',
-        'limitations'          => AsArrayObject::class,
+        'status' => TrialStatus::class,
+        'started_at' => 'datetime',
+        'expires_at' => 'datetime',
+        'converted_at' => 'datetime',
+        'duration_days' => 'integer',
+        'is_extended' => 'boolean',
+        'extension_days' => 'integer',
+        'limitations' => AsArrayObject::class,
         'feature_restrictions' => 'array',
-        'conversion_value'     => 'decimal:2',
-        'meta'                 => AsArrayObject::class,
+        'conversion_value' => 'decimal:2',
+        'meta' => AsArrayObject::class,
     ];
 
     protected $attributes = [
-        'status'         => TrialStatus::Active,
-        'is_extended'    => false,
+        'status' => TrialStatus::Active,
+        'is_extended' => false,
         'extension_days' => 0,
     ];
 
@@ -151,7 +151,7 @@ class LicenseTrial extends Model
         $this->update([
             'started_at' => now(),
             'expires_at' => now()->addDays($this->duration_days),
-            'status'     => TrialStatus::Active,
+            'status' => TrialStatus::Active,
         ]);
 
         event(new TrialStarted($this));
@@ -166,9 +166,9 @@ class LicenseTrial extends Model
         }
 
         $this->update([
-            'expires_at'       => $this->expires_at->addDays($days),
-            'is_extended'      => true,
-            'extension_days'   => $days,
+            'expires_at' => $this->expires_at->addDays($days),
+            'is_extended' => true,
+            'extension_days' => $days,
             'extension_reason' => $reason,
         ]);
 
@@ -180,14 +180,14 @@ class LicenseTrial extends Model
     public function convert(?string $trigger = null, ?float $value = null): License
     {
         if (! $this->canConvert()) {
-            throw new RuntimeException('Trial cannot be converted in current status: ' . $this->status->value);
+            throw new RuntimeException('Trial cannot be converted in current status: '.$this->status->value);
         }
 
         $this->update([
-            'status'             => TrialStatus::Converted,
-            'converted_at'       => now(),
+            'status' => TrialStatus::Converted,
+            'converted_at' => now(),
             'conversion_trigger' => $trigger,
-            'conversion_value'   => $value,
+            'conversion_value' => $value,
         ]);
 
         /** @var License $license */
@@ -205,7 +205,7 @@ class LicenseTrial extends Model
     public function cancel(): self
     {
         if (! $this->canCancel()) {
-            throw new RuntimeException('Trial cannot be cancelled in current status: ' . $this->status->value);
+            throw new RuntimeException('Trial cannot be cancelled in current status: '.$this->status->value);
         }
 
         $this->update([

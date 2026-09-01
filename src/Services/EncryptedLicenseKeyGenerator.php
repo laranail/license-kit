@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
-use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyGeneratorContract;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 
 class EncryptedLicenseKeyGenerator implements LicenseKeyGeneratorContract
 {
     /**
      * Generate a new license key.
      *
-     * @param License|null $license Optional license instance for context
-     *
+     * @param  License|null  $license  Optional license instance for context
      * @return string The generated license key
      */
     public function generate(?License $license = null): string
@@ -27,6 +26,6 @@ class EncryptedLicenseKeyGenerator implements LicenseKeyGeneratorContract
             $segments[] = strtoupper(bin2hex(random_bytes(4)));
         }
 
-        return $prefix . $separator . implode($separator, $segments);
+        return $prefix.$separator.implode($separator, $segments);
     }
 }

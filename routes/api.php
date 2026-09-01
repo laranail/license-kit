@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\TokenController;
-use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\UsageController;
 use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\HealthController;
 use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\LicenseController;
+use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\TokenController;
+use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\UsageController;
 
 Route::prefix(config('licensing.api.prefix', 'api/licensing/v1'))
     ->middleware(config('licensing.api.middleware', ['api']))

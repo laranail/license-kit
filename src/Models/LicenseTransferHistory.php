@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use Override;
 use RuntimeException;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property int $id
@@ -59,12 +59,12 @@ class LicenseTransferHistory extends Model
     ];
 
     protected $casts = [
-        'previous_snapshot'    => 'array',
-        'new_snapshot'         => 'array',
-        'usages_preserved'     => 'boolean',
+        'previous_snapshot' => 'array',
+        'new_snapshot' => 'array',
+        'usages_preserved' => 'boolean',
         'expiration_preserved' => 'boolean',
-        'activation_reset'     => 'boolean',
-        'executed_at'          => 'datetime',
+        'activation_reset' => 'boolean',
+        'executed_at' => 'datetime',
     ];
 
     public function license(): BelongsTo
@@ -139,14 +139,14 @@ class LicenseTransferHistory extends Model
         if ($this->previous_licensable_type !== $this->new_licensable_type ||
             $this->previous_licensable_id !== $this->new_licensable_id) {
             $changes['owner'] = [
-                'from' => $this->previous_licensable_type . ':' . $this->previous_licensable_id,
-                'to'   => $this->new_licensable_type . ':' . $this->new_licensable_id,
+                'from' => $this->previous_licensable_type.':'.$this->previous_licensable_id,
+                'to' => $this->new_licensable_type.':'.$this->new_licensable_id,
             ];
         }
 
         if (! $this->usages_preserved) {
             $changes['usages'] = [
-                'revoked'     => $this->usages_revoked_count,
+                'revoked' => $this->usages_revoked_count,
                 'transferred' => $this->usages_transferred_count,
             ];
         }
@@ -158,7 +158,7 @@ class LicenseTransferHistory extends Model
         if (! $this->expiration_preserved) {
             $changes['expiration'] = [
                 'from' => $this->previous_snapshot['expires_at'] ?? null,
-                'to'   => $this->new_snapshot['expires_at'] ?? null,
+                'to' => $this->new_snapshot['expires_at'] ?? null,
             ];
         }
 
@@ -212,8 +212,7 @@ class LicenseTransferHistory extends Model
     }
 
     /**
-     * @param array<mixed> $array
-     *
+     * @param  array<mixed>  $array
      * @return array<mixed>
      */
     protected static function recursiveKsort(array $array): array
@@ -244,20 +243,20 @@ class LicenseTransferHistory extends Model
 
         // Don't include the ID in the hash calculation since it doesn't exist during creation
         $data = [
-            'license_id'               => $this->license_id,
-            'transfer_id'              => $this->transfer_id,
-            'previous_licensable'      => $this->previous_licensable_type . ':' . $this->previous_licensable_id,
-            'new_licensable'           => $this->new_licensable_type . ':' . $this->new_licensable_id,
-            'previous_snapshot'        => static::canonicalJson($this->previous_snapshot),
-            'new_snapshot'             => static::canonicalJson($this->new_snapshot),
-            'transfer_type'            => $this->transfer_type,
-            'executed_by'              => $this->executed_by_type . ':' . $this->executed_by_id,
-            'usages_preserved'         => (bool) $this->usages_preserved,
-            'expiration_preserved'     => (bool) $this->expiration_preserved,
-            'activation_reset'         => (bool) $this->activation_reset,
+            'license_id' => $this->license_id,
+            'transfer_id' => $this->transfer_id,
+            'previous_licensable' => $this->previous_licensable_type.':'.$this->previous_licensable_id,
+            'new_licensable' => $this->new_licensable_type.':'.$this->new_licensable_id,
+            'previous_snapshot' => static::canonicalJson($this->previous_snapshot),
+            'new_snapshot' => static::canonicalJson($this->new_snapshot),
+            'transfer_type' => $this->transfer_type,
+            'executed_by' => $this->executed_by_type.':'.$this->executed_by_id,
+            'usages_preserved' => (bool) $this->usages_preserved,
+            'expiration_preserved' => (bool) $this->expiration_preserved,
+            'activation_reset' => (bool) $this->activation_reset,
             'usages_transferred_count' => (int) $this->usages_transferred_count,
-            'usages_revoked_count'     => (int) $this->usages_revoked_count,
-            'executed_at'              => $executedAt?->toISOString(),
+            'usages_revoked_count' => (int) $this->usages_revoked_count,
+            'executed_at' => $executedAt?->toISOString(),
         ];
 
         return hash('sha256', json_encode($data));

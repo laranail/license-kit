@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
+use Simtabi\Laranail\Licence\Kit\Commands\ExportKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\IssueOfflineTokenCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\IssueSigningKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\MakeRootKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\RevokeKeyCommand;
+use Simtabi\Laranail\Licence\Kit\Commands\RotateKeysCommand;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Models\License;
-use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
-use Symfony\Component\Console\Tester\CommandTester;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Symfony\Component\Console\Output\OutputInterface;
-use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\RevokeKeyCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\ExportKeysCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\RotateKeysCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\MakeRootKeyCommand;
-use Simtabi\Laranail\Licence\Kit\Commands\IssueSigningKeyCommand;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
-use Simtabi\Laranail\Licence\Kit\Commands\IssueOfflineTokenCommand;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 
 uses(LicenseTestHelper::class)->group('cli');
 
@@ -41,7 +41,7 @@ function runCommand(string $commandClass, array $parameters = [], array $inputs 
 
     $tester->execute($parameters, [
         'interactive' => $interactive,
-        'verbosity'   => $verbosity,
+        'verbosity' => $verbosity,
     ]);
 
     return $tester;
@@ -154,7 +154,7 @@ test('can issue signing key via CLI', function (): void {
     $this->createRootKey();
 
     $tester = runCommand(IssueSigningKeyCommand::class, [
-        '--kid'  => 'test-signing-001',
+        '--kid' => 'test-signing-001',
         '--days' => 90,
     ]);
 
@@ -218,7 +218,7 @@ test('can revoke key via CLI', function (): void {
     $signingKey = $this->createSigningKey();
 
     $tester = runCommand(RevokeKeyCommand::class, [
-        'kid'      => $signingKey->kid,
+        'kid' => $signingKey->kid,
         '--reason' => 'compromised',
     ], ['yes']);
 
@@ -269,7 +269,7 @@ test('can export keys in different formats', function (): void {
 
     // Export as JSON bundle
     $json = runCommand(ExportKeysCommand::class, [
-        '--format'        => 'json',
+        '--format' => 'json',
         '--include-chain' => true,
     ]);
 
@@ -284,9 +284,9 @@ test('can issue offline token via CLI', function (): void {
     $usage = $this->createUsage($license);
 
     $tester = runCommand(IssueOfflineTokenCommand::class, [
-        '--license'     => (string) $license->id,
+        '--license' => (string) $license->id,
         '--fingerprint' => $usage->usage_fingerprint,
-        '--ttl'         => '3d',
+        '--ttl' => '3d',
     ]);
 
     expect($tester->getStatusCode())->toBe(0);
@@ -302,7 +302,7 @@ test('validates license exists for token issuance', function (): void {
     $this->createSigningKey();
 
     $tester = runCommand(IssueOfflineTokenCommand::class, [
-        '--license'     => 'non-existent',
+        '--license' => 'non-existent',
         '--fingerprint' => 'test-fp',
     ]);
 
@@ -316,7 +316,7 @@ test('validates usage exists for token issuance', function (): void {
     $license = $this->createLicense();
 
     $tester = runCommand(IssueOfflineTokenCommand::class, [
-        '--license'     => (string) $license->id,
+        '--license' => (string) $license->id,
         '--fingerprint' => 'non-existent-fp',
     ]);
 
@@ -335,7 +335,7 @@ test('can issue token by license key', function (): void {
     $usage = $this->createUsage($license);
 
     $tester = runCommand(IssueOfflineTokenCommand::class, [
-        '--license'     => $licenseKey,
+        '--license' => $licenseKey,
         '--fingerprint' => $usage->usage_fingerprint,
     ]);
 
@@ -348,7 +348,7 @@ test('handles compromised key rotation', function (): void {
     $signingKey = $this->createSigningKey();
 
     $tester = runCommand(RotateKeysCommand::class, [
-        '--reason'    => 'compromised',
+        '--reason' => 'compromised',
         '--immediate' => true,
     ]);
 
@@ -430,7 +430,7 @@ test('command return codes follow spec', function (): void {
     expect($license->key)->not->toBeNull();
 
     $result = Artisan::call('licensing:offline:issue', [
-        '--license'     => $license->key,
+        '--license' => $license->key,
         '--fingerprint' => $usage->usage_fingerprint,
     ]);
     expect($result)->toBe(3);

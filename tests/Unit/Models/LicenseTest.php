@@ -3,16 +3,16 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
-use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseExpired;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseRenewed;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseActivated;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseCancelled;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseSuspended;
-use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseExpired;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseGracePeriodStarted;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseRenewed;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseSuspended;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
+use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
 
 uses(LicenseTestHelper::class);
 
@@ -22,11 +22,11 @@ beforeEach(function (): void {
 
 test('can create a license with hashed key', function (): void {
     $license = License::create([
-        'key_hash'        => License::hashKey('TEST-KEY-123'),
-        'status'          => LicenseStatus::Pending,
+        'key_hash' => License::hashKey('TEST-KEY-123'),
+        'status' => LicenseStatus::Pending,
         'licensable_type' => 'App\Models\User',
-        'licensable_id'   => 1,
-        'max_usages'      => 5,
+        'licensable_id' => 1,
+        'max_usages' => 5,
     ]);
 
     expect($license)->toBeInstanceOf(License::class)
@@ -82,7 +82,7 @@ test('can verify license key', function (): void {
 
 test('can activate a pending license', function (): void {
     $license = $this->createLicense([
-        'status'       => LicenseStatus::Pending,
+        'status' => LicenseStatus::Pending,
         'activated_at' => null,
     ]);
 
@@ -104,7 +104,7 @@ test('cannot activate already active license', function (): void {
 
 test('can renew license', function (): void {
     $license = $this->createLicense([
-        'status'     => LicenseStatus::Active,
+        'status' => LicenseStatus::Active,
         'expires_at' => now()->addDays(7),
     ]);
 
@@ -188,7 +188,7 @@ test('can check available seats', function (): void {
 
 test('can transition to grace period', function (): void {
     $license = $this->createLicense([
-        'status'     => LicenseStatus::Active,
+        'status' => LicenseStatus::Active,
         'expires_at' => now()->subDay(),
     ]);
 
@@ -199,7 +199,7 @@ test('can transition to grace period', function (): void {
 
 test('can transition to expired after grace period', function (): void {
     $license = $this->createLicense([
-        'status'     => LicenseStatus::Grace,
+        'status' => LicenseStatus::Grace,
         'expires_at' => now()->subDays(15), // Default grace is 14 days
     ]);
 
@@ -211,17 +211,17 @@ test('can transition to expired after grace period', function (): void {
 
 test('grace period respects configuration', function (): void {
     $license = $this->createLicense([
-        'status'     => LicenseStatus::Grace,
+        'status' => LicenseStatus::Grace,
         'expires_at' => now()->subDays(10),
-        'meta'       => ['policies' => ['grace_days' => 7]],
+        'meta' => ['policies' => ['grace_days' => 7]],
     ]);
 
     expect($license->gracePeriodExpired())->toBeTrue();
 
     $license2 = $this->createLicense([
-        'status'     => LicenseStatus::Grace,
+        'status' => LicenseStatus::Grace,
         'expires_at' => now()->subDays(5),
-        'meta'       => ['policies' => ['grace_days' => 7]],
+        'meta' => ['policies' => ['grace_days' => 7]],
     ]);
 
     expect($license2->gracePeriodExpired())->toBeFalse();
@@ -229,8 +229,8 @@ test('grace period respects configuration', function (): void {
 
 test('license scope relation is accessible', function (): void {
     $scope = LicenseScope::create([
-        'name'       => 'Pro Suite',
-        'slug'       => 'pro-suite',
+        'name' => 'Pro Suite',
+        'slug' => 'pro-suite',
         'identifier' => 'com.example.pro-suite',
     ]);
 

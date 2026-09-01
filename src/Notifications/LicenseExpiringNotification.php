@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Simtabi\Laranail\Licence\Kit\Models\License;
-use Illuminate\Notifications\Messages\MailMessage;
 
 /**
  * Opt-in notification sent (to license owners and/or configured admins) when a
@@ -40,7 +40,7 @@ final class LicenseExpiringNotification extends Notification
             : "in {$this->daysRemaining} day(s)";
 
         return (new MailMessage)
-            ->subject('Your license is expiring ' . $when)
+            ->subject('Your license is expiring '.$when)
             ->line("License {$this->license->uid} expires {$when}.")
             ->line('Renew it to avoid any interruption of service.');
     }
@@ -51,8 +51,8 @@ final class LicenseExpiringNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'license_uid'    => $this->license->uid,
-            'expires_at'     => $this->license->expires_at?->toIso8601String(),
+            'license_uid' => $this->license->uid,
+            'expires_at' => $this->license->expires_at?->toIso8601String(),
             'days_remaining' => $this->daysRemaining,
         ];
     }

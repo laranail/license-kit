@@ -17,9 +17,9 @@ trait TracksActor
         $user = Auth::user();
 
         return [
-            'actor_id'    => $user->id,
-            'actor_type'  => $user::class,
-            'actor_name'  => $user->name ?? null,
+            'actor_id' => $user->id,
+            'actor_type' => $user::class,
+            'actor_name' => $user->name ?? null,
             'actor_email' => $user->email ?? null,
         ];
     }
