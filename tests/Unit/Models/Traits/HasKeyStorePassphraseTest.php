@@ -11,8 +11,8 @@ declare(strict_types=1);
 // Fix: config/licensing.php now stores `passphrase => env('LICENSING_KEY_PASSPHRASE')` so the
 // value is resolved once at cache time, and resolvePassphrase() reads only from config().
 
-use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
 
 beforeEach(function (): void {
@@ -75,13 +75,13 @@ test('decrypt v1 legacy format for backward compatibility', function (): void {
     $nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
     $derivedKey = hash('sha256', $passphrase, true);
     $encrypted = sodium_crypto_secretbox($plaintext, $nonce, $derivedKey);
-    $v1Payload = base64_encode($nonce . $encrypted);
+    $v1Payload = base64_encode($nonce.$encrypted);
 
     sodium_memzero($derivedKey);
 
     // Create a key model with v1 encrypted data
     $key = new LicensingKey;
-    $key->kid = 'test_v1_' . now()->timestamp;
+    $key->kid = 'test_v1_'.now()->timestamp;
     $key->type = KeyType::Root;
     $key->algorithm = 'Ed25519';
     $key->public_key = base64_encode(random_bytes(32));
@@ -102,17 +102,17 @@ test('decrypt v1 legacy format whose nonce starts with the v2 version byte', fun
     $passphrase = 'test-passphrase-for-testing';
     $plaintext = base64_encode(random_bytes(32));
 
-    $nonce = "\x02" . random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES - 1);
+    $nonce = "\x02".random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES - 1);
     $derivedKey = hash('sha256', $passphrase, true);
     $encrypted = sodium_crypto_secretbox($plaintext, $nonce, $derivedKey);
-    $v1Payload = base64_encode($nonce . $encrypted);
+    $v1Payload = base64_encode($nonce.$encrypted);
 
     sodium_memzero($derivedKey);
 
     expect(base64_decode($v1Payload)[0])->toBe("\x02");
 
     $key = new LicensingKey;
-    $key->kid = 'test_v1_v2byte_' . now()->timestamp;
+    $key->kid = 'test_v1_v2byte_'.now()->timestamp;
     $key->type = KeyType::Root;
     $key->algorithm = 'Ed25519';
     $key->public_key = base64_encode(random_bytes(32));

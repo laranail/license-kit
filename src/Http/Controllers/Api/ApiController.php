@@ -13,7 +13,7 @@ abstract class ApiController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data'    => $data,
+            'data' => $data,
         ], $status);
     }
 
@@ -21,8 +21,8 @@ abstract class ApiController extends Controller
     {
         return response()->json([
             'success' => false,
-            'error'   => array_filter([
-                'code'    => $code,
+            'error' => array_filter([
+                'code' => $code,
                 'message' => $message,
                 ...$meta,
             ], fn ($value): bool => $value !== null),

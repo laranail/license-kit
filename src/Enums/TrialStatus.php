@@ -14,8 +14,8 @@ enum TrialStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Active    => __('Active'),
-            self::Expired   => __('Expired'),
+            self::Active => __('Active'),
+            self::Expired => __('Expired'),
             self::Converted => __('Converted to Full License'),
             self::Cancelled => __('Cancelled'),
         };
@@ -24,8 +24,8 @@ enum TrialStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::Active    => 'green',
-            self::Expired   => 'red',
+            self::Active => 'green',
+            self::Expired => 'red',
             self::Converted => 'blue',
             self::Cancelled => 'gray',
         };

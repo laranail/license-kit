@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Doctor;
 
-use Throwable;
 use Illuminate\Support\Facades\File;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorCheck;
 use Simtabi\Laranail\Package\Tools\Services\Doctor\DoctorResult;
+use Throwable;
 
 /**
  * The keystore path (resolved at run time) must be writable.

@@ -17,11 +17,11 @@ enum TransferType: string
     {
         return match ($this) {
             self::UserToUser => __('User to User'),
-            self::UserToOrg  => __('User to Organization'),
-            self::OrgToUser  => __('Organization to User'),
-            self::OrgToOrg   => __('Organization to Organization'),
-            self::Recovery   => __('Recovery'),
-            self::Migration  => __('Migration'),
+            self::UserToOrg => __('User to Organization'),
+            self::OrgToUser => __('Organization to User'),
+            self::OrgToOrg => __('Organization to Organization'),
+            self::Recovery => __('Recovery'),
+            self::Migration => __('Migration'),
         };
     }
 
@@ -29,7 +29,7 @@ enum TransferType: string
     {
         return match ($this) {
             self::Recovery, self::Migration => false,
-            default                         => true,
+            default => true,
         };
     }
 
@@ -37,7 +37,7 @@ enum TransferType: string
     {
         return match ($this) {
             self::OrgToOrg, self::Recovery, self::Migration => true,
-            default                                         => false,
+            default => false,
         };
     }
 
@@ -45,7 +45,7 @@ enum TransferType: string
     {
         return match ($this) {
             self::UserToOrg, self::Migration => true,
-            default                          => false,
+            default => false,
         };
     }
 }

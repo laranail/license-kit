@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Observers;
 
-use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
-use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
 use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
 
 class LicensingKeyObserver
 {
@@ -22,12 +22,12 @@ class LicensingKeyObserver
             : AuditEventType::KeySigningIssued;
 
         LicensingAuditLog::create([
-            'event_type'     => $eventType,
+            'event_type' => $eventType,
             'auditable_type' => $key::class,
-            'auditable_id'   => $key->id,
-            'meta'           => [
-                'kid'       => $key->kid,
-                'type'      => $key->type->value,
+            'auditable_id' => $key->id,
+            'meta' => [
+                'kid' => $key->kid,
+                'type' => $key->type->value,
                 'algorithm' => $key->algorithm,
             ],
         ]);
@@ -42,11 +42,11 @@ class LicensingKeyObserver
         // Check for revocation
         if ($key->wasChanged('status') && $key->status->value === 'revoked') {
             LicensingAuditLog::create([
-                'event_type'     => AuditEventType::KeyRevoked,
+                'event_type' => AuditEventType::KeyRevoked,
                 'auditable_type' => $key::class,
-                'auditable_id'   => $key->id,
-                'meta'           => [
-                    'kid'    => $key->kid,
+                'auditable_id' => $key->id,
+                'meta' => [
+                    'kid' => $key->kid,
                     'reason' => $key->revocation_reason,
                 ],
             ]);

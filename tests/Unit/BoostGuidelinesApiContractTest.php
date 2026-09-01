@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
+use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTrial;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Services\TrialService;
-use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
 
 /**
  * These tests pin the public API surface that the Boost guideline file
@@ -18,8 +18,8 @@ function assertSignature(ReflectionMethod $m, array $expected): void
 {
     $actual = collect($m->getParameters())
         ->map(fn (ReflectionParameter $p): array => [
-            'name'     => $p->getName(),
-            'type'     => $p->getType() instanceof ReflectionType ? (string) $p->getType() : null,
+            'name' => $p->getName(),
+            'type' => $p->getType() instanceof ReflectionType ? (string) $p->getType() : null,
             'optional' => $p->isOptional(),
         ])
         ->all();

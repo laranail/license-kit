@@ -6,9 +6,9 @@ namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use Exception;
 use Illuminate\Support\Facades\Crypt;
+use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Package\Tools\Support\Resilience\FailurePolicy;
-use Simtabi\Laranail\Licence\Kit\Contracts\LicenseKeyRetrieverContract;
 
 class EncryptedLicenseKeyRetriever implements LicenseKeyRetrieverContract
 {
@@ -40,8 +40,8 @@ class EncryptedLicenseKeyRetriever implements LicenseKeyRetrieverContract
             // (rule 15): the license id and exception class only, never the
             // ciphertext or the decrypted key.
             FailurePolicy::warn('stored license key could not be decrypted', [
-                'license'  => $license->getKey(),
-                'reason'   => 'threw ' . $e::class,
+                'license' => $license->getKey(),
+                'reason' => 'threw '.$e::class,
                 'decision' => 'treated as not retrievable (returned null)',
             ]);
 

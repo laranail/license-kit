@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-
-use function Spatie\PestPluginTestTime\testTime;
-
-use Simtabi\Laranail\Licence\Kit\Events\UsageRegistered;
 use Simtabi\Laranail\Licence\Kit\Events\UsageLimitReached;
+use Simtabi\Laranail\Licence\Kit\Events\UsageRegistered;
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+
+use function Spatie\PestPluginTestTime\testTime;
 
 uses(LicenseTestHelper::class);
 
@@ -25,7 +24,7 @@ test('can register new usage', function (): void {
 
     $usage = $this->registrar->register($this->license, $fingerprint, [
         'client_type' => 'desktop',
-        'name'        => 'Test Machine',
+        'name' => 'Test Machine',
     ]);
 
     expect($usage)->not->toBeNull()
@@ -83,7 +82,7 @@ test('updates heartbeat for existing usage', function (): void {
 test('enforces max usage limit with reject policy', function (): void {
     $this->license->update([
         'max_usages' => 2,
-        'meta'       => ['policies' => ['over_limit' => 'reject']],
+        'meta' => ['policies' => ['over_limit' => 'reject']],
     ]);
 
     $this->registrar->register($this->license, 'fingerprint1');
@@ -96,7 +95,7 @@ test('auto replaces oldest usage when limit reached', function (): void {
     testTime()->freeze();
     $this->license->update([
         'max_usages' => 2,
-        'meta'       => ['policies' => ['over_limit' => 'auto_replace_oldest']],
+        'meta' => ['policies' => ['over_limit' => 'auto_replace_oldest']],
     ]);
 
     $usage1 = $this->registrar->register($this->license, 'fingerprint1');
@@ -229,7 +228,7 @@ test('registers usage without request binding when metadata provided', function 
     $fingerprint = $this->generateFingerprint('cli');
 
     $usage = $this->registrar->register($this->license, $fingerprint, [
-        'ip'         => '127.0.0.1',
+        'ip' => '127.0.0.1',
         'user_agent' => 'artisan-cli',
     ]);
 

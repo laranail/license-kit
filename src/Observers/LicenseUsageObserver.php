@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Observers;
 
+use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
-use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
 
 class LicenseUsageObserver
@@ -18,11 +18,11 @@ class LicenseUsageObserver
         }
 
         LicensingAuditLog::create([
-            'event_type'     => AuditEventType::UsageRegistered,
+            'event_type' => AuditEventType::UsageRegistered,
             'auditable_type' => $usage::class,
-            'auditable_id'   => $usage->id,
-            'meta'           => [
-                'license_id'  => $usage->license_id,
+            'auditable_id' => $usage->id,
+            'meta' => [
+                'license_id' => $usage->license_id,
                 'fingerprint' => $usage->usage_fingerprint,
                 'client_type' => $usage->client_type,
             ],
@@ -41,10 +41,10 @@ class LicenseUsageObserver
             $reason = $usage->meta['revocation_reason'] ?? null;
 
             LicensingAuditLog::create([
-                'event_type'     => AuditEventType::UsageRevoked,
+                'event_type' => AuditEventType::UsageRevoked,
                 'auditable_type' => $usage::class,
-                'auditable_id'   => $usage->id,
-                'meta'           => [
+                'auditable_id' => $usage->id,
+                'meta' => [
                     'reason' => $reason,
                 ],
             ]);

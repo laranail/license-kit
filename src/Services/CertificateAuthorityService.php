@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
+use DateTimeInterface;
 use Exception;
 use RuntimeException;
-use DateTimeInterface;
+use Simtabi\Laranail\Licence\Kit\Contracts\CertificateAuthority;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Simtabi\Laranail\Licence\Kit\Contracts\CertificateAuthority;
 
 class CertificateAuthorityService implements CertificateAuthority
 {
@@ -27,12 +27,12 @@ class CertificateAuthorityService implements CertificateAuthority
         }
 
         $certificate = [
-            'kid'         => $kid,
-            'public_key'  => $signingPublicKey,
-            'valid_from'  => $validFrom->format('c'),
+            'kid' => $kid,
+            'public_key' => $signingPublicKey,
+            'valid_from' => $validFrom->format('c'),
             'valid_until' => $validUntil->format('c'),
-            'issued_at'   => now()->format('c'),
-            'issuer_kid'  => $rootKey->kid,
+            'issued_at' => now()->format('c'),
+            'issuer_kid' => $rootKey->kid,
         ];
 
         if ($scope instanceof LicenseScope) {
@@ -63,7 +63,7 @@ class CertificateAuthorityService implements CertificateAuthority
 
         $signedCertificate = [
             'certificate' => $certificate,
-            'signature'   => base64_encode($signature),
+            'signature' => base64_encode($signature),
         ];
 
         return json_encode($signedCertificate);
@@ -110,16 +110,16 @@ class CertificateAuthorityService implements CertificateAuthority
 
         return [
             'signing' => [
-                'kid'         => $signingKey->kid,
-                'public_key'  => $signingKey->getPublicKey(),
+                'kid' => $signingKey->kid,
+                'public_key' => $signingKey->getPublicKey(),
                 'certificate' => $signingKey->getCertificate(),
-                'valid_from'  => $signingKey->valid_from->format('c'),
+                'valid_from' => $signingKey->valid_from->format('c'),
                 'valid_until' => $signingKey->valid_until?->format('c'),
             ],
             'root' => [
-                'kid'         => $rootKey->kid,
-                'public_key'  => $rootKey->getPublicKey(),
-                'valid_from'  => $rootKey->valid_from->format('c'),
+                'kid' => $rootKey->kid,
+                'public_key' => $rootKey->getPublicKey(),
+                'valid_from' => $rootKey->valid_from->format('c'),
                 'valid_until' => $rootKey->valid_until?->format('c'),
             ],
         ];

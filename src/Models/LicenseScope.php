@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use Override;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Override;
 
 /**
  * @property int $id
@@ -46,18 +46,18 @@ class LicenseScope extends Model
     ];
 
     protected $casts = [
-        'is_active'             => 'boolean',
-        'key_rotation_days'     => 'integer',
-        'last_key_rotation_at'  => 'datetime',
-        'next_key_rotation_at'  => 'datetime',
-        'default_max_usages'    => 'integer',
+        'is_active' => 'boolean',
+        'key_rotation_days' => 'integer',
+        'last_key_rotation_at' => 'datetime',
+        'next_key_rotation_at' => 'datetime',
+        'default_max_usages' => 'integer',
         'default_duration_days' => 'integer',
-        'default_grace_days'    => 'integer',
-        'meta'                  => AsArrayObject::class,
+        'default_grace_days' => 'integer',
+        'meta' => AsArrayObject::class,
     ];
 
     protected $attributes = [
-        'is_active'         => true,
+        'is_active' => true,
         'key_rotation_days' => 90,
     ];
 
@@ -79,9 +79,9 @@ class LicenseScope extends Model
         return static::firstOrCreate(
             ['slug' => 'global'],
             [
-                'name'              => 'Global',
-                'identifier'        => 'global',
-                'description'       => 'Global scope for licenses without specific scope',
+                'name' => 'Global',
+                'identifier' => 'global',
+                'description' => 'Global scope for licenses without specific scope',
                 'key_rotation_days' => 90,
             ],
         );
@@ -198,14 +198,14 @@ class LicenseScope extends Model
         $this->signingKeys()
             ->where('status', 'active')
             ->update([
-                'status'            => 'revoked',
-                'revoked_at'        => now(),
+                'status' => 'revoked',
+                'revoked_at' => now(),
                 'revocation_reason' => $reason,
             ]);
 
         // Create new signing key
         $newKey = LicensingKey::generateSigningKey(
-            kid: $this->slug . '-' . now()->format('Y-m-d'),
+            kid: $this->slug.'-'.now()->format('Y-m-d'),
             scope: $this,
         );
         $newKey->save();
@@ -232,7 +232,7 @@ class LicenseScope extends Model
             'meta' => array_merge(
                 $this->meta?->toArray() ?? [],
                 [
-                    'scope'      => $this->slug,
+                    'scope' => $this->slug,
                     'scope_name' => $this->name,
                 ],
             ),
@@ -268,7 +268,7 @@ class LicenseScope extends Model
             }
 
             if (! $scope->identifier) {
-                $scope->identifier = 'com.example.' . $scope->slug;
+                $scope->identifier = 'com.example.'.$scope->slug;
             }
 
             // Set next rotation date if rotation is enabled

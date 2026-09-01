@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Simtabi\Laranail\Licence\Kit\Contracts\CanInitiateLicenseTransfers;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransfer;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransferApproval;
-use Simtabi\Laranail\Licence\Kit\Contracts\CanInitiateLicenseTransfers;
 
 class TransferApprovalService
 {
@@ -18,27 +18,27 @@ class TransferApprovalService
 
         if ($transfer->requires_source_approval) {
             $approvals['source'] = [
-                'required'      => true,
+                'required' => true,
                 'approver_type' => $transfer->from_licensable_type,
-                'approver_id'   => $transfer->from_licensable_id,
+                'approver_id' => $transfer->from_licensable_id,
                 'timeout_hours' => 72,
             ];
         }
 
         if ($transfer->requires_target_approval) {
             $approvals['target'] = [
-                'required'      => true,
+                'required' => true,
                 'approver_type' => $transfer->to_licensable_type,
-                'approver_id'   => $transfer->to_licensable_id,
+                'approver_id' => $transfer->to_licensable_id,
                 'timeout_hours' => 72,
             ];
         }
 
         if ($transfer->requires_admin_approval) {
             $approvals['admin'] = [
-                'required'      => true,
+                'required' => true,
                 'approver_type' => null,
-                'approver_id'   => null,
+                'approver_id' => null,
                 'timeout_hours' => 120,
             ];
         }
@@ -55,8 +55,8 @@ class TransferApprovalService
         return match ($approval->approval_type) {
             'source' => $this->canApproveAsSource($approval, $approver),
             'target' => $this->canApproveAsTarget($approval, $approver),
-            'admin'  => $this->canApproveAsAdmin($approver),
-            default  => false,
+            'admin' => $this->canApproveAsAdmin($approver),
+            default => false,
         };
     }
 
@@ -72,10 +72,10 @@ class TransferApprovalService
     ): LicenseTransferApproval {
         /** @var LicenseTransferApproval */
         return LicenseTransferApproval::create([
-            'transfer_id'   => $transfer->id,
+            'transfer_id' => $transfer->id,
             'approval_type' => $approvalType,
             'approver_type' => $approver instanceof Model ? $approver::class : null,
-            'approver_id'   => $approver?->getKey(),
+            'approver_id' => $approver?->getKey(),
         ]);
     }
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
 use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
+use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
 
 uses(LicenseTestHelper::class);
 
@@ -139,8 +139,8 @@ test('can revoke key', function (): void {
 test('expired key is not active', function (): void {
     $key = new LicensingKey;
     $key->generate([
-        'type'        => KeyType::Signing,
-        'valid_from'  => now()->subDays(60),
+        'type' => KeyType::Signing,
+        'valid_from' => now()->subDays(60),
         'valid_until' => now()->subDays(30),
     ]);
 
@@ -150,8 +150,8 @@ test('expired key is not active', function (): void {
 test('future key is not active', function (): void {
     $key = new LicensingKey;
     $key->generate([
-        'type'        => KeyType::Signing,
-        'valid_from'  => now()->addDay(),
+        'type' => KeyType::Signing,
+        'valid_from' => now()->addDay(),
         'valid_until' => now()->addDays(30),
     ]);
 

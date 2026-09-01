@@ -5,10 +5,10 @@ declare(strict_types=1);
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route as RouteFacade;
-use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\TokenController;
-use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\UsageController;
 use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\HealthController;
 use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\LicenseController;
+use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\TokenController;
+use Simtabi\Laranail\Licence\Kit\Http\Controllers\Api\UsageController;
 
 function routeByName(string $name): Route
 {
@@ -25,30 +25,30 @@ test('license API routes expose expected URIs and middleware', function (): void
     $prefix = config('licensing.api.prefix');
 
     $activateRoute = routeByName('licensing.activate');
-    expect($activateRoute->uri())->toBe($prefix . '/activate');
+    expect($activateRoute->uri())->toBe($prefix.'/activate');
 
     $deactivateRoute = routeByName('licensing.deactivate');
-    expect($deactivateRoute->uri())->toBe($prefix . '/deactivate');
+    expect($deactivateRoute->uri())->toBe($prefix.'/deactivate');
 
     $refreshRoute = routeByName('licensing.refresh');
-    expect($refreshRoute->uri())->toBe($prefix . '/refresh');
+    expect($refreshRoute->uri())->toBe($prefix.'/refresh');
 
     $validateRoute = routeByName('licensing.validate');
-    expect($validateRoute->uri())->toBe($prefix . '/validate')
+    expect($validateRoute->uri())->toBe($prefix.'/validate')
         ->and(collect($validateRoute->gatherMiddleware()))
         ->toContain('api');
 
     $heartbeatRoute = routeByName('licensing.heartbeat');
-    expect($heartbeatRoute->uri())->toBe($prefix . '/heartbeat');
+    expect($heartbeatRoute->uri())->toBe($prefix.'/heartbeat');
 
     $licenseShowRoute = routeByName('licensing.licenses.show');
-    expect($licenseShowRoute->uri())->toBe($prefix . '/licenses/show');
+    expect($licenseShowRoute->uri())->toBe($prefix.'/licenses/show');
 
     $healthRoute = routeByName('licensing.health');
-    expect($healthRoute->uri())->toBe($prefix . '/health');
+    expect($healthRoute->uri())->toBe($prefix.'/health');
 
     $tokenRoute = routeByName('licensing.token.issue');
-    expect($tokenRoute->uri())->toBe($prefix . '/token');
+    expect($tokenRoute->uri())->toBe($prefix.'/token');
 });
 
 // Regression: the provider must register the API routes ITSELF, from the merged config

@@ -17,12 +17,12 @@ enum TransferStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending    => __('Pending'),
-            self::Approved   => __('Approved'),
-            self::Rejected   => __('Rejected'),
-            self::Expired    => __('Expired'),
-            self::Completed  => __('Completed'),
-            self::Cancelled  => __('Cancelled'),
+            self::Pending => __('Pending'),
+            self::Approved => __('Approved'),
+            self::Rejected => __('Rejected'),
+            self::Expired => __('Expired'),
+            self::Completed => __('Completed'),
+            self::Cancelled => __('Cancelled'),
             self::RolledBack => __('Rolled Back'),
         };
     }
@@ -30,12 +30,12 @@ enum TransferStatus: string
     public function color(): string
     {
         return match ($this) {
-            self::Pending    => 'warning',
-            self::Approved   => 'info',
-            self::Rejected   => 'danger',
-            self::Expired    => 'secondary',
-            self::Completed  => 'success',
-            self::Cancelled  => 'secondary',
+            self::Pending => 'warning',
+            self::Approved => 'info',
+            self::Rejected => 'danger',
+            self::Expired => 'secondary',
+            self::Completed => 'success',
+            self::Cancelled => 'secondary',
             self::RolledBack => 'danger',
         };
     }
@@ -58,9 +58,9 @@ enum TransferStatus: string
         }
 
         return match ($this) {
-            self::Pending  => in_array($status, [self::Approved, self::Rejected, self::Expired, self::Cancelled]),
+            self::Pending => in_array($status, [self::Approved, self::Rejected, self::Expired, self::Cancelled]),
             self::Approved => in_array($status, [self::Completed, self::Cancelled, self::Expired]),
-            default        => false,
+            default => false,
         };
     }
 }

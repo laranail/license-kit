@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Override;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property int $id
@@ -61,18 +61,18 @@ class LicenseTemplate extends Model
     ];
 
     protected $casts = [
-        'tier_level'            => 'integer',
-        'base_configuration'    => AsArrayObject::class,
-        'features'              => AsArrayObject::class,
-        'entitlements'          => AsArrayObject::class,
-        'is_active'             => 'boolean',
-        'meta'                  => AsArrayObject::class,
-        'supports_trial'        => 'boolean',
-        'trial_duration_days'   => 'integer',
-        'has_grace_period'      => 'boolean',
-        'grace_period_days'     => 'integer',
+        'tier_level' => 'integer',
+        'base_configuration' => AsArrayObject::class,
+        'features' => AsArrayObject::class,
+        'entitlements' => AsArrayObject::class,
+        'is_active' => 'boolean',
+        'meta' => AsArrayObject::class,
+        'supports_trial' => 'boolean',
+        'trial_duration_days' => 'integer',
+        'has_grace_period' => 'boolean',
+        'grace_period_days' => 'integer',
         'license_duration_days' => 'integer',
-        'default_max_usages'    => 'integer',
+        'default_max_usages' => 'integer',
     ];
 
     public static function findBySlug(string $slug): ?self
@@ -100,10 +100,10 @@ class LicenseTemplate extends Model
         return SlugOptions::create()
             ->generateSlugsFrom(function (self $model): string {
                 $scopePart = $model->license_scope_id
-                    ? 'scope-' . $model->license_scope_id
+                    ? 'scope-'.$model->license_scope_id
                     : 'global';
 
-                return $scopePart . ' ' . $model->name;
+                return $scopePart.' '.$model->name;
             })
             ->saveSlugsTo('slug')
             ->doNotGenerateSlugsOnUpdate();

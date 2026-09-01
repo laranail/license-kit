@@ -3,17 +3,16 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
-
-use function Spatie\PestPluginTestTime\testTime;
-
-use Simtabi\Laranail\Licence\Kit\Models\License;
-use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
 use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
+use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
 use Simtabi\Laranail\Licence\Kit\Services\PasetoTokenService;
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
-use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
+
+use function Spatie\PestPluginTestTime\testTime;
 
 uses(LicenseTestHelper::class);
 
@@ -63,9 +62,9 @@ test('license key verification uses constant time comparison', function (): void
 
 test('fingerprints do not contain PII', function (): void {
     $fingerprint = hash('sha256', json_encode([
-        'machine_id'  => 'ABC123',
+        'machine_id' => 'ABC123',
         'app_version' => '1.0.0',
-        'os'          => 'darwin',
+        'os' => 'darwin',
     ]));
 
     expect($fingerprint)
@@ -220,10 +219,10 @@ test('XSS prevention in audit logs', function (): void {
     $maliciousData = '<script>alert("XSS")</script>';
 
     $log = LicensingAuditLog::create([
-        'event_type'     => AuditEventType::LicenseCreated,
+        'event_type' => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id'   => 1,
-        'meta'           => ['user_input' => $maliciousData],
+        'auditable_id' => 1,
+        'meta' => ['user_input' => $maliciousData],
     ]);
 
     // Data is stored as-is in JSON, but should be escaped when displayed
@@ -267,20 +266,20 @@ test('rejects additional usage registrations when limit already reached', functi
 
 test('audit logs are tamper-evident', function (): void {
     $log1 = LicensingAuditLog::create([
-        'event_type'     => AuditEventType::LicenseCreated,
+        'event_type' => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id'   => 1,
-        'meta'           => ['test' => 'data1'],
+        'auditable_id' => 1,
+        'meta' => ['test' => 'data1'],
     ]);
 
     $hash1 = $log1->calculateHash();
 
     $log2 = LicensingAuditLog::create([
-        'event_type'     => AuditEventType::LicenseActivated,
+        'event_type' => AuditEventType::LicenseActivated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id'   => 1,
-        'meta'           => ['test' => 'data2'],
-        'previous_hash'  => $hash1,
+        'auditable_id' => 1,
+        'meta' => ['test' => 'data2'],
+        'previous_hash' => $hash1,
     ]);
 
     // Verify chain
@@ -295,19 +294,19 @@ test('audit logs are tamper-evident', function (): void {
 
 test('audit chain detects tampering with the actor (who)', function (): void {
     $log1 = LicensingAuditLog::create([
-        'event_type'     => AuditEventType::LicenseCreated,
+        'event_type' => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id'   => 1,
-        'actor'          => 'admin',
-        'meta'           => ['test' => 'data1'],
+        'auditable_id' => 1,
+        'actor' => 'admin',
+        'meta' => ['test' => 'data1'],
     ]);
 
     $log2 = LicensingAuditLog::create([
-        'event_type'     => AuditEventType::LicenseActivated,
+        'event_type' => AuditEventType::LicenseActivated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id'   => 1,
-        'meta'           => ['test' => 'data2'],
-        'previous_hash'  => $log1->calculateHash(),
+        'auditable_id' => 1,
+        'meta' => ['test' => 'data2'],
+        'previous_hash' => $log1->calculateHash(),
     ]);
 
     expect($log2->verifyChain($log1))->toBeTrue();

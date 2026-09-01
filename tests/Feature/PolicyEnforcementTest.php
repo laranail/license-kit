@@ -3,14 +3,13 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
-
-use function Spatie\PestPluginTestTime\testTime;
-
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseExpired;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseExpiringSoon;
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+
+use function Spatie\PestPluginTestTime\testTime;
 
 uses(LicenseTestHelper::class);
 
@@ -22,7 +21,7 @@ beforeEach(function (): void {
 test('enforces over limit reject policy', function (): void {
     $license = $this->createLicense([
         'max_usages' => 2,
-        'meta'       => ['policies' => ['over_limit' => 'reject']],
+        'meta' => ['policies' => ['over_limit' => 'reject']],
     ]);
 
     $this->registrar->register($license, 'fingerprint1');
@@ -36,7 +35,7 @@ test('enforces auto replace oldest policy', function (): void {
     testTime()->freeze();
     $license = $this->createLicense([
         'max_usages' => 2,
-        'meta'       => ['policies' => ['over_limit' => 'auto_replace_oldest']],
+        'meta' => ['policies' => ['over_limit' => 'auto_replace_oldest']],
     ]);
 
     $usage1 = $this->registrar->register($license, 'fingerprint1');
@@ -55,9 +54,9 @@ test('enforces auto replace oldest policy', function (): void {
 
 test('respects grace period policy', function (): void {
     $license = $this->createLicense([
-        'status'     => LicenseStatus::Active,
+        'status' => LicenseStatus::Active,
         'expires_at' => now()->subDays(5),
-        'meta'       => ['policies' => ['grace_days' => 7]],
+        'meta' => ['policies' => ['grace_days' => 7]],
     ]);
 
     $license->transitionToGrace();
@@ -177,7 +176,7 @@ test('offline token TTL inheritance', function (): void {
     $customLicense = $this->createLicense([
         'meta' => [
             'offline_token' => [
-                'ttl_days'                => 7,
+                'ttl_days' => 7,
                 'force_online_after_days' => 14,
             ],
         ],
@@ -233,7 +232,7 @@ test('grace period notification timing', function (): void {
     Event::fake();
 
     $license = $this->createLicense([
-        'status'     => LicenseStatus::Active,
+        'status' => LicenseStatus::Active,
         'expires_at' => now()->addDays(7),
     ]);
 

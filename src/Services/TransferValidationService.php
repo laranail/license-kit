@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use Illuminate\Database\Eloquent\Model;
-use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Contracts\CanReceiveLicenseTransfers;
 use Simtabi\Laranail\Licence\Kit\Enums\TransferType;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TransferValidationException;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransfer;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransferApproval;
-use Simtabi\Laranail\Licence\Kit\Contracts\CanReceiveLicenseTransfers;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TransferValidationException;
 
 class TransferValidationService
 {
@@ -78,11 +78,11 @@ class TransferValidationService
         $targetType = class_basename($targetEntity::class);
 
         $expectedType = match ([$sourceType, $targetType]) {
-            ['User', 'User']                 => TransferType::UserToUser,
-            ['User', 'Organization']         => TransferType::UserToOrg,
-            ['Organization', 'User']         => TransferType::OrgToUser,
+            ['User', 'User'] => TransferType::UserToUser,
+            ['User', 'Organization'] => TransferType::UserToOrg,
+            ['Organization', 'User'] => TransferType::OrgToUser,
             ['Organization', 'Organization'] => TransferType::OrgToOrg,
-            default                          => null,
+            default => null,
         };
 
         if ($expectedType && $transferType !== $expectedType &&

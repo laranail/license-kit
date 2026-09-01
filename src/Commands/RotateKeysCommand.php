@@ -43,7 +43,7 @@ class RotateKeysCommand extends Command
 
         $this->line(__('laranail-license-kit::license-kit.rotate.rotating'));
 
-        $newKid = 'signing-' . bin2hex(random_bytes(16));
+        $newKid = 'signing-'.bin2hex(random_bytes(16));
 
         // Revoke-then-issue atomically: if certificate issuance or save fails,
         // the old signing key is NOT left revoked (which would break signing).

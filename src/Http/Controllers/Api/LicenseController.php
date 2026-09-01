@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Http\Controllers\Api;
 
-use Throwable;
 use Carbon\Carbon;
-use RuntimeException;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Simtabi\Laranail\Licence\Kit\LicenceKit;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
-use Simtabi\Laranail\Licence\Kit\Models\License;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
-use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
+use RuntimeException;
 use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
 use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
+use Simtabi\Laranail\Licence\Kit\LicenceKit;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
+use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
 use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
+use Throwable;
 
 class LicenseController extends ApiController
 {
@@ -33,7 +33,7 @@ class LicenseController extends ApiController
         $payload = $this->validate($request, [
             'license_key' => ['required', 'string'],
             'fingerprint' => ['required', 'string', 'max:255'],
-            'metadata'    => ['nullable', 'array'],
+            'metadata' => ['nullable', 'array'],
         ]);
 
         $license = $this->findLicense($payload['license_key']);
@@ -77,7 +77,7 @@ class LicenseController extends ApiController
         $payload = $this->validate($request, [
             'license_key' => ['required', 'string'],
             'fingerprint' => ['required', 'string', 'max:255'],
-            'reason'      => ['nullable', 'string'],
+            'reason' => ['nullable', 'string'],
         ]);
 
         $license = $this->findLicense($payload['license_key']);
@@ -162,7 +162,7 @@ class LicenseController extends ApiController
 
         return $this->success([
             'license' => $this->formatLicense($license),
-            'usage'   => $this->formatUsage($usage),
+            'usage' => $this->formatUsage($usage),
         ]);
     }
 
@@ -217,8 +217,8 @@ class LicenseController extends ApiController
 
         return array_filter([
             'license' => $this->formatLicense($license, includeUsageSummary: true),
-            'usage'   => $this->formatUsage($usage),
-            'token'   => $token,
+            'usage' => $this->formatUsage($usage),
+            'token' => $token,
             ...$tokenDetails,
         ], fn ($value): bool => $value !== null);
     }
@@ -241,10 +241,10 @@ class LicenseController extends ApiController
             : null;
 
         return array_filter([
-            'token_expires_at'   => $expiresAt?->toIso8601String(),
-            'refresh_after'      => $refreshAfter?->toIso8601String(),
+            'token_expires_at' => $expiresAt?->toIso8601String(),
+            'refresh_after' => $refreshAfter?->toIso8601String(),
             'force_online_after' => $forceOnlineAfter?->toIso8601String(),
-            'public_key_bundle'  => $this->buildPublicKeyBundle(),
+            'public_key_bundle' => $this->buildPublicKeyBundle(),
         ], fn (string|array|null $value): bool => $value !== null);
     }
 
@@ -259,16 +259,16 @@ class LicenseController extends ApiController
 
         return [
             'signing' => array_filter([
-                'kid'         => $signingKey->kid,
-                'public_key'  => $signingKey->getPublicKey(),
+                'kid' => $signingKey->kid,
+                'public_key' => $signingKey->getPublicKey(),
                 'certificate' => $signingKey->getCertificate(),
-                'valid_from'  => $signingKey->valid_from?->format('c'),
+                'valid_from' => $signingKey->valid_from?->format('c'),
                 'valid_until' => $signingKey->valid_until?->format('c'),
             ], fn (?string $value): bool => $value !== null),
             'root' => array_filter([
-                'kid'         => $rootKey->kid,
-                'public_key'  => $this->certificateAuthority->getRootPublicKey(),
-                'valid_from'  => $rootKey->valid_from?->format('c'),
+                'kid' => $rootKey->kid,
+                'public_key' => $this->certificateAuthority->getRootPublicKey(),
+                'valid_from' => $rootKey->valid_from?->format('c'),
                 'valid_until' => $rootKey->valid_until?->format('c'),
             ], fn (?string $value): bool => $value !== null),
             'issued_at' => now()->format('c'),
@@ -278,12 +278,12 @@ class LicenseController extends ApiController
     protected function formatLicense(License $license, bool $includeUsageSummary = false): array
     {
         $data = [
-            'id'           => $license->uid,
-            'status'       => $license->status->value,
+            'id' => $license->uid,
+            'status' => $license->status->value,
             'activated_at' => $license->activated_at?->toIso8601String(),
-            'expires_at'   => $license->expires_at?->toIso8601String(),
-            'max_usages'   => $license->max_usages,
-            'features'     => $license->getFeatures(),
+            'expires_at' => $license->expires_at?->toIso8601String(),
+            'max_usages' => $license->max_usages,
+            'features' => $license->getFeatures(),
             'entitlements' => $license->getEntitlements(),
         ];
 
@@ -302,11 +302,11 @@ class LicenseController extends ApiController
     protected function formatUsage(LicenseUsage $usage): array
     {
         return [
-            'id'            => $usage->getKey(),
-            'fingerprint'   => $usage->usage_fingerprint,
-            'status'        => $usage->status->value,
+            'id' => $usage->getKey(),
+            'fingerprint' => $usage->usage_fingerprint,
+            'status' => $usage->status->value,
             'registered_at' => $usage->registered_at?->toIso8601String(),
-            'last_seen_at'  => $usage->last_seen_at?->toIso8601String(),
+            'last_seen_at' => $usage->last_seen_at?->toIso8601String(),
         ];
     }
 

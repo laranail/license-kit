@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Commands;
 
-use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Events\LicenseExpiringSoon;
+use Simtabi\Laranail\Licence\Kit\Models\License;
 
 class CheckExpirationsCommand extends Command
 {
