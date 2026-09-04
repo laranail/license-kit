@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Http\Controllers\Api;
 
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
-use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
+use Illuminate\Http\JsonResponse;
 use Simtabi\Laranail\Licence\Kit\LicenceKit;
+use Illuminate\Validation\ValidationException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
 
 class UsageController extends ApiController
 {
@@ -23,7 +23,7 @@ class UsageController extends ApiController
         $payload = $this->validate($request, [
             'license_key' => ['required', 'string'],
             'fingerprint' => ['required', 'string', 'max:255'],
-            'data' => ['nullable', 'array'],
+            'data'        => ['nullable', 'array'],
         ]);
 
         $license = $this->findLicense($payload['license_key']);
@@ -49,10 +49,10 @@ class UsageController extends ApiController
 
         return $this->success([
             'usage' => [
-                'id' => $usage->getKey(),
-                'fingerprint' => $usage->usage_fingerprint,
+                'id'           => $usage->getKey(),
+                'fingerprint'  => $usage->usage_fingerprint,
                 'last_seen_at' => $usage->last_seen_at?->toIso8601String(),
-                'meta' => $usage->meta,
+                'meta'         => $usage->meta,
             ],
         ]);
     }
@@ -75,10 +75,10 @@ class UsageController extends ApiController
         }
 
         $usages = $license->usages()->get()->map(fn ($usage): array => [
-            'id' => $usage->getKey(),
-            'fingerprint' => $usage->usage_fingerprint,
+            'id'           => $usage->getKey(),
+            'fingerprint'  => $usage->usage_fingerprint,
             'last_seen_at' => $usage->last_seen_at?->toIso8601String(),
-            'status' => $usage->isActive() ? 'active' : 'revoked',
+            'status'       => $usage->isActive() ? 'active' : 'revoked',
         ])->all();
 
         return $this->success(['usages' => $usages, 'total' => count($usages)]);
@@ -89,7 +89,7 @@ class UsageController extends ApiController
         $payload = $this->validate($request, [
             'license_key' => ['required', 'string'],
             'fingerprint' => ['required', 'string', 'max:255'],
-            'target' => ['required', 'string'],
+            'target'      => ['required', 'string'],
         ]);
 
         $license = $this->findLicense($payload['license_key']);

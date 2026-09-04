@@ -6,8 +6,8 @@ namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
-use Simtabi\Laranail\Licence\Kit\Contracts\AuditLogger;
 use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
+use Simtabi\Laranail\Licence\Kit\Contracts\AuditLogger;
 
 class AuditLoggerService implements AuditLogger
 {
@@ -39,14 +39,14 @@ class AuditLoggerService implements AuditLogger
         }
 
         $this->modelClass::create([
-            'event_type' => $eventType,
+            'event_type'     => $eventType,
             'auditable_type' => $auditableType,
-            'auditable_id' => $auditableId,
-            'actor' => $actor ?? $this->resolveActor(),
-            'ip' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'meta' => array_merge($data, $context),
-            'occurred_at' => now(),
+            'auditable_id'   => $auditableId,
+            'actor'          => $actor ?? $this->resolveActor(),
+            'ip'             => request()->ip(),
+            'user_agent'     => request()->userAgent(),
+            'meta'           => array_merge($data, $context),
+            'occurred_at'    => now(),
         ]);
     }
 
@@ -91,11 +91,11 @@ class AuditLoggerService implements AuditLogger
         if (auth()->check()) {
             $user = auth()->user();
 
-            return $user::class.':'.$user->getKey();
+            return $user::class . ':' . $user->getKey();
         }
 
         if (app()->runningInConsole()) {
-            return 'console:'.get_current_user();
+            return 'console:' . get_current_user();
         }
 
         return null;

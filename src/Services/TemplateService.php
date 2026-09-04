@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
-use Illuminate\Database\Eloquent\Collection;
 use InvalidArgumentException;
+use Illuminate\Database\Eloquent\Collection;
 use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseScope;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTemplate;
@@ -75,26 +75,26 @@ class TemplateService
         $basic = LicenseTemplate::firstOrCreate(
             [
                 'license_scope_id' => $scope?->getKey(),
-                'name' => 'Basic',
+                'name'             => 'Basic',
             ],
             [
-                'tier_level' => 1,
+                'tier_level'         => 1,
                 'base_configuration' => [
-                    'max_usages' => 1,
+                    'max_usages'    => 1,
                     'validity_days' => 365,
-                    'grace_days' => 7,
+                    'grace_days'    => 7,
                 ],
                 'features' => [
-                    'basic_features' => true,
-                    'api_access' => false,
-                    'export_data' => false,
+                    'basic_features'   => true,
+                    'api_access'       => false,
+                    'export_data'      => false,
                     'priority_support' => false,
                 ],
                 'entitlements' => [
                     'max_api_calls_per_day' => 100,
-                    'max_storage_gb' => 1,
-                    'max_team_members' => 1,
-                    'data_retention_days' => 30,
+                    'max_storage_gb'        => 1,
+                    'max_team_members'      => 1,
+                    'data_retention_days'   => 30,
                 ],
                 'is_active' => true,
             ],
@@ -104,25 +104,25 @@ class TemplateService
         $pro = LicenseTemplate::firstOrCreate(
             [
                 'license_scope_id' => $scope?->getKey(),
-                'name' => 'Pro',
+                'name'             => 'Pro',
             ],
             [
-                'tier_level' => 2,
+                'tier_level'         => 2,
                 'parent_template_id' => $basic->id,
                 'base_configuration' => [
-                    'max_usages' => 5,
+                    'max_usages'    => 5,
                     'validity_days' => 365,
-                    'grace_days' => 14,
+                    'grace_days'    => 14,
                 ],
                 'features' => [
-                    'api_access' => true,
+                    'api_access'  => true,
                     'export_data' => true,
                 ],
                 'entitlements' => [
                     'max_api_calls_per_day' => 5000,
-                    'max_storage_gb' => 10,
-                    'max_team_members' => 5,
-                    'data_retention_days' => 90,
+                    'max_storage_gb'        => 10,
+                    'max_team_members'      => 5,
+                    'data_retention_days'   => 90,
                 ],
                 'is_active' => true,
             ],
@@ -132,27 +132,27 @@ class TemplateService
         $enterprise = LicenseTemplate::firstOrCreate(
             [
                 'license_scope_id' => $scope?->getKey(),
-                'name' => 'Enterprise',
+                'name'             => 'Enterprise',
             ],
             [
-                'tier_level' => 3,
+                'tier_level'         => 3,
                 'parent_template_id' => $pro->id,
                 'base_configuration' => [
-                    'max_usages' => -1, // unlimited
+                    'max_usages'    => -1, // unlimited
                     'validity_days' => 365,
-                    'grace_days' => 30,
+                    'grace_days'    => 30,
                 ],
                 'features' => [
                     'priority_support' => true,
-                    'custom_branding' => true,
-                    'sso' => true,
-                    'audit_logs' => true,
+                    'custom_branding'  => true,
+                    'sso'              => true,
+                    'audit_logs'       => true,
                 ],
                 'entitlements' => [
                     'max_api_calls_per_day' => -1, // unlimited
-                    'max_storage_gb' => 100,
-                    'max_team_members' => -1, // unlimited
-                    'data_retention_days' => 365,
+                    'max_storage_gb'        => 100,
+                    'max_team_members'      => -1, // unlimited
+                    'data_retention_days'   => 365,
                 ],
                 'is_active' => true,
             ],
@@ -180,8 +180,8 @@ class TemplateService
 
         $license->update([
             'template_id' => $newTemplate->id,
-            'max_usages' => $config['max_usages'] ?? $license->max_usages,
-            'meta' => array_merge(
+            'max_usages'  => $config['max_usages'] ?? $license->max_usages,
+            'meta'        => array_merge(
                 $license->meta ? $license->meta->toArray() : [],
                 $config,
             ),

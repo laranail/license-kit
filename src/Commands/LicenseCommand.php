@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Commands;
 
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 
 /**
  * Administer a single license from the CLI: inspect it or change its lifecycle
@@ -41,11 +41,11 @@ class LicenseCommand extends Command
         }
 
         return match ($action) {
-            'show' => $this->show($license),
-            'suspend' => $this->transition($license, 'suspend', 'Suspend'),
+            'show'             => $this->show($license),
+            'suspend'          => $this->transition($license, 'suspend', 'Suspend'),
             'cancel', 'revoke' => $this->transition($license, 'cancel', 'Cancel/revoke'),
-            'reinstate' => $this->reinstate($license),
-            default => $this->invalid($action),
+            'reinstate'        => $this->reinstate($license),
+            default            => $this->invalid($action),
         };
     }
 

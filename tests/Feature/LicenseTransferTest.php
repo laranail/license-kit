@@ -3,42 +3,42 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Event;
+use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\TransferType;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Enums\TransferStatus;
-use Simtabi\Laranail\Licence\Kit\Enums\TransferType;
-use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseTransferCompleted;
-use Simtabi\Laranail\Licence\Kit\Events\LicenseTransferRejected;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TransferNotAllowedException;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TransferValidationException;
-use Simtabi\Laranail\Licence\Kit\Models\License;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransfer;
+use Simtabi\Laranail\Licence\Kit\Tests\TestClasses\User;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTransferHistory;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseTransferRejected;
+use Simtabi\Laranail\Licence\Kit\Events\LicenseTransferCompleted;
 use Simtabi\Laranail\Licence\Kit\Services\LicenseTransferService;
 use Simtabi\Laranail\Licence\Kit\Services\TransferValidationService;
-use Simtabi\Laranail\Licence\Kit\Tests\TestClasses\User;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TransferNotAllowedException;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TransferValidationException;
 
 beforeEach(function (): void {
     $this->transferService = app(LicenseTransferService::class);
     $this->validationService = app(TransferValidationService::class);
 
     $this->sourceUser = User::create([
-        'name' => 'Source User',
+        'name'  => 'Source User',
         'email' => 'source@example.com',
     ]);
 
     $this->targetUser = User::create([
-        'name' => 'Target User',
+        'name'  => 'Target User',
         'email' => 'target@example.com',
     ]);
 
     $this->license = License::create([
-        'key_hash' => License::hashKey('test-key'),
+        'key_hash'        => License::hashKey('test-key'),
         'licensable_type' => $this->sourceUser::class,
-        'licensable_id' => $this->sourceUser->id,
-        'status' => 'active',
-        'max_usages' => 5,
-        'expires_at' => now()->addYear(),
+        'licensable_id'   => $this->sourceUser->id,
+        'status'          => 'active',
+        'max_usages'      => 5,
+        'expires_at'      => now()->addYear(),
     ]);
 });
 
@@ -144,14 +144,14 @@ it('preserves usages when configured', function (): void {
     // Create some usages
     $usage1 = $this->license->usages()->create([
         'usage_fingerprint' => 'device-1',
-        'status' => 'active',
-        'registered_at' => now(),
+        'status'            => 'active',
+        'registered_at'     => now(),
     ]);
 
     $usage2 = $this->license->usages()->create([
         'usage_fingerprint' => 'device-2',
-        'status' => 'active',
-        'registered_at' => now(),
+        'status'            => 'active',
+        'registered_at'     => now(),
     ]);
 
     $transfer = $this->transferService->initiateTransfer(
@@ -180,14 +180,14 @@ it('revokes usages when not preserved', function (): void {
     // Create some usages
     $usage1 = $this->license->usages()->create([
         'usage_fingerprint' => 'device-1',
-        'status' => 'active',
-        'registered_at' => now(),
+        'status'            => 'active',
+        'registered_at'     => now(),
     ]);
 
     $usage2 = $this->license->usages()->create([
         'usage_fingerprint' => 'device-2',
-        'status' => 'active',
-        'registered_at' => now(),
+        'status'            => 'active',
+        'registered_at'     => now(),
     ]);
 
     $transfer = $this->transferService->initiateTransfer(
@@ -285,7 +285,7 @@ it('detects ping-pong transfer pattern', function (): void {
     $transfer1->update(['status' => TransferStatus::Completed, 'completed_at' => now()->subDays(31)]);
     $this->license->update([
         'licensable_type' => $this->targetUser::class,
-        'licensable_id' => $this->targetUser->id,
+        'licensable_id'   => $this->targetUser->id,
     ]);
 
     // Try to transfer back to original owner
@@ -303,15 +303,15 @@ it('detects frequent transfer pattern', function (): void {
     // Create multiple completed transfers within 90 days but older than cooling period
     for ($i = 0; $i < 4; $i++) {
         $transfer = new LicenseTransfer([
-            'license_id' => $this->license->id,
+            'license_id'           => $this->license->id,
             'from_licensable_type' => $this->sourceUser::class,
-            'from_licensable_id' => $this->sourceUser->id,
-            'to_licensable_type' => $this->targetUser::class,
-            'to_licensable_id' => $this->targetUser->id,
-            'transfer_type' => TransferType::UserToUser,
-            'status' => TransferStatus::Completed,
-            'completed_at' => now()->subDays(35 + $i * 10), // All older than 30 days
-            'expires_at' => now()->addDays(7),
+            'from_licensable_id'   => $this->sourceUser->id,
+            'to_licensable_type'   => $this->targetUser::class,
+            'to_licensable_id'     => $this->targetUser->id,
+            'transfer_type'        => TransferType::UserToUser,
+            'status'               => TransferStatus::Completed,
+            'completed_at'         => now()->subDays(35 + $i * 10), // All older than 30 days
+            'expires_at'           => now()->addDays(7),
         ]);
         $transfer->save();
     }
@@ -327,7 +327,7 @@ it('detects frequent transfer pattern', function (): void {
 
 it('allows admin to override transfer approval', function (): void {
     $adminUser = User::create([
-        'name' => 'Admin User',
+        'name'  => 'Admin User',
         'email' => 'admin@example.com',
     ]);
 
@@ -459,7 +459,7 @@ it('updates expiration when not preserved', function (): void {
         $this->sourceUser,
         [
             'preserve_expiration' => false,
-            'conditions' => ['new_expiration' => $newExpiration],
+            'conditions'          => ['new_expiration' => $newExpiration],
         ],
     );
 
@@ -477,7 +477,7 @@ it('updates expiration when not preserved', function (): void {
 
 it('prevents unauthorized approval', function (): void {
     $unauthorizedUser = User::create([
-        'name' => 'Unauthorized User',
+        'name'  => 'Unauthorized User',
         'email' => 'unauthorized@example.com',
     ]);
 
@@ -503,10 +503,10 @@ it('generates unique transfer codes', function (): void {
     );
 
     $license2 = License::create([
-        'key_hash' => License::hashKey('test-key-2'),
+        'key_hash'        => License::hashKey('test-key-2'),
         'licensable_type' => $this->sourceUser::class,
-        'licensable_id' => $this->sourceUser->id,
-        'status' => 'active',
+        'licensable_id'   => $this->sourceUser->id,
+        'status'          => 'active',
     ]);
 
     $transfer2 = $this->transferService->initiateTransfer(

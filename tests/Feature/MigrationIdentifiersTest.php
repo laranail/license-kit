@@ -44,7 +44,7 @@ it('keeps every index name within the MySQL identifier limit', function (): void
         expect(strlen((string) $index->name))
             ->toBeLessThanOrEqual(
                 MYSQL_IDENTIFIER_MAX,
-                "Index '{$index->name}' on table '{$index->tbl_name}' is ".strlen((string) $index->name)." chars and exceeds MySQL's 64-char limit",
+                "Index '{$index->name}' on table '{$index->tbl_name}' is " . strlen((string) $index->name) . " chars and exceeds MySQL's 64-char limit",
             );
     }
 });
