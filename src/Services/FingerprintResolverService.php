@@ -12,8 +12,8 @@ class FingerprintResolverService implements FingerprintResolver
     public function resolve(Request $request): string
     {
         $components = [
-            'ip' => $request->ip(),
-            'user_agent' => $request->userAgent(),
+            'ip'              => $request->ip(),
+            'user_agent'      => $request->userAgent(),
             'accept_language' => $request->header('Accept-Language'),
             'accept_encoding' => $request->header('Accept-Encoding'),
         ];
