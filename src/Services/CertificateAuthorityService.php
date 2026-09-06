@@ -80,7 +80,7 @@ class CertificateAuthorityService implements CertificateAuthority
 
             $rootKey = LicensingKey::findByKid($data['certificate']['issuer_kid'] ?? '');
 
-            if (! $rootKey || ! $rootKey->isActive()) {
+            if (! $rootKey instanceof LicensingKey || ! $rootKey->isActive()) {
                 return false;
             }
 

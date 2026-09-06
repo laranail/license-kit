@@ -50,7 +50,7 @@
     },
     "require-dev": {
         "larastan/larastan": "^3.0",
-        "laravel/pint": "^1.14",
+        "laravel/pint": "^1.30",
         "nunomaduro/collision": "^8.8",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-arch": "^4.0",
