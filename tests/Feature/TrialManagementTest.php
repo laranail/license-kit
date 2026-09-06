@@ -3,20 +3,20 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTrial;
 use Simtabi\Laranail\Licence\Kit\Services\TrialService;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
 
 beforeEach(function (): void {
     $this->trialService = app(TrialService::class);
     $this->license = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 1,
-        'status' => LicenseStatus::Pending,
+        'licensable_id'   => 1,
+        'status'          => LicenseStatus::Pending,
     ]);
 });
 
@@ -48,7 +48,7 @@ it('cannot start duplicate trial', function (): void {
 it('cannot reset trial with same fingerprint', function (): void {
     $license2 = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 2,
+        'licensable_id'   => 2,
     ]);
     $fingerprint = 'test-device-123';
 
@@ -136,7 +136,7 @@ it('enforces limitations', function (): void {
         durationDays: 7,
         limitations: [
             'max_api_calls' => 100,
-            'max_records' => 50,
+            'max_records'   => 50,
         ],
     );
 
@@ -150,7 +150,7 @@ it('calculates trial stats correctly', function (): void {
     // Create multiple licenses for different trial scenarios
     $license = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 1,
+        'licensable_id'   => 1,
     ]);
 
     // Create various trials

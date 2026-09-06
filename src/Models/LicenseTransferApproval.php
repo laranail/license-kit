@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Override;
 use RuntimeException;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Simtabi\Laranail\Licence\Kit\Enums\ApprovalStatus;
 
 /**
@@ -55,11 +55,11 @@ class LicenseTransferApproval extends Model
     ];
 
     protected $casts = [
-        'status' => ApprovalStatus::class,
-        'conditions' => 'array',
+        'status'           => ApprovalStatus::class,
+        'conditions'       => 'array',
         'token_expires_at' => 'datetime',
-        'approved_at' => 'datetime',
-        'rejected_at' => 'datetime',
+        'approved_at'      => 'datetime',
+        'rejected_at'      => 'datetime',
     ];
 
     /** @return BelongsTo<LicenseTransfer, self> */
@@ -126,13 +126,13 @@ class LicenseTransferApproval extends Model
         }
 
         $this->update([
-            'approver_type' => $approver::class,
-            'approver_id' => $approver->getKey(),
-            'status' => ApprovalStatus::Approved,
-            'reason' => $reason,
-            'conditions' => $conditions,
-            'approved_at' => now(),
-            'approver_ip' => request()->ip(),
+            'approver_type'       => $approver::class,
+            'approver_id'         => $approver->getKey(),
+            'status'              => ApprovalStatus::Approved,
+            'reason'              => $reason,
+            'conditions'          => $conditions,
+            'approved_at'         => now(),
+            'approver_ip'         => request()->ip(),
             'approver_user_agent' => request()->userAgent(),
         ]);
 
@@ -146,12 +146,12 @@ class LicenseTransferApproval extends Model
         }
 
         $this->update([
-            'approver_type' => $rejector::class,
-            'approver_id' => $rejector->getKey(),
-            'status' => ApprovalStatus::Rejected,
-            'reason' => $reason,
-            'rejected_at' => now(),
-            'approver_ip' => request()->ip(),
+            'approver_type'       => $rejector::class,
+            'approver_id'         => $rejector->getKey(),
+            'status'              => ApprovalStatus::Rejected,
+            'reason'              => $reason,
+            'rejected_at'         => now(),
+            'approver_ip'         => request()->ip(),
             'approver_user_agent' => request()->userAgent(),
         ]);
 
@@ -190,8 +190,8 @@ class LicenseTransferApproval extends Model
         match ($this->approval_type) {
             'source' => $transfer->update(['source_approved_at' => now()]),
             'target' => $transfer->update(['target_approved_at' => now()]),
-            'admin' => $transfer->update(['admin_approved_at' => now()]),
-            default => null,
+            'admin'  => $transfer->update(['admin_approved_at' => now()]),
+            default  => null,
         };
 
         if ($transfer->canBeExecuted()) {

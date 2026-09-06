@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\ArrayObject;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 use Override;
+use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Simtabi\Laranail\Licence\Kit\Enums\UsageStatus;
+use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Simtabi\Laranail\Licence\Kit\Events\UsageRevoked;
 
 /**
@@ -46,11 +46,11 @@ class LicenseUsage extends Model
     ];
 
     protected $casts = [
-        'status' => UsageStatus::class,
+        'status'        => UsageStatus::class,
         'registered_at' => 'datetime',
-        'last_seen_at' => 'datetime',
-        'revoked_at' => 'datetime',
-        'meta' => AsArrayObject::class,
+        'last_seen_at'  => 'datetime',
+        'revoked_at'    => 'datetime',
+        'meta'          => AsArrayObject::class,
     ];
 
     protected $attributes = [
@@ -77,7 +77,7 @@ class LicenseUsage extends Model
         }
 
         $updateData = [
-            'status' => UsageStatus::Revoked,
+            'status'     => UsageStatus::Revoked,
             'revoked_at' => now(),
         ];
 

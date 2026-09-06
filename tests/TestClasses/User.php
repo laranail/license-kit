@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Tests\TestClasses;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Simtabi\Laranail\Licence\Kit\Contracts\CanInitiateLicenseTransfers;
-use Simtabi\Laranail\Licence\Kit\Contracts\CanReceiveLicenseTransfers;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Simtabi\Laranail\Licence\Kit\Contracts\CanReceiveLicenseTransfers;
+use Simtabi\Laranail\Licence\Kit\Contracts\CanInitiateLicenseTransfers;
 
 class User extends Authenticatable implements CanInitiateLicenseTransfers, CanReceiveLicenseTransfers
 {

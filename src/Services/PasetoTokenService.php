@@ -4,26 +4,26 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
-use DateTimeImmutable;
 use Exception;
+use Throwable;
+use RuntimeException;
+use DateTimeImmutable;
+use ParagonIE\Paseto\Parser;
 use ParagonIE\Paseto\Builder;
-use ParagonIE\Paseto\Exception\PasetoException;
+use ParagonIE\Paseto\Rules\Subject;
+use ParagonIE\Paseto\Rules\IssuedBy;
+use ParagonIE\Paseto\Rules\NotExpired;
+use ParagonIE\Paseto\Protocol\Version4;
 use ParagonIE\Paseto\Exception\RuleViolation;
 use ParagonIE\Paseto\Keys\AsymmetricPublicKey;
 use ParagonIE\Paseto\Keys\AsymmetricSecretKey;
-use ParagonIE\Paseto\Parser;
-use ParagonIE\Paseto\Protocol\Version4;
-use ParagonIE\Paseto\Rules\IssuedBy;
-use ParagonIE\Paseto\Rules\NotExpired;
-use ParagonIE\Paseto\Rules\Subject;
-use RuntimeException;
-use Simtabi\Laranail\Licence\Kit\Contracts\TokenIssuer;
-use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
-use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
+use ParagonIE\Paseto\Exception\PasetoException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\KeyStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
-use Throwable;
+use Simtabi\Laranail\Licence\Kit\Contracts\TokenIssuer;
+use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
 
 class PasetoTokenService implements TokenIssuer, TokenVerifier
 {
@@ -70,15 +70,15 @@ class PasetoTokenService implements TokenIssuer, TokenVerifier
             : $now->addDays($forceOnlineDays);
 
         $claims = [
-            'kid' => $signingKey->kid,
-            'license_id' => $license->id,
-            'license_key_hash' => $license->key_hash,
-            'usage_fingerprint' => $usage->usage_fingerprint,
-            'status' => $license->status->value,
-            'max_usages' => $license->max_usages,
+            'kid'                => $signingKey->kid,
+            'license_id'         => $license->id,
+            'license_key_hash'   => $license->key_hash,
+            'usage_fingerprint'  => $usage->usage_fingerprint,
+            'status'             => $license->status->value,
+            'max_usages'         => $license->max_usages,
             'force_online_after' => $forceOnlineAfter->format('c'),
-            'licensable_type' => $license->licensable_type,
-            'licensable_id' => $license->licensable_id,
+            'licensable_type'    => $license->licensable_type,
+            'licensable_id'      => $license->licensable_id,
         ];
 
         if ($license->expires_at) {
@@ -101,7 +101,7 @@ class PasetoTokenService implements TokenIssuer, TokenVerifier
 
         $ca = app(CertificateAuthorityService::class);
         $footer = json_encode([
-            'kid' => $signingKey->kid,
+            'kid'   => $signingKey->kid,
             'chain' => $ca->getCertificateChain($signingKey->kid),
         ]);
 
@@ -197,13 +197,13 @@ class PasetoTokenService implements TokenIssuer, TokenVerifier
 
             return array_merge($claims, ['footer' => $footer]);
         } catch (RuleViolation|PasetoException $e) {
-            throw new RuntimeException('Token verification failed: '.$e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException('Token verification failed: ' . $e->getMessage(), $e->getCode(), $e);
         } catch (Exception $e) {
             if ($e instanceof RuntimeException) {
                 throw $e;
             }
 
-            throw new RuntimeException('Token verification failed: '.$e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException('Token verification failed: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -260,7 +260,7 @@ class PasetoTokenService implements TokenIssuer, TokenVerifier
 
             return $parsed->getClaims();
         } catch (Exception $e) {
-            throw new RuntimeException('Token verification failed: '.$e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException('Token verification failed: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -279,7 +279,7 @@ class PasetoTokenService implements TokenIssuer, TokenVerifier
 
             return $parsed->getClaims();
         } catch (Exception $e) {
-            throw new RuntimeException('Failed to extract token claims: '.$e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException('Failed to extract token claims: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 

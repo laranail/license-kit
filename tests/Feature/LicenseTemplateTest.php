@@ -17,15 +17,15 @@ it('creates a license template with auto-generated slug', function (): void {
     ]);
 
     $template = LicenseTemplate::create([
-        'license_scope_id' => $scope->id,
-        'name' => 'Professional Plan',
-        'tier_level' => 2,
+        'license_scope_id'   => $scope->id,
+        'name'               => 'Professional Plan',
+        'tier_level'         => 2,
         'base_configuration' => [
-            'max_usages' => 5,
+            'max_usages'    => 5,
             'validity_days' => 365,
         ],
         'features' => [
-            'api_access' => true,
+            'api_access'  => true,
             'export_data' => true,
         ],
         'entitlements' => [
@@ -33,7 +33,7 @@ it('creates a license template with auto-generated slug', function (): void {
         ],
     ]);
 
-    expect($template->slug)->toBe('scope-'.$scope->id.'-professional-plan');
+    expect($template->slug)->toBe('scope-' . $scope->id . '-professional-plan');
     expect($template->license_scope_id)->toBe($scope->id);
     expect($template->tier_level)->toBe(2);
 });
@@ -45,9 +45,9 @@ it('supports template inheritance', function (): void {
 
     $basic = LicenseTemplate::create([
         'license_scope_id' => $scope->id,
-        'name' => 'Basic',
-        'tier_level' => 1,
-        'features' => [
+        'name'             => 'Basic',
+        'tier_level'       => 1,
+        'features'         => [
             'feature_a' => true,
             'feature_b' => false,
         ],
@@ -57,11 +57,11 @@ it('supports template inheritance', function (): void {
     ]);
 
     $pro = LicenseTemplate::create([
-        'license_scope_id' => $scope->id,
-        'name' => 'Pro',
-        'tier_level' => 2,
+        'license_scope_id'   => $scope->id,
+        'name'               => 'Pro',
+        'tier_level'         => 2,
         'parent_template_id' => $basic->id,
-        'features' => [
+        'features'           => [
             'feature_b' => true,
             'feature_c' => true,
         ],
@@ -90,13 +90,13 @@ it('creates a license from template', function (): void {
     ]);
 
     $template = LicenseTemplate::create([
-        'license_scope_id' => $scope->id,
-        'name' => 'Pro',
-        'tier_level' => 2,
+        'license_scope_id'   => $scope->id,
+        'name'               => 'Pro',
+        'tier_level'         => 2,
         'base_configuration' => [
-            'max_usages' => 10,
+            'max_usages'    => 10,
             'validity_days' => 30,
-            'grace_days' => 7,
+            'grace_days'    => 7,
         ],
         'features' => [
             'api_access' => true,
@@ -119,11 +119,11 @@ it('creates a license from template', function (): void {
 
 it('exposes trial and grace period settings', function (): void {
     $template = LicenseTemplate::create([
-        'name' => 'Trial Plan',
-        'supports_trial' => true,
+        'name'                => 'Trial Plan',
+        'supports_trial'      => true,
         'trial_duration_days' => 21,
-        'has_grace_period' => true,
-        'grace_period_days' => 5,
+        'has_grace_period'    => true,
+        'grace_period_days'   => 5,
     ]);
 
     expect($template->supportsTrial())->toBeTrue();
@@ -134,16 +134,16 @@ it('exposes trial and grace period settings', function (): void {
 
 it('inherits trial configuration from parent template when enabled', function (): void {
     $parent = LicenseTemplate::create([
-        'name' => 'Parent Plan',
-        'supports_trial' => true,
-        'trial_duration_days' => 14,
-        'has_grace_period' => true,
-        'grace_period_days' => 3,
+        'name'                  => 'Parent Plan',
+        'supports_trial'        => true,
+        'trial_duration_days'   => 14,
+        'has_grace_period'      => true,
+        'grace_period_days'     => 3,
         'license_duration_days' => 60,
     ]);
 
     $child = LicenseTemplate::create([
-        'name' => 'Child Plan',
+        'name'               => 'Child Plan',
         'parent_template_id' => $parent->id,
     ]);
 
@@ -156,7 +156,7 @@ it('inherits trial configuration from parent template when enabled', function ()
 
 it('applies template license duration when generating licenses', function (): void {
     $template = LicenseTemplate::create([
-        'name' => 'Timeboxed Plan',
+        'name'                  => 'Timeboxed Plan',
         'license_duration_days' => 45,
     ]);
 
@@ -173,15 +173,15 @@ it('creates a license from template slug', function (): void {
     ]);
 
     $template = LicenseTemplate::create([
-        'license_scope_id' => $scope->id,
-        'name' => 'Enterprise',
-        'tier_level' => 3,
+        'license_scope_id'   => $scope->id,
+        'name'               => 'Enterprise',
+        'tier_level'         => 3,
         'base_configuration' => [
             'max_usages' => 100,
         ],
     ]);
 
-    $license = License::createFromTemplate('scope-'.$scope->id.'-enterprise', [
+    $license = License::createFromTemplate('scope-' . $scope->id . '-enterprise', [
         'key_hash' => hash('sha256', 'test-key'),
     ]);
 
@@ -192,10 +192,10 @@ it('creates a license from template slug', function (): void {
 
 it('checks features on license through template', function (): void {
     $template = LicenseTemplate::create([
-        'name' => 'Pro',
+        'name'     => 'Pro',
         'features' => [
-            'api_access' => true,
-            'export_data' => true,
+            'api_access'      => true,
+            'export_data'     => true,
             'custom_branding' => false,
         ],
     ]);
@@ -212,10 +212,10 @@ it('checks features on license through template', function (): void {
 
 it('gets entitlements from license through template', function (): void {
     $template = LicenseTemplate::create([
-        'name' => 'Pro',
+        'name'         => 'Pro',
         'entitlements' => [
-            'max_api_calls' => 5000,
-            'max_storage_gb' => 10,
+            'max_api_calls'    => 5000,
+            'max_storage_gb'   => 10,
             'max_team_members' => 5,
         ],
     ]);
@@ -232,7 +232,7 @@ it('gets entitlements from license through template', function (): void {
 
 it('returns empty features and entitlements for license without template', function (): void {
     $license = License::create([
-        'key_hash' => hash('sha256', 'test-key'),
+        'key_hash'   => hash('sha256', 'test-key'),
         'max_usages' => 1,
     ]);
 
@@ -248,16 +248,16 @@ it('upgrades a license to higher tier', function (): void {
     ]);
 
     $basic = LicenseTemplate::create([
-        'license_scope_id' => $scope->id,
-        'name' => 'Basic',
-        'tier_level' => 1,
+        'license_scope_id'   => $scope->id,
+        'name'               => 'Basic',
+        'tier_level'         => 1,
         'base_configuration' => ['max_usages' => 1],
     ]);
 
     $pro = LicenseTemplate::create([
-        'license_scope_id' => $scope->id,
-        'name' => 'Pro',
-        'tier_level' => 2,
+        'license_scope_id'   => $scope->id,
+        'name'               => 'Pro',
+        'tier_level'         => 2,
         'base_configuration' => ['max_usages' => 5],
     ]);
 
@@ -279,14 +279,14 @@ it('prevents downgrade to lower tier', function (): void {
 
     $pro = LicenseTemplate::create([
         'license_scope_id' => $scope->id,
-        'name' => 'Pro',
-        'tier_level' => 2,
+        'name'             => 'Pro',
+        'tier_level'       => 2,
     ]);
 
     $basic = LicenseTemplate::create([
         'license_scope_id' => $scope->id,
-        'name' => 'Basic',
-        'tier_level' => 1,
+        'name'             => 'Basic',
+        'tier_level'       => 1,
     ]);
 
     $license = License::createFromTemplate($pro, [
@@ -306,20 +306,20 @@ it('gets available upgrades for a license', function (): void {
 
     $basic = LicenseTemplate::create([
         'license_scope_id' => $scope->id,
-        'name' => 'Basic',
-        'tier_level' => 1,
+        'name'             => 'Basic',
+        'tier_level'       => 1,
     ]);
 
     $pro = LicenseTemplate::create([
         'license_scope_id' => $scope->id,
-        'name' => 'Pro',
-        'tier_level' => 2,
+        'name'             => 'Pro',
+        'tier_level'       => 2,
     ]);
 
     $enterprise = LicenseTemplate::create([
         'license_scope_id' => $scope->id,
-        'name' => 'Enterprise',
-        'tier_level' => 3,
+        'name'             => 'Enterprise',
+        'tier_level'       => 3,
     ]);
 
     $license = License::createFromTemplate($basic, [

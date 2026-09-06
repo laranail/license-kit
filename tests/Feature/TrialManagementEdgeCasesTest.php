@@ -3,19 +3,19 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTrial;
 use Simtabi\Laranail\Licence\Kit\Services\TrialService;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
 
 beforeEach(function (): void {
     $this->trialService = app(TrialService::class);
     $this->license = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 1,
-        'status' => LicenseStatus::Pending,
+        'licensable_id'   => 1,
+        'status'          => LicenseStatus::Pending,
     ]);
 });
 
@@ -92,10 +92,10 @@ it('handles null values in trial metadata', function (): void {
     $trial = $this->trialService->startTrial($this->license, 'device-1', 7);
 
     $trial->update([
-        'extension_reason' => null,
+        'extension_reason'   => null,
         'conversion_trigger' => null,
-        'conversion_value' => null,
-        'meta' => null,
+        'conversion_value'   => null,
+        'meta'               => null,
     ]);
 
     expect($trial->extension_reason)->toBeNull()
@@ -122,10 +122,10 @@ it('can verify legacy SHA256 fingerprints from older versions', function (): voi
     // Simulate a trial created with the old SHA256 format
     $trial = $this->license->trials()->create([
         'trial_fingerprint' => $legacyHash,
-        'status' => TrialStatus::Active,
-        'started_at' => now(),
-        'expires_at' => now()->addDays(14),
-        'duration_days' => 14,
+        'status'            => TrialStatus::Active,
+        'started_at'        => now(),
+        'expires_at'        => now()->addDays(14),
+        'duration_days'     => 14,
     ]);
 
     // Verification should work via legacy fallback
@@ -208,7 +208,7 @@ it('handles conversion with zero value', function (): void {
 it('verifies trial stats with no trials', function (): void {
     $emptyLicense = License::factory()->create([
         'licensable_type' => User::class,
-        'licensable_id' => 2,
+        'licensable_id'   => 2,
     ]);
 
     $stats = $this->trialService->getTrialStats($emptyLicense);

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Notification;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Notifications\LicenseExpiringNotification;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
+use Simtabi\Laranail\Licence\Kit\Notifications\LicenseExpiringNotification;
 
 uses(LicenseTestHelper::class);
 

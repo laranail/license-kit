@@ -11,7 +11,7 @@ it('warns (redacted) and returns null when a stored key cannot be decrypted', fu
 
     $license = new License;
     $license->forceFill([
-        'id' => 4242,
+        'id'   => 4242,
         'meta' => ['encrypted_key' => 'not-a-valid-ciphertext'],
     ]);
 

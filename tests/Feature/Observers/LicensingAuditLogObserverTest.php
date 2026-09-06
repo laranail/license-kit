@@ -14,17 +14,17 @@ beforeEach(function (): void {
 
 test('audit log observer chains hashes when enabled', function (): void {
     $first = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseCreated,
+        'event_type'     => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['example' => 'first'],
+        'auditable_id'   => 1,
+        'meta'           => ['example' => 'first'],
     ]);
 
     $second = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseActivated,
+        'event_type'     => AuditEventType::LicenseActivated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['example' => 'second'],
+        'auditable_id'   => 1,
+        'meta'           => ['example' => 'second'],
     ]);
 
     expect($second->previous_hash)->toBe($first->calculateHash())
@@ -35,17 +35,17 @@ test('audit log observer skips hash chaining when disabled', function (): void {
     Config::set('licensing.audit.hash_chain', false);
 
     $first = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseCreated,
+        'event_type'     => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['example' => 'first'],
+        'auditable_id'   => 1,
+        'meta'           => ['example' => 'first'],
     ]);
 
     $second = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseActivated,
+        'event_type'     => AuditEventType::LicenseActivated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['example' => 'second'],
+        'auditable_id'   => 1,
+        'meta'           => ['example' => 'second'],
     ]);
 
     expect($first->previous_hash)->toBeNull()
@@ -54,10 +54,10 @@ test('audit log observer skips hash chaining when disabled', function (): void {
 
 test('audit logs remain immutable after creation', function (): void {
     $log = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseCreated,
+        'event_type'     => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['example' => 'immutable'],
+        'auditable_id'   => 1,
+        'meta'           => ['example' => 'immutable'],
     ]);
 
     expect(fn () => $log->update(['meta' => ['example' => 'mutated']]))

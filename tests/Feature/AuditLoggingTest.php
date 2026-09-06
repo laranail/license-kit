@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Auth;
-use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\AuditEventType;
+use Simtabi\Laranail\Licence\Kit\Tests\TestClasses\User;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
 use Simtabi\Laranail\Licence\Kit\Services\UsageRegistrarService;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
-use Simtabi\Laranail\Licence\Kit\Tests\TestClasses\User;
 
 uses(LicenseTestHelper::class);
 
@@ -83,13 +83,13 @@ test('logs key rotation', function (): void {
 
     // Manually create rotation log for testing
     LicensingAuditLog::create([
-        'event_type' => AuditEventType::KeyRotated,
+        'event_type'     => AuditEventType::KeyRotated,
         'auditable_type' => $newKey::class,
-        'auditable_id' => $newKey->id,
-        'meta' => [
+        'auditable_id'   => $newKey->id,
+        'meta'           => [
             'old_kid' => $oldKey->kid,
             'new_kid' => $newKey->kid,
-            'reason' => 'rotation',
+            'reason'  => 'rotation',
         ],
     ]);
 
@@ -107,7 +107,7 @@ test('logs license renewal', function (): void {
     // Create a fresh license that's not "recently created"
     $license = $this->createLicense([
         'expires_at' => now()->addMonth(),
-        'status' => LicenseStatus::Active,
+        'status'     => LicenseStatus::Active,
     ]);
 
     // Clear the recently created flag by refreshing from DB
@@ -159,10 +159,10 @@ test('logs usage limit reached', function (): void {
 
 test('audit logs are append-only', function (): void {
     $log = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseCreated,
+        'event_type'     => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['test' => 'data'],
+        'auditable_id'   => 1,
+        'meta'           => ['test' => 'data'],
     ]);
 
     // Try to update via direct update method
@@ -186,18 +186,18 @@ test('can query audit logs by time range', function (): void {
 
     $this->travel(-10)->days();
     $oldLog = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseCreated,
+        'event_type'     => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => [],
+        'auditable_id'   => 1,
+        'meta'           => [],
     ]);
 
     $this->travelBack();
     $recentLog = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseActivated,
+        'event_type'     => AuditEventType::LicenseActivated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 2,
-        'meta' => [],
+        'auditable_id'   => 2,
+        'meta'           => [],
     ]);
 
     $lastWeek = LicensingAuditLog::where('created_at', '>=', now()->subWeek())->get();
@@ -222,7 +222,7 @@ test('can disable audit logging', function (): void {
 test('stores actor information when available', function (): void {
     // Create a test user
     $user = User::create([
-        'name' => 'Test User',
+        'name'  => 'Test User',
         'email' => 'test@example.com',
     ]);
 
@@ -261,18 +261,18 @@ test('stores actor information when available', function (): void {
 
 test('calculates audit log hash chain', function (): void {
     $log1 = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseCreated,
+        'event_type'     => AuditEventType::LicenseCreated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['test' => 'data'],
+        'auditable_id'   => 1,
+        'meta'           => ['test' => 'data'],
     ]);
 
     $log2 = LicensingAuditLog::create([
-        'event_type' => AuditEventType::LicenseActivated,
+        'event_type'     => AuditEventType::LicenseActivated,
         'auditable_type' => 'App\\Models\\License',
-        'auditable_id' => 1,
-        'meta' => ['test' => 'data2'],
-        'previous_hash' => $log1->calculateHash(),
+        'auditable_id'   => 1,
+        'meta'           => ['test' => 'data2'],
+        'previous_hash'  => $log1->calculateHash(),
     ]);
 
     expect($log2->previous_hash)->not->toBeNull()

@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Services;
 
 use Illuminate\Support\Facades\DB;
-use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
-use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
-use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Enums\TrialStatus;
+use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicenseTrial;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialResetAttemptException;
+use Simtabi\Laranail\Licence\Kit\Exceptions\TrialAlreadyExistsException;
 
 class TrialService
 {
@@ -32,12 +32,12 @@ class TrialService
 
             /** @var LicenseTrial $trial */
             $trial = $license->trials()->create([
-                'trial_fingerprint' => $hashedFingerprint,
-                'status' => TrialStatus::Active,
-                'started_at' => now(),
-                'expires_at' => now()->addDays($durationDays),
-                'duration_days' => $durationDays,
-                'limitations' => $limitations,
+                'trial_fingerprint'    => $hashedFingerprint,
+                'status'               => TrialStatus::Active,
+                'started_at'           => now(),
+                'expires_at'           => now()->addDays($durationDays),
+                'duration_days'        => $durationDays,
+                'limitations'          => $limitations,
                 'feature_restrictions' => $featureRestrictions,
             ]);
 
@@ -127,12 +127,12 @@ class TrialService
         $trials = $license->trials;
 
         return [
-            'total_trials' => $trials->count(),
-            'active_trials' => $trials->where('status', TrialStatus::Active)->count(),
+            'total_trials'     => $trials->count(),
+            'active_trials'    => $trials->where('status', TrialStatus::Active)->count(),
             'converted_trials' => $trials->where('status', TrialStatus::Converted)->count(),
-            'expired_trials' => $trials->where('status', TrialStatus::Expired)->count(),
+            'expired_trials'   => $trials->where('status', TrialStatus::Expired)->count(),
             'cancelled_trials' => $trials->where('status', TrialStatus::Cancelled)->count(),
-            'conversion_rate' => $trials->count() > 0
+            'conversion_rate'  => $trials->count() > 0
                 ? round(($trials->where('status', TrialStatus::Converted)->count() / $trials->count()) * 100, 2)
                 : 0,
             'total_conversion_value' => $trials->where('status', TrialStatus::Converted)->sum('conversion_value'),

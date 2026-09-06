@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Simtabi\Laranail\Licence\Kit\Models;
 
 use DateTimeInterface;
-use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -33,7 +33,7 @@ class LicenseRenewal extends Model
 
     protected $casts = [
         'period_start' => 'date',
-        'period_end' => 'date',
+        'period_end'   => 'date',
         'amount_cents' => 'integer',
     ];
 
@@ -55,7 +55,7 @@ class LicenseRenewal extends Model
 
         $amount = $this->amount_cents / 100;
 
-        return number_format($amount, 2).' '.strtoupper($this->currency);
+        return number_format($amount, 2) . ' ' . strtoupper($this->currency);
     }
 
     #[Scope]

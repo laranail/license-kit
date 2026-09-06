@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-use ParagonIE\Paseto\Builder;
-use ParagonIE\Paseto\Keys\AsymmetricSecretKey;
 use ParagonIE\Paseto\Parser;
+use ParagonIE\Paseto\Builder;
 use ParagonIE\Paseto\Protocol\Version4;
+use ParagonIE\Paseto\Keys\AsymmetricSecretKey;
 use Simtabi\Laranail\Licence\Kit\Enums\KeyType;
+
+use function Spatie\PestPluginTestTime\testTime;
+
 use Simtabi\Laranail\Licence\Kit\Enums\LicenseStatus;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingKey;
 use Simtabi\Laranail\Licence\Kit\Services\PasetoTokenService;
 use Simtabi\Laranail\Licence\Kit\Tests\Helpers\LicenseTestHelper;
-
-use function Spatie\PestPluginTestTime\testTime;
 
 uses(LicenseTestHelper::class);
 
@@ -20,11 +21,11 @@ beforeEach(function (): void {
     $this->tokenService = app(PasetoTokenService::class);
     $this->signingKey = $this->createSigningKey();
     $this->license = $this->createLicense([
-        'status' => LicenseStatus::Active,
+        'status'     => LicenseStatus::Active,
         'expires_at' => now()->addYear(),
-        'meta' => [
+        'meta'       => [
             'offline_token' => [
-                'ttl_days' => 7,
+                'ttl_days'                => 7,
                 'force_online_after_days' => 14,
             ],
         ],
@@ -75,7 +76,7 @@ test('token includes license expiration when set', function (): void {
 
 test('token includes grace period information', function (): void {
     $graceLicense = $this->createLicense([
-        'status' => LicenseStatus::Grace,
+        'status'     => LicenseStatus::Grace,
         'expires_at' => now()->subDay(),
     ]);
     $graceUsage = $this->createUsage($graceLicense);
@@ -113,7 +114,7 @@ test('verification fails when force online required', function (): void {
     $license = $this->createLicense([
         'meta' => ['offline_token' => [
             'force_online_after_days' => 0,
-            'clock_skew_seconds' => 0,
+            'clock_skew_seconds'      => 0,
         ]],
     ]);
     $usage = $this->createUsage($license);
@@ -128,7 +129,7 @@ test('respects per-license clock skew when verifying', function (): void {
 
     $license = $this->createLicense([
         'meta' => ['offline_token' => [
-            'ttl_days' => 0,
+            'ttl_days'           => 0,
             'clock_skew_seconds' => 120,
         ]],
     ]);
@@ -217,10 +218,10 @@ test('offline verification rejects a token whose signing key is not the one its 
     // and swap the footer's signing public_key to the rogue key. verifyCertificate
     // passes (the cert is genuinely root-signed); the cross-check must catch it.
     $forgedFooter = json_encode([
-        'kid' => $footer['kid'] ?? 'forged',
+        'kid'   => $footer['kid'] ?? 'forged',
         'chain' => [
             'signing' => [
-                'public_key' => base64_encode($roguePublic),
+                'public_key'  => base64_encode($roguePublic),
                 'certificate' => $legitCert,
             ],
             'root' => ['public_key' => $rootPub],
@@ -232,7 +233,7 @@ test('offline verification rejects a token whose signing key is not the one its 
         ->setNotBefore(now()->toImmutable())
         ->setExpiration(now()->addDay()->toImmutable())
         ->setClaims([
-            'status' => 'active',
+            'status'            => 'active',
             'usage_fingerprint' => $this->usage->usage_fingerprint,
         ])
         ->setFooter($forgedFooter)

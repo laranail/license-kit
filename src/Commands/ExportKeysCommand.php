@@ -36,8 +36,8 @@ class ExportKeysCommand extends Command
         }
 
         $export = match ($format) {
-            'jwks' => $this->exportAsJwks($rootKey, $signingKeys, $includeChain),
-            'pem' => $this->exportAsPem($rootKey, $signingKeys, $includeChain),
+            'jwks'  => $this->exportAsJwks($rootKey, $signingKeys, $includeChain),
+            'pem'   => $this->exportAsPem($rootKey, $signingKeys, $includeChain),
             default => $this->exportAsJson($rootKey, $signingKeys, $includeChain),
         };
 
@@ -50,18 +50,18 @@ class ExportKeysCommand extends Command
     {
         $data = [
             'root' => [
-                'kid' => $rootKey->kid,
+                'kid'        => $rootKey->kid,
                 'public_key' => $rootKey->getPublicKey(),
-                'algorithm' => $rootKey->algorithm,
+                'algorithm'  => $rootKey->algorithm,
             ],
             'signing' => [],
         ];
 
         foreach ($signingKeys as $key) {
             $keyData = [
-                'kid' => $key->kid,
-                'public_key' => $key->getPublicKey(),
-                'algorithm' => $key->algorithm,
+                'kid'         => $key->kid,
+                'public_key'  => $key->getPublicKey(),
+                'algorithm'   => $key->algorithm,
                 'valid_until' => $key->valid_until?->toIso8601String(),
             ];
 
@@ -78,8 +78,8 @@ class ExportKeysCommand extends Command
             foreach ($signingKeys as $key) {
                 if ($key->certificate) {
                     $data['chain'][] = [
-                        'kid' => $key->kid,
-                        'certificate' => $key->certificate,
+                        'kid'             => $key->kid,
+                        'certificate'     => $key->certificate,
                         'root_public_key' => $rootKey->getPublicKey(),
                     ];
                 }
@@ -101,7 +101,7 @@ class ExportKeysCommand extends Command
             'crv' => 'Ed25519',
             'use' => 'sig',
             'alg' => 'EdDSA',
-            'x' => base64_encode(base64_decode($rootKey->getPublicKey())),
+            'x'   => base64_encode(base64_decode($rootKey->getPublicKey())),
         ];
 
         // Add signing keys
@@ -112,7 +112,7 @@ class ExportKeysCommand extends Command
                 'crv' => 'Ed25519',
                 'use' => 'sig',
                 'alg' => 'EdDSA',
-                'x' => base64_encode(base64_decode((string) $key->getPublicKey())),
+                'x'   => base64_encode(base64_decode((string) $key->getPublicKey())),
             ];
 
             if ($includeChain && $key->certificate) {
