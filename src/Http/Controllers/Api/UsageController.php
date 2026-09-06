@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
 use Simtabi\Laranail\Licence\Kit\LicenceKit;
 use Simtabi\Laranail\Licence\Kit\Models\License;
+use Simtabi\Laranail\Licence\Kit\Models\LicenseUsage;
 
 class UsageController extends ApiController
 {
@@ -32,7 +33,7 @@ class UsageController extends ApiController
         }
 
         $usage = $this->usageRegistrar->findByFingerprint($license, $payload['fingerprint']);
-        if (! $usage || ! $usage->isActive()) {
+        if (! $usage instanceof LicenseUsage || ! $usage->isActive()) {
             return $this->error('FINGERPRINT_MISMATCH', 'Fingerprint does not match an active usage for this license', 403);
         }
 
@@ -70,7 +71,7 @@ class UsageController extends ApiController
         }
 
         $caller = $this->usageRegistrar->findByFingerprint($license, $payload['fingerprint']);
-        if (! $caller || ! $caller->isActive()) {
+        if (! $caller instanceof LicenseUsage || ! $caller->isActive()) {
             return $this->error('FINGERPRINT_MISMATCH', 'Fingerprint does not match an active usage for this license', 403);
         }
 
@@ -98,7 +99,7 @@ class UsageController extends ApiController
         }
 
         $caller = $this->usageRegistrar->findByFingerprint($license, $payload['fingerprint']);
-        if (! $caller || ! $caller->isActive()) {
+        if (! $caller instanceof LicenseUsage || ! $caller->isActive()) {
             return $this->error('FINGERPRINT_MISMATCH', 'Fingerprint does not match an active usage for this license', 403);
         }
 

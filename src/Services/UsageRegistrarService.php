@@ -43,7 +43,7 @@ class UsageRegistrarService implements UsageRegistrar
 
                 $existingUsage = $this->findByFingerprint($lockedLicense, $fingerprint);
 
-                if ($existingUsage && $existingUsage->isActive()) {
+                if ($existingUsage instanceof LicenseUsage && $existingUsage->isActive()) {
                     if ((string) $existingUsage->license_id === (string) $lockedLicense->id) {
                         $existingUsage->heartbeat();
 
@@ -173,7 +173,7 @@ class UsageRegistrarService implements UsageRegistrar
 
         $existingUsage = $this->findByFingerprint($license, $fingerprint);
 
-        if ($existingUsage && $existingUsage->isActive()) {
+        if ($existingUsage instanceof LicenseUsage && $existingUsage->isActive()) {
             if ($license->getUniqueUsageScope() === 'global' &&
                 (string) $existingUsage->license_id !== (string) $license->id) {
                 return false;
