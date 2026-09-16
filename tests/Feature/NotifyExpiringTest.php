@@ -15,7 +15,7 @@ it('sends nothing when expiring notifications are disabled', function (): void {
 
     $this->createLicense(['status' => LicenseStatus::Active, 'expires_at' => now()->addDays(3)]);
 
-    $this->artisan('licensing:notify-expiring')->assertExitCode(0);
+    $this->artisan('laranail::license-kit.notify-expiring')->assertExitCode(0);
 
     Notification::assertNothingSent();
 });
@@ -27,7 +27,7 @@ it('notifies configured admin recipients about expiring licenses', function (): 
 
     $this->createLicense(['status' => LicenseStatus::Active, 'expires_at' => now()->addDays(3)]);
 
-    $this->artisan('licensing:notify-expiring')->assertExitCode(0);
+    $this->artisan('laranail::license-kit.notify-expiring')->assertExitCode(0);
 
     Notification::assertSentOnDemand(LicenseExpiringNotification::class);
 });
@@ -39,7 +39,7 @@ it('skips licenses that are not near expiry', function (): void {
 
     $this->createLicense(['status' => LicenseStatus::Active, 'expires_at' => now()->addDays(120)]);
 
-    $this->artisan('licensing:notify-expiring')->assertExitCode(0);
+    $this->artisan('laranail::license-kit.notify-expiring')->assertExitCode(0);
 
     Notification::assertNothingSent();
 });

@@ -409,15 +409,15 @@ test('respects verbose output flag', function (): void {
 test('command return codes follow spec', function (): void {
     // Success
     $this->createRootKey();
-    $result = Artisan::call('licensing:keys:list');
+    $result = Artisan::call('laranail::license-kit.keys.list');
     expect($result)->toBe(0);
 
     // Invalid arguments
-    $result = Artisan::call('licensing:keys:issue-signing', ['--days' => -1]);
+    $result = Artisan::call('laranail::license-kit.keys.issue-signing', ['--days' => -1]);
     expect($result)->toBe(1);
 
     // Not found
-    $result = Artisan::call('licensing:keys:revoke', ['kid' => 'non-existent']);
+    $result = Artisan::call('laranail::license-kit.keys.revoke', ['kid' => 'non-existent']);
     expect($result)->toBe(2);
 
     // Revoked/compromised
@@ -429,7 +429,7 @@ test('command return codes follow spec', function (): void {
     // Verify license has a key
     expect($license->key)->not->toBeNull();
 
-    $result = Artisan::call('licensing:offline:issue', [
+    $result = Artisan::call('laranail::license-kit.offline.issue', [
         '--license'     => $license->key,
         '--fingerprint' => $usage->usage_fingerprint,
     ]);

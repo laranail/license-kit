@@ -24,9 +24,6 @@ class IssueSigningKeyCommand extends Command
 
     protected $description = 'Issue a new signing key signed by the active root key';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:keys:issue-signing'];
-
     public function handle(
         AuditLoggerService $auditLogger,
         CertificateAuthorityService $ca,

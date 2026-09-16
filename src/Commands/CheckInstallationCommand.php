@@ -13,9 +13,6 @@ class CheckInstallationCommand extends Command
 
     protected $description = 'Verify the licensing package installation status';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:check', 'licensing:doctor'];
-
     public function handle(): int
     {
         return DoctorReporter::render($this, Checks::all(), (bool) $this->option('json'));

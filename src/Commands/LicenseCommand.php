@@ -24,9 +24,6 @@ class LicenseCommand extends Command
 
     protected $description = 'Administer a license: show status or change its lifecycle state';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:license'];
-
     public function handle(): int
     {
         $action = (string) $this->argument('action');

@@ -17,9 +17,6 @@ class CheckExpirationsCommand extends Command
 
     protected $description = 'Transition licenses across grace and expired states based on time';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:check-expirations'];
-
     public function handle(): int
     {
         $dryRun = (bool) $this->option('dry-run');

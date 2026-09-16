@@ -37,6 +37,6 @@ it('mentions every covered topic in the consolidated guideline', function (): vo
         ->toContain('createFromTemplate')
         ->toContain('TrialService')
         ->toContain('PASETO')
-        ->toContain('licensing:keys:make-root')
+        ->toContain('laranail::license-kit.keys.make-root')
         ->toContain('throttle:licensing-validate');
 });

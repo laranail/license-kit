@@ -12,9 +12,6 @@ class ListKeysCommand extends Command
 
     protected $description = 'List all licensing keys with their status';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:keys:list'];
-
     public function handle(): int
     {
         $keys = LicensingKey::orderBy('type')->orderBy('created_at', 'desc')->get();

@@ -10,9 +10,14 @@ use Simtabi\Laranail\Console\Tools\Commands\Concerns\SupportsNamespacedNames;
 /**
  * Base command for laranail/license-kit. Extends laranail/console's command base
  * (managed lifecycle + `$this->services`) and applies {@see SupportsNamespacedNames}
- * so the `laranail::license-kit.*` shape and the `licensing:*` aliases (listed in
- * each command's `$commandAliases`) write past Symfony's name validator. The base
- * constructor already applies `$commandAliases`.
+ * so the `laranail::license-kit.*` shape writes past Symfony's name validator.
+ *
+ * The `licensing:*` aliases these commands used to declare are gone. An alias that
+ * is not vendor-scoped hands back exactly the collision the namespaced name exists
+ * to prevent -- `licensing:doctor` is a plausible claim for any licensing package,
+ * and the registry is a flat map where the second claimant silently wins. The base
+ * constructor still applies `$commandAliases` if a command declares one, so a
+ * vendor-scoped alias remains possible.
  */
 abstract class Command extends BaseCommand
 {

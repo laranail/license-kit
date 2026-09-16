@@ -14,9 +14,6 @@ class CleanupUsagesCommand extends Command
 
     protected $description = 'Revoke license usages inactive beyond the configured threshold';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:cleanup-usages'];
-
     public function handle(): int
     {
         $days = config('licensing.policies.usage_inactivity_auto_revoke_days');
