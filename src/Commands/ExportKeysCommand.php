@@ -14,9 +14,6 @@ class ExportKeysCommand extends Command
 
     protected $description = 'Export public keys for distribution';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:keys:export'];
-
     public function handle(): int
     {
         $format = $this->option('format');

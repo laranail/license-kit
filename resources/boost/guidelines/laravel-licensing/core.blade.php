@@ -10,8 +10,8 @@
 composer require laranail/license-kit
 php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\LicensingServiceProvider"
 php artisan migrate
-php artisan licensing:keys:make-root
-php artisan licensing:keys:issue-signing --kid signing-key-1
+php artisan laranail::license-kit.keys.make-root
+php artisan laranail::license-kit.keys.issue-signing --kid signing-key-1
 ```
 
 ## Entities
@@ -69,7 +69,7 @@ $license->renew(expiresAt: now()->addYear()); // extends expires_at, writes a Li
 Extends `expires_at` and writes a `LicenseRenewal` row.
 
 ## Transitions
-Nightly scheduler `licensing:check-expirations` moves `active → grace → expired` and emits events.
+Nightly scheduler `laranail::license-kit.check-expirations` moves `active → grace → expired` and emits events.
 
 ## Rules
 - DON'T compare keys with `==` — use the package's `findByKey()` resolver.
@@ -217,14 +217,14 @@ PASETO v4.public (default) or JWS — `config('licensing.offline_token.format')`
 
 ## Rotation
 ```bash
-php artisan licensing:keys:rotate --reason routine
+php artisan laranail::license-kit.keys.rotate --reason routine
 ```
 Old signing key gets `revoked_at`. New tokens use the new `kid`. Clients with root public continue to validate via chain — no client update needed.
 
 ## Compromise
 ```bash
-php artisan licensing:keys:rotate --reason compromised
-php artisan licensing:keys:export --format jwks --include-chain
+php artisan laranail::license-kit.keys.rotate --reason compromised
+php artisan laranail::license-kit.keys.export --format jwks --include-chain
 ```
 Publish updated bundle / JWKS so clients reject revoked `kid`.
 
@@ -237,18 +237,18 @@ Publish updated bundle / JWKS so clients reject revoked `kid`.
 
 ## Key lifecycle
 ```bash
-php artisan licensing:keys:make-root
-php artisan licensing:keys:issue-signing --kid signing-key-1 [--nbf <ISO> --exp <ISO>]
-php artisan licensing:keys:rotate --reason <routine|compromised>
-php artisan licensing:keys:revoke <KID> [--at <ISO>]
-php artisan licensing:keys:list
-php artisan licensing:keys:export --format <jwks|pem|json> [--include-chain]
+php artisan laranail::license-kit.keys.make-root
+php artisan laranail::license-kit.keys.issue-signing --kid signing-key-1 [--nbf <ISO> --exp <ISO>]
+php artisan laranail::license-kit.keys.rotate --reason <routine|compromised>
+php artisan laranail::license-kit.keys.revoke <KID> [--at <ISO>]
+php artisan laranail::license-kit.keys.list
+php artisan laranail::license-kit.keys.export --format <jwks|pem|json> [--include-chain]
 ```
 Private keys stored encrypted with the passphrase from `LICENSING_KEY_PASSPHRASE`.
 
 ## Offline token issuance
 ```bash
-php artisan licensing:offline:issue \
+php artisan laranail::license-kit.offline.issue \
     --license <id|key> \
     --fingerprint <fp> \
     --ttl 7d
@@ -256,9 +256,9 @@ php artisan licensing:offline:issue \
 
 ## Maintenance
 ```bash
-php artisan licensing:check-expirations         # nightly: state transitions + events
+php artisan laranail::license-kit.check-expirations         # nightly: state transitions + events
 php artisan licensing:cleanup-inactive-usages   # optional auto-revoke
-php artisan licensing:notify-expiring           # N, N/2, N/4 days before expiry
+php artisan laranail::license-kit.notify-expiring           # N, N/2, N/4 days before expiry
 ```
 
 ## Return codes

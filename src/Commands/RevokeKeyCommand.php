@@ -13,9 +13,6 @@ class RevokeKeyCommand extends Command
 
     protected $description = 'Revoke a signing key';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:keys:revoke'];
-
     public function handle(): int
     {
         $kid = $this->argument('kid');

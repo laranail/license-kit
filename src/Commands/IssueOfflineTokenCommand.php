@@ -21,9 +21,6 @@ class IssueOfflineTokenCommand extends Command
 
     protected $description = 'Issue an offline token for a license';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:offline:issue'];
-
     public function handle(PasetoTokenService $tokenService): int
     {
         $licenseRef = $this->option('license');

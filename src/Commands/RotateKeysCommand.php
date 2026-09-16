@@ -16,9 +16,6 @@ class RotateKeysCommand extends Command
 
     protected $description = 'Rotate signing keys';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:keys:rotate'];
-
     public function handle(CertificateAuthorityService $ca): int
     {
         $reason = $this->option('reason');

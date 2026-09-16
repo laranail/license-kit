@@ -12,9 +12,6 @@ class MakeRootKeyCommand extends Command
 
     protected $description = 'Generate a new root key pair';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:keys:make-root'];
-
     public function handle(): int
     {
         $existingRoot = LicensingKey::findActiveRoot();

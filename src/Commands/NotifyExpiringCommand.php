@@ -18,9 +18,6 @@ class NotifyExpiringCommand extends Command
 
     protected $description = 'Notify license owners and configured admins about approaching expiry';
 
-    /** @var list<string> */
-    protected array $commandAliases = ['licensing:notify-expiring'];
-
     public function handle(): int
     {
         if (! (bool) config('licensing.notifications.expiring.enabled', false)) {
