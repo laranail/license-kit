@@ -21,7 +21,7 @@ class CheckExpirationsCommand extends Command
     {
         $dryRun = (bool) $this->option('dry-run');
         $notify = (bool) $this->option('notify');
-        $expiringWithin = (int) $this->option('expiring-within');
+        $expiringWithin = $this->intOption('expiring-within', 7);
 
         $licenseClass = config('licensing.models.license', License::class);
 
