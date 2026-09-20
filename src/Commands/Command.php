@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Simtabi\Laranail\Licence\Kit\Commands;
 
+use Simtabi\Laranail\Package\Tools\Commands\Concerns\ReadsOptions;
 use Simtabi\Laranail\Console\Tools\Commands\Command as BaseCommand;
 use Simtabi\Laranail\Console\Tools\Commands\Concerns\SupportsNamespacedNames;
 
@@ -21,5 +22,6 @@ use Simtabi\Laranail\Console\Tools\Commands\Concerns\SupportsNamespacedNames;
  */
 abstract class Command extends BaseCommand
 {
+    use ReadsOptions;
     use SupportsNamespacedNames;
 }

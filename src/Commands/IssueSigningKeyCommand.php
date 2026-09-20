@@ -36,7 +36,7 @@ class IssueSigningKeyCommand extends Command
             return self::FAILURE;
         }
 
-        $kid = $this->option('kid') ?? 'signing-' . bin2hex(random_bytes(16));
+        $kid = $this->strOption('kid') ?? 'signing-' . bin2hex(random_bytes(16));
 
         $licenseScope = null;
         if ($scopeOption = $this->option('scope')) {
@@ -60,6 +60,8 @@ class IssueSigningKeyCommand extends Command
         $validUntil = null;
         $validForDays = 30;
 
+        // @option-guard-exempt -- the branch below validates is_numeric() and > 0, so an empty
+        // --days= fails closed with a message rather than falling through as 0.
         if ($this->option('days') !== null) {
             $daysOption = $this->option('days');
 
