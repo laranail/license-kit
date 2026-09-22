@@ -4,7 +4,7 @@
 [![Static analysis](https://github.com/laranail/license-kit/actions/workflows/static-analysis.yml/badge.svg)](https://github.com/laranail/license-kit/actions/workflows/static-analysis.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-`laranail/license-kit` is not published to Packagist, so there is no registry-version badge to show — see [Install](#install).
+`laranail/license-kit` is not published to Packagist, so there is no registry-version badge to show: see [Install](#install).
 
 > A licensing engine for Laravel — offline verification (PASETO v4 / Ed25519), seat-based licensing, full lifecycle (activation, renewal, grace, expiration, suspension), multi-product signing-key scopes with a two-level key hierarchy, an append-only audit trail, and polymorphic license assignment to any Eloquent model.
 
