@@ -16,14 +16,21 @@ Requires PHP `^8.4.1 || ^8.5` on Laravel `^13`.
 composer require laranail/license-kit
 ```
 
-## Quick start
+## Quick start guide and usage
+
+### Getting started
+
+1. Set `LICENSING_KEY_PASSPHRASE` in `.env`; the root key is encrypted with it.
+2. Publish the resources, migrate, and create the root and signing keys:
 
 ```bash
-php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\LicensingServiceProvider"
+php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\Providers\LicensingServiceProvider"
 php artisan migrate
 php artisan laranail::license-kit.keys.make-root
 php artisan laranail::license-kit.keys.issue-signing --days=30
 ```
+
+### Usage
 
 ```php
 use Simtabi\Laranail\Licence\Kit\Models\License;
