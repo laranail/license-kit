@@ -1,5 +1,7 @@
 # Contributing
 
+Where this file is silent, the [laranail contributing guide](https://github.com/laranail/.github/blob/HEAD/CONTRIBUTING.md) applies.
+
 Thanks for your interest in contributing to `laranail/license-kit`.
 
 ## Getting started
