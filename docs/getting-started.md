@@ -23,7 +23,7 @@ composer require laranail/license-kit
 ### 2. Publish configuration
 
 ```bash
-php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\LicensingServiceProvider"
+php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\Providers\LicensingServiceProvider"
 ```
 
 ### 3. Run migrations

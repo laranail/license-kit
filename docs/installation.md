@@ -26,7 +26,7 @@ composer require laranail/license-kit
 Publish all resources (config, migrations, etc.):
 
 ```bash
-php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\LicensingServiceProvider"
+php artisan vendor:publish --provider="Simtabi\Laranail\Licence\Kit\Providers\LicensingServiceProvider"
 ```
 
 Or publish specific resources:
@@ -41,8 +41,7 @@ php artisan vendor:publish --tag=laranail::license-kit-migrations
 # Language files
 php artisan vendor:publish --tag=laranail::license-kit-translations
 
-# Views (if using built-in UI)
-php artisan vendor:publish --tag=laranail::license-kit-views
+# There is no views tag: the package does not register its views for publishing.
 ```
 
 ### 3. Configure database
