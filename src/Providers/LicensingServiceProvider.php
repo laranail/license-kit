@@ -25,6 +25,7 @@ use Simtabi\Laranail\Licence\Kit\Contracts\AuditLogger;
 use Simtabi\Laranail\Licence\Kit\Contracts\TokenIssuer;
 use Simtabi\Laranail\Licence\Kit\Commands\LicenseCommand;
 use Simtabi\Laranail\Licence\Kit\Contracts\TokenVerifier;
+use Simtabi\Laranail\Licence\Kit\Support\DeprecatedNames;
 use Simtabi\Laranail\Licence\Kit\Commands\ListKeysCommand;
 use Simtabi\Laranail\Licence\Kit\Contracts\UsageRegistrar;
 use Simtabi\Laranail\Licence\Kit\Models\LicensingAuditLog;
@@ -57,6 +58,53 @@ use Simtabi\Laranail\Package\Tools\Support\Definitions\AboutSectionDefinition;
 
 class LicensingServiceProvider extends PackageServiceProvider
 {
+    /**
+     * The prefix every API route name carries.
+     */
+    public const string ROUTE_PREFIX = 'laranail-license-kit.';
+
+    /**
+     * The bare route-name prefix used until 0.1. Still resolves, through package-tools'
+     * BareRouteNameAliases, to the route under {@see ROUTE_PREFIX}. The names under it are
+     * deprecated and are removed no earlier than the next minor after 0.1.
+     */
+    public const string DEPRECATED_ROUTE_PREFIX = 'licensing.';
+
+    /**
+     * The token service's container binding.
+     */
+    public const string TOKEN_BINDING = 'laranail.license-kit.token';
+
+    /**
+     * The bare container key used until 0.1, kept as an alias of {@see TOKEN_BINDING}. It is
+     * deprecated and is removed no earlier than the next minor after 0.1.
+     */
+    public const string DEPRECATED_TOKEN_BINDING = 'licensing.token';
+
+    /**
+     * Rate limiter name => the config key holding its per-minute limit, and that key's default.
+     *
+     * @var array<string, array{0: string, 1: int}>
+     */
+    public const array RATE_LIMITERS = [
+        'laranail-license-kit.validate' => ['licensing.rate_limit.validate_per_minute', 60],
+        'laranail-license-kit.register' => ['licensing.rate_limit.register_per_minute', 30],
+        'laranail-license-kit.token'    => ['licensing.rate_limit.token_per_minute', 20],
+    ];
+
+    /**
+     * The bare rate limiter names used until 0.1 => their scoped replacements. Each stays
+     * registered, announces itself once and delegates to the scoped limiter. The bare names
+     * are deprecated and are removed no earlier than the next minor after 0.1.
+     *
+     * @var array<string, string>
+     */
+    public const array DEPRECATED_RATE_LIMITERS = [
+        'licensing-validate' => 'laranail-license-kit.validate',
+        'licensing-register' => 'laranail-license-kit.register',
+        'licensing-token'    => 'laranail-license-kit.token',
+    ];
+
     public function configurePackage(Package $package): void
     {
         $package
@@ -64,6 +112,9 @@ class LicensingServiceProvider extends PackageServiceProvider
             ->hasConfigFile('licensing')
             ->withoutConfigNamespacing()
             ->hasTranslations('laranail-license-kit')
+            // The API route names were bare `licensing.*` until 0.1; they still resolve to the
+            // scoped `laranail-license-kit.*` routes, and announce themselves once per process.
+            ->hasDeprecatedRouteNames(prefixes: [self::DEPRECATED_ROUTE_PREFIX => self::ROUTE_PREFIX])
             ->hasMigrations([
                 // Order matters: parents before children, FK targets before FK holders.
                 'create_license_scopes_table',
@@ -199,9 +250,13 @@ class LicensingServiceProvider extends PackageServiceProvider
         );
 
         $this->app->singleton(
-            'licensing.token',
+            self::TOKEN_BINDING,
             fn ($app) => $app->make(config('licensing.offline_token.service')),
         );
+
+        // Kept for hosts that resolve the pre-0.1 key. A container alias cannot announce itself,
+        // so the deprecation is documented rather than raised.
+        $this->app->alias(self::TOKEN_BINDING, self::DEPRECATED_TOKEN_BINDING);
     }
 
     protected function registerLicensing(): void
@@ -236,14 +291,18 @@ class LicensingServiceProvider extends PackageServiceProvider
 
     protected function registerRateLimiters(): void
     {
-        RateLimiter::for('licensing-validate', fn ($request) => Limit::perMinute(config('licensing.rate_limit.validate_per_minute', 60))
-            ->by($request->ip()));
+        foreach (self::RATE_LIMITERS as $name => [$key, $default]) {
+            RateLimiter::for($name, fn ($request) => Limit::perMinute(config($key, $default))
+                ->by($request->ip()));
+        }
 
-        RateLimiter::for('licensing-register', fn ($request) => Limit::perMinute(config('licensing.rate_limit.register_per_minute', 30))
-            ->by($request->ip()));
+        foreach (self::DEPRECATED_RATE_LIMITERS as $old => $scoped) {
+            RateLimiter::for($old, static function ($request) use ($old, $scoped) {
+                DeprecatedNames::announce('rate limiter', $old, $scoped);
 
-        RateLimiter::for('licensing-token', fn ($request) => Limit::perMinute(config('licensing.rate_limit.token_per_minute', 20))
-            ->by($request->ip()));
+                return RateLimiter::limiter($scoped)($request);
+            });
+        }
     }
 
     protected function registerObservers(): void

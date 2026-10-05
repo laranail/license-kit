@@ -20,7 +20,7 @@ use Simtabi\Laranail\Licence\Kit\Services\CertificateAuthorityService;
 
 function ensureApiRoutesRegistered(): void
 {
-    if (Route::has('licensing.activate')) {
+    if (Route::has('laranail-license-kit.activate')) {
         return;
     }
 
@@ -86,7 +86,7 @@ test('license activation registers usage and returns token payload', function ()
 
     Event::fake([LicenseActivated::class]);
 
-    $response = postJson(route('licensing.activate'), [
+    $response = postJson(route('laranail-license-kit.activate'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'device-fingerprint-1',
         'metadata'    => ['client_type' => 'desktop'],
@@ -129,7 +129,7 @@ test('activation fails when usage limit is reached', function (): void {
     $licensing = app(LicenceKit::class);
     $licensing->register($license, 'existing-fingerprint');
 
-    $response = postJson(route('licensing.activate'), [
+    $response = postJson(route('laranail-license-kit.activate'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'new-device',
     ]);
@@ -154,7 +154,7 @@ test('refresh issues new token for active usage', function (): void {
     $firstToken = $licensing->issueToken($license, $usage);
 
     Carbon::setTestNow(now()->addSecond());
-    $response = postJson(route('licensing.refresh'), [
+    $response = postJson(route('laranail-license-kit.refresh'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'refresh-device',
     ]);
@@ -181,7 +181,7 @@ test('validate confirms active fingerprint and license state', function (): void
     $licensing = app(LicenceKit::class);
     $licensing->register($license, 'validator-device');
 
-    $response = postJson(route('licensing.validate'), [
+    $response = postJson(route('laranail-license-kit.validate'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'validator-device',
     ]);
@@ -203,7 +203,7 @@ test('validate fails for mismatched fingerprint', function (): void {
 
     app(LicenceKit::class)->register($license, 'known-fingerprint');
 
-    $response = postJson(route('licensing.validate'), [
+    $response = postJson(route('laranail-license-kit.validate'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'unknown-fingerprint',
     ]);
@@ -229,7 +229,7 @@ test('heartbeat updates usage metadata and timestamp', function (): void {
 
     Carbon::setTestNow(now()->addMinutes(2));
 
-    $response = postJson(route('licensing.heartbeat'), [
+    $response = postJson(route('laranail-license-kit.heartbeat'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'heartbeat-device',
         'data'        => ['app_version' => '1.2.3'],
@@ -259,7 +259,7 @@ test('heartbeat client data does not overwrite existing meta keys', function ():
         'meta' => ['internal_flag' => 'important'],
     ]);
 
-    $response = postJson(route('licensing.heartbeat'), [
+    $response = postJson(route('laranail-license-kit.heartbeat'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'meta-safe-device',
         'data'        => ['internal_flag' => 'overwritten', 'app_version' => '2.0'],
@@ -284,7 +284,7 @@ test('license detail endpoint returns license information with valid fingerprint
 
     app(LicenceKit::class)->register($license, 'detail-device');
 
-    $response = postJson(route('licensing.licenses.show'), [
+    $response = postJson(route('laranail-license-kit.licenses.show'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'detail-device',
     ]);
@@ -307,7 +307,7 @@ test('license detail endpoint rejects invalid fingerprint', function (): void {
 
     app(LicenceKit::class)->register($license, 'real-device');
 
-    $response = postJson(route('licensing.licenses.show'), [
+    $response = postJson(route('laranail-license-kit.licenses.show'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'unknown-device',
     ]);
@@ -319,7 +319,7 @@ test('license detail endpoint rejects invalid fingerprint', function (): void {
 test('rejects fingerprint exceeding max length', function (): void {
     ensureApiRoutesRegistered();
 
-    $response = postJson(route('licensing.activate'), [
+    $response = postJson(route('laranail-license-kit.activate'), [
         'license_key' => 'LIC-TEST-KEY',
         'fingerprint' => str_repeat('a', 256),
     ]);
@@ -330,7 +330,7 @@ test('rejects fingerprint exceeding max length', function (): void {
 test('health endpoint reports healthy status when keys exist', function (): void {
     seedKeys();
 
-    $response = getJson(route('licensing.health'));
+    $response = getJson(route('laranail-license-kit.health'));
 
     $response->assertOk()
         ->assertJsonPath('data.status', 'healthy');
@@ -362,14 +362,14 @@ test('API error responses do not expose internal exception details', function ()
     ]);
 
     // Activate with first device
-    $response = postJson(route('licensing.activate'), [
+    $response = postJson(route('laranail-license-kit.activate'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'first-device',
     ]);
     $response->assertOk();
 
     // Try to exceed usage limit - should return generic message
-    $response = postJson(route('licensing.activate'), [
+    $response = postJson(route('laranail-license-kit.activate'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'second-device',
     ]);
@@ -396,7 +396,7 @@ test('usages endpoint lists the seats registered to a license', function (): voi
     $licensing->register($license, 'caller-device');
     $licensing->register($license, 'other-device');
 
-    $response = postJson(route('licensing.usages.index'), [
+    $response = postJson(route('laranail-license-kit.usages.index'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'caller-device',
     ]);
@@ -421,7 +421,7 @@ test('usages endpoint rejects a caller whose fingerprint is not an active seat',
 
     app(LicenceKit::class)->register($license, 'known-device');
 
-    postJson(route('licensing.usages.index'), [
+    postJson(route('laranail-license-kit.usages.index'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'stranger-device',
     ])->assertStatus(403);
@@ -442,7 +442,7 @@ test('usages/revoke revokes a seat by fingerprint', function (): void {
     $licensing->register($license, 'caller-device');
     $target = $licensing->register($license, 'doomed-device');
 
-    $response = postJson(route('licensing.usages.revoke'), [
+    $response = postJson(route('laranail-license-kit.usages.revoke'), [
         'license_key' => $licenseKey,
         'fingerprint' => 'caller-device',
         'target'      => 'doomed-device',

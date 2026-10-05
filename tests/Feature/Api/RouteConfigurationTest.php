@@ -24,30 +24,30 @@ test('license API routes expose expected URIs and middleware', function (): void
     // manual require needed.
     $prefix = config('licensing.api.prefix');
 
-    $activateRoute = routeByName('licensing.activate');
+    $activateRoute = routeByName('laranail-license-kit.activate');
     expect($activateRoute->uri())->toBe($prefix . '/activate');
 
-    $deactivateRoute = routeByName('licensing.deactivate');
+    $deactivateRoute = routeByName('laranail-license-kit.deactivate');
     expect($deactivateRoute->uri())->toBe($prefix . '/deactivate');
 
-    $refreshRoute = routeByName('licensing.refresh');
+    $refreshRoute = routeByName('laranail-license-kit.refresh');
     expect($refreshRoute->uri())->toBe($prefix . '/refresh');
 
-    $validateRoute = routeByName('licensing.validate');
+    $validateRoute = routeByName('laranail-license-kit.validate');
     expect($validateRoute->uri())->toBe($prefix . '/validate')
         ->and(collect($validateRoute->gatherMiddleware()))
         ->toContain('api');
 
-    $heartbeatRoute = routeByName('licensing.heartbeat');
+    $heartbeatRoute = routeByName('laranail-license-kit.heartbeat');
     expect($heartbeatRoute->uri())->toBe($prefix . '/heartbeat');
 
-    $licenseShowRoute = routeByName('licensing.licenses.show');
+    $licenseShowRoute = routeByName('laranail-license-kit.licenses.show');
     expect($licenseShowRoute->uri())->toBe($prefix . '/licenses/show');
 
-    $healthRoute = routeByName('licensing.health');
+    $healthRoute = routeByName('laranail-license-kit.health');
     expect($healthRoute->uri())->toBe($prefix . '/health');
 
-    $tokenRoute = routeByName('licensing.token.issue');
+    $tokenRoute = routeByName('laranail-license-kit.token.issue');
     expect($tokenRoute->uri())->toBe($prefix . '/token');
 });
 
@@ -58,9 +58,9 @@ test('license API routes expose expected URIs and middleware', function (): void
 test('the provider registers API routes from the merged config default', function (): void {
     expect(config('licensing.api.enabled'))->toBeTrue();
 
-    expect(RouteFacade::has('licensing.activate'))->toBeTrue('Provider should register API routes at boot');
-    expect(RouteFacade::has('licensing.validate'))->toBeTrue();
-    expect(RouteFacade::has('licensing.health'))->toBeTrue();
+    expect(RouteFacade::has('laranail-license-kit.activate'))->toBeTrue('Provider should register API routes at boot');
+    expect(RouteFacade::has('laranail-license-kit.validate'))->toBeTrue();
+    expect(RouteFacade::has('laranail-license-kit.health'))->toBeTrue();
 });
 
 // Regression test for issue #4: controller classes were missing in v1.0.3,
