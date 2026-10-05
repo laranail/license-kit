@@ -24,11 +24,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The base `Commands\Command` applies `laranail/package-tools`' `Commands\Concerns\ReadsOptions`,
   whose accessors report an absent and an empty option alike.
 
+- **The API route names, rate limiters and token binding are vendor-scoped.** Route names
+  `licensing.*` are now `laranail-license-kit.*` (10 routes), the rate limiters
+  `licensing-{validate,register,token}` are `laranail-license-kit.{validate,register,token}`, and
+  the offline-token service is bound as `laranail.license-kit.token`. Each lived in a flat,
+  host-owned registry, where a sibling package or the application claiming the same key silently
+  replaces it. URL paths and the `licensing` config key are unchanged. Requires
+  `laranail/package-tools ^0.1.3` for `hasDeprecatedRouteNames()`.
+
 ### Added
+
+- **`tests/Feature/NamingConventionTest.php`** reads the live router, rate limiter and container
+  registries through package-tools' `AssertsRegisteredNames`, and checks every deprecated alias
+  still resolves and announces itself once.
 
 - **`assertNoNullOnlyOptionGuards()` is enforced over `src/`.** One read is exempt, annotated on its
   own line: `IssueSigningKeyCommand`'s `--days` branch tests `!== null` but validates `is_numeric()`
   and `> 0` inside, so an empty value fails closed with a message.
+
+### Deprecated
+
+- **Route names `licensing.*`.** They still generate the same URLs, through package-tools'
+  `BareRouteNameAliases`, with one `E_USER_DEPRECATED` notice per name. `Route::has()` answers
+  false for them, as for any alias. Use `laranail-license-kit.*`.
+- **Rate limiters `licensing-validate`, `licensing-register`, `licensing-token`.** Still registered;
+  each announces itself once and delegates to its scoped limiter. Use
+  `laranail-license-kit.{validate,register,token}`.
+- **Container key `licensing.token`.** An alias of `laranail.license-kit.token`, resolving the same
+  instance. A container alias cannot raise a notice, so this is documented only.
+
+All three are removed no earlier than the next minor after 0.1.
 
 ## [0.1.0] - 2026-07-11
 

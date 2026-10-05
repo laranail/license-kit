@@ -275,16 +275,18 @@ php artisan laranail::license-kit.notify-expiring           # N, N/2, N/4 days b
 # laravel-licensing — API & Security
 
 ## Endpoints (prefix `/api/licensing/v1`)
-| Method | Path                | Middleware                        |
-|--------|---------------------|-----------------------------------|
-| POST   | /activate           | throttle:licensing-register       |
-| POST   | /deactivate         | throttle:licensing-register       |
-| POST   | /refresh            | throttle:licensing-token          |
-| POST   | /validate           | throttle:licensing-validate       |
-| POST   | /heartbeat          | throttle:licensing-validate       |
-| POST   | /licenses/show      | throttle:licensing-validate       |
-| POST   | /token              | throttle:licensing-token          |
-| GET    | /health             | —                                 |
+| Method | Path           | Middleware                             |
+|--------|----------------|----------------------------------------|
+| POST   | /activate      | throttle:laranail-license-kit.register |
+| POST   | /deactivate    | throttle:laranail-license-kit.register |
+| POST   | /refresh       | throttle:laranail-license-kit.token    |
+| POST   | /validate      | throttle:laranail-license-kit.validate |
+| POST   | /heartbeat     | throttle:laranail-license-kit.validate |
+| POST   | /licenses/show | throttle:laranail-license-kit.validate |
+| POST   | /token         | throttle:laranail-license-kit.token    |
+| GET    | /health        | —                                      |
+
+Route names are `laranail-license-kit.*`; the bare `licensing.*` names and `licensing-*` limiters are deprecated aliases.
 
 Default limits: `validate_per_minute=60`, `register_per_minute=30`, `token_per_minute=20`.
 

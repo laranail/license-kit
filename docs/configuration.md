@@ -450,7 +450,9 @@ Configure how public keys are distributed:
 
 ### API rate limits
 
-Rate limiting is applied by default to all API endpoints. The package registers three named rate limiters (`licensing-validate`, `licensing-register`, `licensing-token`) that are automatically applied via middleware.
+Rate limiting is applied by default to all API endpoints. The package registers three named rate limiters (`laranail-license-kit.validate`, `laranail-license-kit.register`, `laranail-license-kit.token`) that are automatically applied via middleware.
+
+> The bare names used until 0.1 (`licensing-validate`, `licensing-register`, `licensing-token`) stay registered as deprecated aliases. Each delegates to its scoped limiter and raises one `E_USER_DEPRECATED` notice per process. They are removed no earlier than the next minor after 0.1; a host route throttled with `throttle:licensing-*` should move to the scoped name.
 
 Configure the limits in `config/licensing.php`:
 
@@ -469,15 +471,24 @@ Configure the limits in `config/licensing.php`:
 
 Endpoints and their rate limiters:
 
-| Endpoint | Rate Limiter |
-|----------|-------------|
-| `POST /activate` | `licensing-register` |
-| `POST /deactivate` | `licensing-register` |
-| `POST /refresh` | `licensing-token` |
-| `POST /validate` | `licensing-validate` |
-| `POST /heartbeat` | `licensing-validate` |
-| `GET /licenses/{key}` | `licensing-validate` |
-| `POST /token` | `licensing-token` |
+| Endpoint | Route name | Rate limiter |
+|----------|------------|--------------|
+| `POST /activate` | `laranail-license-kit.activate` | `laranail-license-kit.register` |
+| `POST /deactivate` | `laranail-license-kit.deactivate` | `laranail-license-kit.register` |
+| `POST /refresh` | `laranail-license-kit.refresh` | `laranail-license-kit.token` |
+| `POST /validate` | `laranail-license-kit.validate` | `laranail-license-kit.validate` |
+| `POST /heartbeat` | `laranail-license-kit.heartbeat` | `laranail-license-kit.validate` |
+| `POST /usages` | `laranail-license-kit.usages.index` | `laranail-license-kit.validate` |
+| `POST /usages/revoke` | `laranail-license-kit.usages.revoke` | `laranail-license-kit.register` |
+| `POST /licenses/show` | `laranail-license-kit.licenses.show` | `laranail-license-kit.validate` |
+| `POST /token` | `laranail-license-kit.token.issue` | `laranail-license-kit.token` |
+| `GET /health` | `laranail-license-kit.health` | none |
+
+### Route and container names
+
+Every API route name carries the vendor and slug: `route('laranail-license-kit.activate')`. The bare `licensing.*` names used until 0.1 still generate the same URL, through laranail/package-tools' `BareRouteNameAliases`, and raise one `E_USER_DEPRECATED` notice per name per process. `Route::has('licensing.activate')` answers false, as for any alias; ask for the scoped name.
+
+The offline-token service is bound as `laranail.license-kit.token`. The pre-0.1 key `licensing.token` is a container alias of it and resolves the same instance. A container alias cannot raise a notice, so this one is deprecated by documentation only; it is removed no earlier than the next minor after 0.1. Resolve `TokenIssuer` or `TokenVerifier` by contract instead where you can.
 
 ### Custom rate limiting
 
