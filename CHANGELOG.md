@@ -21,6 +21,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Test credentials are generated at run time with `TestCredentials` instead of being written into
+  the tests, and `tests/Architecture/NoLiteralCredentialsTest.php` fails the suite on any literal
+  credential left behind, so secret scanning has nothing to report. A second test there keeps
+  every generated credential's purpose a single plain word, because secret scanning reads a
+  compound purpose as the password itself. The `laranail/package-tools` floor is now `^0.1.10`,
+  the first release shipping that check.
+
 - The base `Commands\Command` applies `laranail/package-tools`' `Commands\Concerns\ReadsOptions`,
   whose accessors report an absent and an empty option alike.
 
