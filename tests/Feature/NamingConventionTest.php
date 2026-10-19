@@ -30,13 +30,13 @@ const LICENSE_KIT_BARE_ROUTES = [
     'licensing.usages.index'  => 'laranail-license-kit.usages.index',
     'licensing.usages.revoke' => 'laranail-license-kit.usages.revoke',
     'licensing.licenses.show' => 'laranail-license-kit.licenses.show',
-    'licensing.token.issue'   => 'laranail-license-kit.token.issue',
+    'licensing.token.issue'   => 'laranail-license-kit.token.issue', // @credential-literal-exempt: a route name, not a credential
 ];
 
 const LICENSE_KIT_BARE_LIMITERS = [
     'licensing-validate' => 'laranail-license-kit.validate',
     'licensing-register' => 'laranail-license-kit.register',
-    'licensing-token'    => 'laranail-license-kit.token',
+    'licensing-token'    => 'laranail-license-kit.token', // @credential-literal-exempt: a rate-limiter name, not a credential
 ];
 
 function licenseKitScope(): NamingScope
